@@ -42,6 +42,7 @@ SET(_unity_include_src
   fe_q_dg0.cc
   fe_q_hierarchical.cc
   fe_q_iso_q1.cc
+  fe_q_tet.cc
   fe_rannacher_turek.cc
   fe_raviart_thomas.cc
   fe_raviart_thomas_nodal.cc
@@ -110,6 +111,7 @@ SET(_inst
   fe_q_hierarchical.inst.in
   fe_q.inst.in
   fe_q_iso_q1.inst.in
+  fe_q_tet.inst.in
   fe_rannacher_turek.inst.in
   fe_raviart_thomas.inst.in
   fe_raviart_thomas_nodal.inst.in

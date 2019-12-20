@@ -17,6 +17,7 @@
 #include <deal.II/base/polynomials_p.h>
 #include <deal.II/base/polynomials_piecewise.h>
 #include <deal.II/base/polynomials_rannacher_turek.h>
+#include <deal.II/base/polynomials_tet.h>
 #include <deal.II/base/qprojector.h>
 #include <deal.II/base/tensor_product_polynomials.h>
 #include <deal.II/base/tensor_product_polynomials_bubbles.h>

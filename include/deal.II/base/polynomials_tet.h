@@ -30,12 +30,20 @@ class PolynomialsTet : public ScalarPolynomialsBase<dim>
 public:
   static const unsigned int dimension = dim;
 
-  PolynomialsTet(const unsigned int degree)
-    : ScalarPolynomialsBase<dim>(1 /*degree*/, 3 /*n_polynomials*/)
-  {
-    AssertDimension(degree, 1);
-    AssertDimension(dimension, 2);
-  }
+  PolynomialsTet(const unsigned int degree);
+
+  double
+  compute_value(const unsigned int i, const Point<dim> &p) const;
+
+  template <int order>
+  Tensor<order, dim>
+  compute_derivative(const unsigned int i, const Point<dim> &p) const;
+
+  Tensor<1, dim>
+  compute_grad(const unsigned int i, const Point<dim> &p) const;
+
+  Tensor<2, dim>
+  compute_grad_grad(const unsigned int i, const Point<dim> &p) const;
 
   void
   evaluate(const Point<dim> &           unit_point,
@@ -43,33 +51,27 @@ public:
            std::vector<Tensor<1, dim>> &grads,
            std::vector<Tensor<2, dim>> &grad_grads,
            std::vector<Tensor<3, dim>> &third_derivatives,
-           std::vector<Tensor<4, dim>> &fourth_derivatives) const override
-  {
-    (void)grads;
-    (void)grad_grads;
-    (void)third_derivatives;
-    (void)fourth_derivatives;
-
-    if (values.size() == 0)
-      return;
-
-    AssertDimension(values.size(), 3);
-
-    values[0] = unit_point[0];
-    values[1] = unit_point[1];
-    values[2] = 1.0 - unit_point[0] - unit_point[1];
-  }
+           std::vector<Tensor<4, dim>> &fourth_derivatives) const override;
 
   std::string
-  name() const override
-  {
-    return "Tet";
-  }
+  name() const override;
 
   virtual std::unique_ptr<ScalarPolynomialsBase<dim>>
-  clone() const override
-  {}
+  clone() const override;
 };
+
+// template functions
+template <int dim>
+template <int order>
+Tensor<order, dim>
+PolynomialsTet<dim>::compute_derivative(const unsigned int i,
+                                        const Point<dim> & p) const
+{
+  (void)i;
+  (void)p;
+  Assert(false, ExcNotImplemented());
+  return Tensor<order, dim>();
+}
 
 
 DEAL_II_NAMESPACE_CLOSE

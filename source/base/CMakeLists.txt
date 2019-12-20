@@ -66,6 +66,7 @@ SET(_unity_include_src
   polynomials_bernardi_raugel.cc
   polynomials_nedelec.cc
   polynomials_integrated_legendre_sz.cc
+  polynomials_tet.cc
   polynomial_space.cc
   polynomials_p.cc
   polynomials_piecewise.cc
