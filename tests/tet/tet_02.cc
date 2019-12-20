@@ -17,6 +17,8 @@
 // Create a serial triangulation and copy it.
 
 
+#include <deal.II/base/quadrature_lib.h>
+
 #include <deal.II/fe/fe_q_tet.h>
 
 #include "../tests.h"
@@ -29,13 +31,15 @@ test(const unsigned int degree = 1)
 {
   FE_QTet<dim> fe(degree);
 
-  const Point<dim> unit_point(1.0 / std::sqrt(3.0), 1.0 / std::sqrt(3.0));
+  QDuffy quad(2, 1.0); // TODO: only working for 2D
 
-  std::cout << fe.dofs_per_cell << std::endl;
-
-  for (unsigned int i = 0; i < 3; i++)
-    deallog << fe.shape_value(i, unit_point) << " ";
-  deallog << std::endl;
+  for (const auto &point : quad.get_points())
+    {
+      deallog << point << " : ";
+      for (unsigned int i = 0; i < 3 /*TODO: fe.dofs_per_cell*/; i++)
+        deallog << fe.shape_value(i, point) << " ";
+      deallog << std::endl;
+    }
 }
 
 int
