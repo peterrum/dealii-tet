@@ -46,11 +46,27 @@ Tensor<1, dim>
 PolynomialsTet<dim>::compute_grad(const unsigned int i,
                                   const Point<dim> & p) const
 {
-  (void)i;
   (void)p;
 
-  Assert(false, ExcNotImplemented());
-  return Tensor<1, dim>();
+  Tensor<1, dim> grad;
+
+  if (i == 0)
+    {
+      grad[0] = +1.0;
+      grad[1] = +0.0;
+    }
+  else if (i == 1)
+    {
+      grad[0] = +0.0;
+      grad[1] = +1.0;
+    }
+  else if (i == 2)
+    {
+      grad[0] = -1.0;
+      grad[1] = -1.0;
+    }
+
+  return grad;
 }
 
 

@@ -67,10 +67,15 @@ Tensor<order, dim>
 PolynomialsTet<dim>::compute_derivative(const unsigned int i,
                                         const Point<dim> & p) const
 {
-  (void)i;
-  (void)p;
-  Assert(false, ExcNotImplemented());
-  return Tensor<order, dim>();
+  Tensor<order, dim> der;
+
+  AssertDimension(order, 1);
+  const auto grad = compute_grad(i, p);
+
+  for (unsigned int i = 0; i < dim; i++)
+    der[i] = grad[i];
+
+  return der;
 }
 
 

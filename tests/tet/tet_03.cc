@@ -1,0 +1,94 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (C) 2019 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// The deal.II library is free software; you can use it, redistribute
+// it, and/or modify it under the terms of the GNU Lesser General
+// Public License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// The full text of the license can be found in the file LICENSE.md at
+// the top level directory of deal.II.
+//
+// ---------------------------------------------------------------------
+
+
+// Create a serial triangulation and copy it.
+
+
+#include <deal.II/base/quadrature_lib.h>
+
+#include <deal.II/fe/fe_q_tet.h>
+
+#include "../tests.h"
+
+using namespace dealii;
+
+namespace
+{
+  template <int dim, int spacedim = dim>
+  class FEValues_
+  {
+  public:
+    FEValues_(const FiniteElement<dim, spacedim> &fe,
+              const Quadrature<dim> &             quad)
+      : fe(fe)
+      , quad(quad)
+    {}
+
+    double
+    JxW(const unsigned int quadrature_point) const
+    {
+      return quad.weight(quadrature_point);
+    }
+
+    Tensor<1, spacedim>
+    shape_grad(const unsigned int function_no,
+               const unsigned int quadrature_point) const
+    {
+      return fe.shape_grad(function_no, quad.point(quadrature_point));
+    }
+
+  private:
+    const FiniteElement<dim, spacedim> &fe;
+    const Quadrature<dim> &             quad;
+  };
+
+} // namespace
+
+template <int dim>
+void
+test(const unsigned int degree = 1)
+{
+  FE_QTet<dim> fe(degree);
+  QDuffy       quad(2, 1.0); // TODO: only working for 2D
+
+  FEValues_<dim> fe_values(fe, quad); // TODO: use actual FEValues
+
+  const unsigned int dofs_per_cell = 3; // TODO: fe.dofs_per_cell
+  const unsigned int n_q_points    = quad.size();
+  FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
+
+  for (unsigned int q_index = 0; q_index < n_q_points; ++q_index)
+    for (unsigned int i = 0; i < dofs_per_cell; ++i)
+      for (unsigned int j = 0; j < dofs_per_cell; ++j)
+        cell_matrix(i, j) +=
+          (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+           fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+           fe_values.JxW(q_index));           // dx
+
+  cell_matrix.print_formatted(deallog.get_file_stream(), 3, false, 10);
+}
+
+int
+main()
+{
+  initlog();
+
+  {
+    deallog.push("2d");
+    test<2>();
+    deallog.pop();
+  }
+}
