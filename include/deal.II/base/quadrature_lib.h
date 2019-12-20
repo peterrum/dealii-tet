@@ -801,6 +801,16 @@ public:
   QSplit(const QSimplex<dim> &base, const Point<dim> &split_point);
 };
 
+namespace Tet
+{
+  template <int dim>
+  class QGauss : public Quadrature<dim>
+  {
+  public:
+    QGauss(const unsigned int n_points);
+  };
+} // namespace Tet
+
 /*@}*/
 
 /* -------------- declaration of explicit specializations ------------- */

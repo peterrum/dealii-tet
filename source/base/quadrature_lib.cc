@@ -1347,7 +1347,64 @@ QSplit<dim>::QSplit(const QSimplex<dim> &base, const Point<dim> &split_point)
       }
 }
 
+namespace Tet
+{
+  template <int dim>
+  QGauss<dim>::QGauss(const unsigned int n_points)
+  {
+    const double Q14  = 1.0 / 4.0;
+    const double Q16  = 1.0 / 6.0;
+    const double Q124 = 1.0 / 6.0 / 4.0;
 
+    if (dim == 2)
+      {
+        if (n_points == 1)
+          {
+            const double p = 1.0 / 3.0;
+            this->quadrature_points.emplace_back(p, p);
+            this->weights.emplace_back(1.0);
+          }
+        else if (n_points == 3)
+          {
+            const double Q23 = 2.0 / 3.0;
+            const double Q16 = 1.0 / 6.0;
+
+            this->quadrature_points.emplace_back(Q23, Q16);
+            this->quadrature_points.emplace_back(Q16, Q23);
+            this->quadrature_points.emplace_back(Q16, Q16);
+            this->weights.emplace_back(Q16);
+            this->weights.emplace_back(Q16);
+            this->weights.emplace_back(Q16);
+          }
+      }
+    else if (dim == 3)
+      {
+        if (n_points == 1)
+          {
+            this->quadrature_points.emplace_back(Q14, Q14, Q14);
+            this->weights.emplace_back(Q16);
+          }
+        else if (n_points == 4)
+          {
+            const double palpha = (5.0 + 3.0 * sqrt(5.0)) / 20.0;
+            const double pbeta  = (5.0 - sqrt(5.0)) / 20.0;
+            this->quadrature_points.emplace_back(pbeta, pbeta, pbeta);
+            this->quadrature_points.emplace_back(palpha, pbeta, pbeta);
+            this->quadrature_points.emplace_back(pbeta, palpha, pbeta);
+            this->quadrature_points.emplace_back(pbeta, pbeta, palpha);
+            this->weights.emplace_back(Q124);
+            this->weights.emplace_back(Q124);
+            this->weights.emplace_back(Q124);
+            this->weights.emplace_back(Q124);
+          }
+      }
+
+    AssertDimension(this->quadrature_points.size(), this->weights.size());
+    Assert(this->quadrature_points.size() > 0,
+           ExcMessage("No valid quadrature points!"));
+  }
+
+} // namespace Tet
 
 // explicit specialization
 // note that 1d formulae are specialized by implementation above
@@ -1394,5 +1451,8 @@ template class QSimplex<3>;
 template class QSplit<1>;
 template class QSplit<2>;
 template class QSplit<3>;
+
+template class Tet::QGauss<2>;
+template class Tet::QGauss<3>;
 
 DEAL_II_NAMESPACE_CLOSE
