@@ -1347,8 +1347,6 @@ QSplit<dim>::QSplit(const QSimplex<dim> &base, const Point<dim> &split_point)
       }
 }
 
-
-
 // explicit specialization
 // note that 1d formulae are specialized by implementation above
 template class QGauss<2>;

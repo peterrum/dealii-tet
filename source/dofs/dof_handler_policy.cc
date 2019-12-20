@@ -34,6 +34,8 @@
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_iterator.h>
 
+#include <deal.II/tet/tria.h>
+
 #include <algorithm>
 #include <memory>
 #include <numeric>
@@ -1699,8 +1701,13 @@ namespace internal
                   std::vector<types::global_dof_index> dof_indices(
                     cell->get_fe().dofs_per_cell);
 
-                  internal::DoFAccessorImplementation::get_dof_indices(
-                    *cell, dof_indices, cell->active_fe_index());
+                  if (dynamic_cast<
+                        const Tet::Triangulation<DoFHandlerType::dimension> *>(
+                        &cell->get_triangulation()))
+                    cell->get_dof_indices(dof_indices);
+                  else
+                    internal::DoFAccessorImplementation::get_dof_indices(
+                      *cell, dof_indices, cell->active_fe_index());
 
                   for (auto &dof_index : dof_indices)
                     if (dof_index == numbers::invalid_dof_index)

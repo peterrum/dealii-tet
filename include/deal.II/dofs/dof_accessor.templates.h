@@ -31,6 +31,8 @@
 #include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/read_write_vector.h>
 
+#include <deal.II/tet/fe_q.h>
+
 #include <limits>
 #include <type_traits>
 #include <vector>
@@ -2471,6 +2473,41 @@ inline void
 DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
   std::vector<types::global_dof_index> &dof_indices) const
 {
+  if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
+    {
+      const unsigned int dim = DoFHandlerType::dimension;
+
+      const auto fe = &this->dof_handler->get_fe();
+
+      unsigned int n_dofs;
+
+      if (auto fe_ = dynamic_cast<const Tet::FE_Q<dim> *>(fe))
+        {
+          n_dofs = fe_->degree == 1 ? 3 : 7;
+        }
+      else
+        {
+          AssertThrow(false, ExcNotImplemented());
+        }
+
+      dof_indices.resize(n_dofs);
+
+      auto ptr = dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          {
+            this->dof_handler->get_entity_dofs(d, index, ptr);
+          }
+
+      // ... and finally cell
+      this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
+
   Assert(this->is_active(),
          ExcMessage("get_dof_indices() only works on active cells."));
   Assert(this->is_artificial() == false,

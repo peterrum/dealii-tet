@@ -29,6 +29,8 @@
 #include <deal.II/grid/tria_iterator.templates.h>
 #include <deal.II/grid/tria_levels.h>
 
+#include <deal.II/tet/tria.h>
+
 #include <cmath>
 
 DEAL_II_NAMESPACE_OPEN
@@ -92,6 +94,7 @@ inline TriaAccessorBase<structdim, dim, spacedim> &
 TriaAccessorBase<structdim, dim, spacedim>::
 operator=(const TriaAccessorBase<structdim, dim, spacedim> &a)
 {
+  Assert(false, ExcNotImplemented());
   present_level = a.present_level;
   present_index = a.present_index;
   tria          = a.tria;
@@ -125,6 +128,7 @@ inline bool
 TriaAccessorBase<structdim, dim, spacedim>::
 operator!=(const TriaAccessorBase<structdim, dim, spacedim> &a) const
 {
+  Assert(false, ExcNotImplemented());
   Assert(tria == a.tria || tria == nullptr || a.tria == nullptr,
          TriaAccessorExceptions::ExcCantCompareIterators());
   return ((tria != a.tria) || (present_level != a.present_level) ||
@@ -138,6 +142,7 @@ inline bool
 TriaAccessorBase<structdim, dim, spacedim>::
 operator<(const TriaAccessorBase<structdim, dim, spacedim> &other) const
 {
+  Assert(false, ExcNotImplemented());
   Assert(tria == other.tria, TriaAccessorExceptions::ExcCantCompareIterators());
 
   if (present_level != other.present_level)
@@ -236,6 +241,7 @@ template <int structdim, int dim, int spacedim>
 inline void
 TriaAccessorBase<structdim, dim, spacedim>::operator--()
 {
+  Assert(false, ExcNotImplemented());
   // same as operator++
   --this->present_index;
 
@@ -1186,10 +1192,32 @@ inline unsigned int
 TriaAccessor<structdim, dim, spacedim>::vertex_index(
   const unsigned int corner) const
 {
+  if (auto tria_tet =
+        dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria))
+    {
+      AssertIndexRange(corner, this->n_vertices());
+      return tria_tet
+        ->vertex_indices[tria_tet->vertex_indices_ptr[this->index()] + corner];
+    }
+
   AssertIndexRange(corner, GeometryInfo<structdim>::vertices_per_cell);
 
   return dealii::internal::TriaAccessorImplementation::Implementation::
     vertex_index(*this, corner);
+}
+
+
+
+template <int structdim, int dim, int spacedim>
+inline unsigned int
+TriaAccessor<structdim, dim, spacedim>::n_vertices() const
+{
+  if (auto tria_tet =
+        dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria))
+    return tria_tet->vertex_indices_ptr[this->index() + 1] -
+           tria_tet->vertex_indices_ptr[this->index()];
+
+  return Utilities::pow(2, dim);
 }
 
 

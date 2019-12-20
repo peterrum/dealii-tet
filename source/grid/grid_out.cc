@@ -3172,6 +3172,74 @@ GridOut::write_vtk(const Triangulation<dim, spacedim> &tria,
       out << '\n';
     }
 
+  // if we have a triangle element we just don't do the following
+  if (dynamic_cast<const Tet::Triangulation<std::min(dim, 2), spacedim> *>(
+        &tria) != nullptr)
+    {
+      unsigned int vertices_per_cell = 3;
+
+      // WORKAROUND
+      // n_active_cells() not implemented yet in Tet::triangulation
+      // only cell_iterators available, therefore, we just loop over
+      // all cells an increase a counter by 1
+      unsigned int num_cells = 0;
+      for (const auto &cell : tria.cell_iterators())
+        {
+          (void)cell;
+          num_cells++;
+        }
+
+      AssertThrow(
+        vtk_flags.output_cells || (dim >= 2 && vtk_flags.output_faces) ||
+          (dim >= 3 && vtk_flags.output_edges),
+        ExcMessage(
+          "At least one of the flags (output_cells, output_faces, output_edges) has to be enabled!"));
+
+      // Write cells preamble
+      const int n_cells = (vtk_flags.output_cells ? num_cells : 0);
+      const int cells_size =
+        (vtk_flags.output_cells ? num_cells * (vertices_per_cell + 1) : 0);
+
+      AssertThrow(cells_size > 0, ExcMessage("No cells given to be output!"));
+
+      out << "\nCELLS " << n_cells << ' ' << cells_size << '\n';
+      /*
+       * VTK cells:
+       *
+       * 5 VTK_TRIANGLE
+       * ...
+       */
+      int cell_type = (dim == 1 ? 3 : dim == 2 ? 9 : 12);
+
+      // just reuse cell_type_is_tri to overwrite cell_type in case of quad
+      if (dim == 2)
+        cell_type = 5;
+
+      // write cells.
+      if (vtk_flags.output_cells)
+        for (const auto &cell : tria.cell_iterators())
+          {
+            out << vertices_per_cell;
+            for (unsigned int i = 0; i < vertices_per_cell; ++i)
+              {
+                out << ' ' << cell->vertex_index(i);
+              }
+            out << '\n';
+          }
+
+      // write cell types
+      out << "\nCELL_TYPES " << n_cells << '\n';
+      if (vtk_flags.output_cells)
+        {
+          for (unsigned int i = 0; i < num_cells; ++i)
+            {
+              out << cell_type << ' ';
+            }
+          out << '\n';
+        }
+      return;
+    }
+
   const auto faces = vtk_flags.output_only_relevant ?
                        get_relevant_face_iterators(tria) :
                        get_boundary_face_iterators(tria);

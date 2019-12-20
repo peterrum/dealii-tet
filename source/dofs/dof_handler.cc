@@ -22,7 +22,15 @@
 #include <deal.II/dofs/dof_handler_policy.h>
 
 #include <deal.II/grid/grid_tools.h>
+#include <deal.II/grid/tria.h>
+#include <deal.II/grid/tria_accessor.h>
+#include <deal.II/grid/tria_iterator.h>
+#include <deal.II/grid/tria_levels.h>
 
+#include <deal.II/tet/fe_q.h>
+
+#include <algorithm>
+#include <set>
 #include <unordered_set>
 
 DEAL_II_NAMESPACE_OPEN
@@ -2498,6 +2506,70 @@ DoFHandler<dim, spacedim>::distribute_dofs(
       // first, assign the finite_element
       this->set_fe(ff);
 
+      if (auto tria = dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+            this->tria.operator->()))
+        {
+          // 1) clear old state
+          this->clear_space();
+          new_dofs.resize(1);
+          new_dofs_ptr.resize(1);
+
+          // 2) get number of dofs per entity of a single FE
+          //    (TODO: should be part of Finite Element)
+          const auto dofs_per_entity =
+            [&](const FiniteElement<dim, spacedim> &fe) {
+              AssertThrow(dynamic_cast<const Tet::FE_Q<dim> *>(&ff[0]) !=
+                            nullptr,
+                          ExcNotImplemented());
+              AssertDimension(dim, 2);
+
+              std::array<unsigned int, dim + 1> dofs_per_d;
+
+              if (fe.degree == 1)
+                {
+                  dofs_per_d[0] = 1;
+                  dofs_per_d[1] = 0;
+                  dofs_per_d[2] = 0;
+                }
+              else if (fe.degree == 2)
+                {
+                  dofs_per_d[0] = 1;
+                  dofs_per_d[1] = 1;
+                  dofs_per_d[2] = 1;
+                }
+              else
+                {
+                  AssertThrow(false, ExcNotImplemented());
+                }
+
+              return dofs_per_d;
+            }(ff[0]);
+
+          // 3) reserve space for each entity of triangulation
+          const auto &entity_table = tria->get_entity_table();
+
+          for (int d = 0; d <= dim; d++)
+            {
+              new_dofs[0][d].clear();
+              new_dofs_ptr[0][d].clear();
+              new_dofs_ptr[0][d].push_back(0);
+
+              for (unsigned int i = 0;
+                   i < entity_table[d][std::max(1, d)].ptr.size() - 1;
+                   i++)
+                {
+                  for (unsigned int j = 0; j < dofs_per_entity[d]; j++)
+                    new_dofs[0][d].push_back(numbers::invalid_dof_index);
+                  new_dofs_ptr[0][d].push_back(new_dofs[0][d].size());
+                }
+            }
+
+          // 4) distribute dofs
+          number_cache = policy->distribute_dofs();
+
+          return;
+        }
+
       // delete all levels and set them up newly. note that we still have to
       // allocate space for all degrees of freedom on this mesh (including ghost
       // and cells that are entirely stored on different processors), though we
@@ -2522,6 +2594,45 @@ DoFHandler<dim, spacedim>::distribute_dofs(
             &*this->tria) == nullptr)
         this->block_info_object.initialize(*this, false, true);
     }
+}
+
+
+
+template <int dim, int spacedim>
+void
+DoFHandler<dim, spacedim>::set_entity_dofs(unsigned int d,
+                                           unsigned int index,
+                                           const types::global_dof_index *&ptr)
+{
+  AssertIndexRange(d, new_dofs_ptr[0].size());
+  AssertIndexRange(index + 1, new_dofs_ptr[0][d].size());
+
+  const unsigned int n_dofs =
+    new_dofs_ptr[0][d][index + 1] - new_dofs_ptr[0][d][index];
+
+  std::memcpy(new_dofs[0][d].data() + new_dofs_ptr[0][d][index],
+              ptr,
+              n_dofs * sizeof(types::global_dof_index));
+
+  ptr += n_dofs;
+}
+
+
+
+template <int dim, int spacedim>
+void
+DoFHandler<dim, spacedim>::get_entity_dofs(unsigned int              d,
+                                           unsigned int              index,
+                                           types::global_dof_index *&ptr) const
+{
+  const unsigned int n_dofs =
+    new_dofs_ptr[0][d][index + 1] - new_dofs_ptr[0][d][index];
+
+  std::memcpy(ptr,
+              new_dofs[0][d].data() + new_dofs_ptr[0][d][index],
+              n_dofs * sizeof(types::global_dof_index));
+
+  ptr += n_dofs;
 }
 
 

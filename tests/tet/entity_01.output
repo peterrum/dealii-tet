@@ -1,0 +1,18 @@
+
+DEAL:tet::  3
+DEAL:tet::0 1 
+DEAL:tet::1 2 
+DEAL:tet::2 0 
+DEAL:tet::
+DEAL:tet::  1
+DEAL:tet::0 1 2 
+DEAL:tet::
+DEAL:quad::  4
+DEAL:quad::0 1 
+DEAL:quad::1 2 
+DEAL:quad::2 3 
+DEAL:quad::3 0 
+DEAL:quad::
+DEAL:quad::  1
+DEAL:quad::0 1 2 3 
+DEAL:quad::
