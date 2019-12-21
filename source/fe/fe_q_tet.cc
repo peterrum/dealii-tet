@@ -42,7 +42,7 @@ template <int dim>
 std::unique_ptr<FiniteElement<dim, dim>>
 FE_QTet<dim>::clone() const
 {
-  Assert(false, ExcNotImplemented());
+  return std_cxx14::make_unique<FE_QTet<dim>>(*this);
 }
 
 template <int dim>
