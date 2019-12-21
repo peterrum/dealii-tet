@@ -18,26 +18,64 @@
 
 DEAL_II_NAMESPACE_OPEN
 
+namespace
+{
+  unsigned int
+  compute_n_polynomials(const unsigned int dim, const unsigned int degree)
+  {
+    if (dim == 2)
+      {
+        if (degree == 1) // TRI3
+          return 3;
+      }
+    else if (dim == 3)
+      {
+        if (degree == 1) // TET4
+          return 4;
+      }
+
+    Assert(false, ExcNotImplemented());
+  }
+} // namespace
+
 template <int dim>
 PolynomialsTet<dim>::PolynomialsTet(const unsigned int degree)
-  : ScalarPolynomialsBase<dim>(1 /*degree*/, 3 /*n_polynomials*/)
-{
-  AssertDimension(degree, 1);
-  AssertDimension(dimension, 2);
-}
+  : ScalarPolynomialsBase<dim>(degree, compute_n_polynomials(dim, degree))
+{}
 template <int dim>
 double
 PolynomialsTet<dim>::compute_value(const unsigned int i,
                                    const Point<dim> & p) const
 {
-  if (i == 0)
-    return p[0];
-  else if (i == 1)
-    return p[1];
-  else if (i == 2)
-    return 1.0 - p[0] - p[1];
+  if (dim == 2)
+    {
+      if (this->degree() == 1) // TRI3
+        {
+          if (i == 0)
+            return p[0];
+          else if (i == 1)
+            return p[1];
+          else if (i == 2)
+            return 1.0 - p[0] - p[1];
+        }
+    }
+  else if (dim == 3)
+    {
+      if (this->degree() == 1) // TET4
+        {
+          if (i == 0)
+            return 1.0 - p[0] - p[1] - p[2];
+          else if (i == 1)
+            return p[0];
+          else if (i == 2)
+            return p[1];
+          else if (i == 3)
+            return p[2];
+        }
+    }
 
-  AssertIndexRange(i, 3);
+  Assert(false, ExcNotImplemented());
+
   return 0;
 }
 
@@ -50,20 +88,56 @@ PolynomialsTet<dim>::compute_grad(const unsigned int i,
 
   Tensor<1, dim> grad;
 
-  if (i == 0)
+  if (dim == 2)
     {
-      grad[0] = +1.0;
-      grad[1] = +0.0;
+      if (this->degree() == 1) // TRI3
+        {
+          if (i == 0)
+            {
+              grad[0] = +1.0;
+              grad[1] = +0.0;
+            }
+          else if (i == 1)
+            {
+              grad[0] = +0.0;
+              grad[1] = +1.0;
+            }
+          else if (i == 2)
+            {
+              grad[0] = -1.0;
+              grad[1] = -1.0;
+            }
+        }
     }
-  else if (i == 1)
+  else if (dim == 3)
     {
-      grad[0] = +0.0;
-      grad[1] = +1.0;
-    }
-  else if (i == 2)
-    {
-      grad[0] = -1.0;
-      grad[1] = -1.0;
+      if (this->degree() == 1) // TET4
+        {
+          if (i == 0)
+            {
+              grad[0] = -1.0;
+              grad[1] = -1.0;
+              grad[2] = -1.0;
+            }
+          else if (i == 1)
+            {
+              grad[0] = +1.0;
+              grad[1] = +0.0;
+              grad[2] = +0.0;
+            }
+          else if (i == 2)
+            {
+              grad[0] = +0.0;
+              grad[1] = +1.0;
+              grad[2] = +0.0;
+            }
+          else if (i == 3)
+            {
+              grad[0] = +0.0;
+              grad[1] = +0.0;
+              grad[2] = +1.0;
+            }
+        }
     }
 
   return grad;
