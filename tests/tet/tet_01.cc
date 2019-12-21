@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Create a serial triangulation and copy it.
+// Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
 #include <deal.II/base/polynomials_tet.h>

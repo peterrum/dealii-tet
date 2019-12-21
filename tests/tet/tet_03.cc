@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Create a serial triangulation and copy it.
+// Compute element stiffness matrix with FE_QTet, QGaussTet, and FEValues.
 
 
 #include <deal.II/base/quadrature_lib.h>

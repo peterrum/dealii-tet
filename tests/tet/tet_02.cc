@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Create a serial triangulation and copy it.
+// Test FE_QTet on quadrature points returned by QGaussTet.
 
 
 #include <deal.II/base/quadrature_lib.h>
