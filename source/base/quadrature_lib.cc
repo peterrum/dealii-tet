@@ -1384,7 +1384,7 @@ QGaussTet<dim>::QGaussTet(const unsigned int n_points)
           this->quadrature_points.emplace_back(Q14, Q14, Q14);
           this->weights.emplace_back(Q16);
         }
-      else if (n_points == 2)
+      else if (n_points == 4)
         {
           const double palpha = (5.0 + 3.0 * sqrt(5.0)) / 20.0;
           const double pbeta  = (5.0 - sqrt(5.0)) / 20.0;

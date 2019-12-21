@@ -18,6 +18,7 @@
 
 
 #include <deal.II/base/polynomials_tet.h>
+#include <deal.II/base/quadrature_lib.h>
 
 #include "./tests.h"
 
@@ -25,13 +26,10 @@ using namespace dealii;
 
 template <int dim>
 void
-test(const unsigned int degree)
+test(const unsigned int degree, const unsigned int n_points)
 {
   PolynomialsTet<dim> poly(degree);
-
-  const Point<dim> unit_point = dim == 2 ?
-                                  Point<dim>(1.0 / 3.0, 1.0 / 3.0) :
-                                  Point<dim>(1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0);
+  QGaussTet<dim>      quad(n_points);
 
   std::vector<double>         values(poly.n());
   std::vector<Tensor<1, dim>> grads;
@@ -39,31 +37,47 @@ test(const unsigned int degree)
   std::vector<Tensor<3, dim>> third_derivatives;
   std::vector<Tensor<4, dim>> fourth_derivatives;
 
-  poly.evaluate(unit_point,
-                values,
-                grads,
-                grad_grads,
-                third_derivatives,
-                fourth_derivatives);
+  for (unsigned int i = 0; i < n_points; i++)
+    {
+      poly.evaluate(quad.point(i),
+                    values,
+                    grads,
+                    grad_grads,
+                    third_derivatives,
+                    fourth_derivatives);
 
-  for (auto v : values)
-    deallog << v << " ";
-  deallog << std::endl;
+      deallog << quad.point(i) << " ";
+      deallog << quad.weight(i) << " ";
+
+      for (auto v : values)
+        deallog << v << " ";
+      deallog << std::endl;
+    }
 }
 
 int
-main(int argc, char *argv[])
+main()
 {
   initlog();
 
   {
-    deallog.push("2d");
-    test<2>(1 /*degree*/);
+    deallog.push("2d-1");
+    test<2>(1 /*degree*/, 1 /*n_points*/);
     deallog.pop();
   }
   {
-    deallog.push("3d");
-    test<3>(1 /*degree*/);
+    deallog.push("2d-3");
+    test<2>(1 /*degree*/, 3 /*n_points*/);
+    deallog.pop();
+  }
+  {
+    deallog.push("3d-1");
+    test<3>(1 /*degree*/, 1 /*n_points*/);
+    deallog.pop();
+  }
+  {
+    deallog.push("3d-1");
+    test<3>(1 /*degree*/, 4 /*n_points*/);
     deallog.pop();
   }
 }

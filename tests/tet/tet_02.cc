@@ -42,7 +42,7 @@ test(const unsigned int degree = 1)
 }
 
 int
-main(int argc, char *argv[])
+main()
 {
   initlog();
 
