@@ -25,11 +25,14 @@ using namespace dealii;
 
 template <int dim>
 void
-test(const unsigned int degree = 1)
+test(const unsigned int degree)
 {
   PolynomialsTet<dim> poly(degree);
 
-  const Point<dim>            unit_point(1.0 / 3.0, 1.0 / 3.0);
+  const Point<dim> unit_point = dim == 2 ?
+                                  Point<dim>(1.0 / 3.0, 1.0 / 3.0) :
+                                  Point<dim>(1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0);
+
   std::vector<double>         values(poly.n());
   std::vector<Tensor<1, dim>> grads;
   std::vector<Tensor<2, dim>> grad_grads;
@@ -55,7 +58,12 @@ main(int argc, char *argv[])
 
   {
     deallog.push("2d");
-    test<2>();
+    test<2>(1 /*degree*/);
+    deallog.pop();
+  }
+  {
+    deallog.push("3d");
+    test<3>(1 /*degree*/);
     deallog.pop();
   }
 }

@@ -175,9 +175,9 @@ PolynomialsTet<dim>::evaluate(
   if (values.size() == 0)
     return;
 
-  AssertDimension(values.size(), 3);
+  AssertDimension(values.size(), this->n());
 
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < this->n(); i++)
     values[i] = compute_value(i, unit_point);
 }
 
