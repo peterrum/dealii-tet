@@ -30,8 +30,8 @@ template <int dim>
 void
 test(const unsigned int degree = 1)
 {
-  FESystem<dim> fe(FE_QTet<dim>(degree), dim);
-  QDuffy        quad(2, 1.0); // TODO: only working for 2D
+  FESystem<dim>  fe(FE_QTet<dim>(degree), dim);
+  QGaussTet<dim> quad(3);
 
   FEValues_<dim> fe_values(fe, quad); // TODO: use actual FEValues
 

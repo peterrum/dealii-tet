@@ -801,6 +801,13 @@ public:
   QSplit(const QSimplex<dim> &base, const Point<dim> &split_point);
 };
 
+template <int dim>
+class QGaussTet : public Quadrature<dim>
+{
+public:
+  QGaussTet(const unsigned int n_points);
+};
+
 /*@}*/
 
 /* -------------- declaration of explicit specializations ------------- */

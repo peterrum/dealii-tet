@@ -29,8 +29,8 @@ test(const unsigned int degree = 1)
 {
   PolynomialsTet<dim> poly(degree);
 
-  const Point<dim>    unit_point(1.0 / std::sqrt(3.0), 1.0 / std::sqrt(3.0));
-  std::vector<double> values(poly.n());
+  const Point<dim>            unit_point(1.0 / 3.0, 1.0 / 3.0);
+  std::vector<double>         values(poly.n());
   std::vector<Tensor<1, dim>> grads;
   std::vector<Tensor<2, dim>> grad_grads;
   std::vector<Tensor<3, dim>> third_derivatives;
