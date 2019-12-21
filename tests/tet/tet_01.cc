@@ -19,7 +19,7 @@
 
 #include <deal.II/base/polynomials_tet.h>
 
-#include "../tests.h"
+#include "./tests.h"
 
 using namespace dealii;
 

@@ -21,41 +21,9 @@
 
 #include <deal.II/fe/fe_q_tet.h>
 
-#include "../tests.h"
+#include "./tests.h"
 
 using namespace dealii;
-
-namespace
-{
-  template <int dim, int spacedim = dim>
-  class FEValues_
-  {
-  public:
-    FEValues_(const FiniteElement<dim, spacedim> &fe,
-              const Quadrature<dim> &             quad)
-      : fe(fe)
-      , quad(quad)
-    {}
-
-    double
-    JxW(const unsigned int quadrature_point) const
-    {
-      return quad.weight(quadrature_point);
-    }
-
-    Tensor<1, spacedim>
-    shape_grad(const unsigned int function_no,
-               const unsigned int quadrature_point) const
-    {
-      return fe.shape_grad(function_no, quad.point(quadrature_point));
-    }
-
-  private:
-    const FiniteElement<dim, spacedim> &fe;
-    const Quadrature<dim> &             quad;
-  };
-
-} // namespace
 
 template <int dim>
 void

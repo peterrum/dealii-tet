@@ -21,7 +21,7 @@
 
 #include <deal.II/fe/fe_q_tet.h>
 
-#include "../tests.h"
+#include "./tests.h"
 
 using namespace dealii;
 
