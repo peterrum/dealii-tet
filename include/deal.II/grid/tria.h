@@ -1814,7 +1814,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  void
+  virtual void
   set_manifold(const types::manifold_id       number,
                const Manifold<dim, spacedim> &manifold_object);
 
@@ -1834,7 +1834,7 @@ public:
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
   DEAL_II_DEPRECATED
-  void
+  virtual void
   set_manifold(const types::manifold_id number);
 
   /**
@@ -1849,7 +1849,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  void
+  virtual void
   reset_manifold(const types::manifold_id manifold_number);
 
   /**
@@ -1863,7 +1863,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  void
+  virtual void
   reset_all_manifolds();
 
   /**
@@ -1874,7 +1874,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  void
+  virtual void
   set_all_manifold_ids(const types::manifold_id number);
 
   /**
@@ -1885,7 +1885,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  void
+  virtual void
   set_all_manifold_ids_on_boundary(const types::manifold_id number);
 
   /**
@@ -1897,7 +1897,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  void
+  virtual void
   set_all_manifold_ids_on_boundary(const types::boundary_id b_id,
                                    const types::manifold_id number);
 
@@ -1910,7 +1910,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  const Manifold<dim, spacedim> &
+  virtual const Manifold<dim, spacedim> &
   get_manifold(const types::manifold_id number) const;
 
   /**
@@ -1924,7 +1924,7 @@ public:
    * @see
    * @ref GlossBoundaryIndicator "Glossary entry on boundary indicators"
    */
-  std::vector<types::boundary_id>
+  virtual std::vector<types::boundary_id>
   get_boundary_ids() const;
 
   /**
@@ -1938,7 +1938,7 @@ public:
    * @see
    * @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
-  std::vector<types::manifold_id>
+  virtual std::vector<types::manifold_id>
   get_manifold_ids() const;
 
   /**
@@ -2040,7 +2040,7 @@ public:
    *
    * This function throws an exception if dim equals spacedim.
    */
-  void
+  virtual void
   flip_all_direction_flags();
 
   /**
@@ -2054,7 +2054,7 @@ public:
    * do not yet have children). The cells are only flagged, not refined, thus
    * you have the chance to save the refinement flags.
    */
-  void
+  virtual void
   set_all_refine_flags();
 
   /**
@@ -2071,7 +2071,7 @@ public:
    * times > 1) . See the section on signals in the general documentation of
    * this class.
    */
-  void
+  virtual void
   refine_global(const unsigned int times = 1);
 
   /**
@@ -2425,56 +2425,56 @@ public:
    * Save the addresses of the cells which are flagged for refinement to @p
    * out.  For usage, read the general documentation for this class.
    */
-  void
+  virtual void
   save_refine_flags(std::ostream &out) const;
 
   /**
    * Same as above, but store the flags to a bitvector rather than to a file.
    */
-  void
+  virtual void
   save_refine_flags(std::vector<bool> &v) const;
 
   /**
    * Read the information stored by @p save_refine_flags.
    */
-  void
+  virtual void
   load_refine_flags(std::istream &in);
 
   /**
    * Read the information stored by @p save_refine_flags.
    */
-  void
+  virtual void
   load_refine_flags(const std::vector<bool> &v);
 
   /**
    * Analogue to @p save_refine_flags.
    */
-  void
+  virtual void
   save_coarsen_flags(std::ostream &out) const;
 
   /**
    * Same as above, but store the flags to a bitvector rather than to a file.
    */
-  void
+  virtual void
   save_coarsen_flags(std::vector<bool> &v) const;
 
   /**
    * Analogue to @p load_refine_flags.
    */
-  void
+  virtual void
   load_coarsen_flags(std::istream &out);
 
   /**
    * Analogue to @p load_refine_flags.
    */
-  void
+  virtual void
   load_coarsen_flags(const std::vector<bool> &v);
 
   /**
    * Return whether this triangulation has ever undergone anisotropic (as
    * opposed to only isotropic) refinement.
    */
-  bool
+  virtual bool
   get_anisotropic_refinement_flag() const;
 
   /*
@@ -2490,7 +2490,7 @@ public:
    * Clear all user flags.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   clear_user_flags();
 
   /**
@@ -2498,7 +2498,7 @@ public:
    * documentation for the @p save_refine_flags for more details.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags(std::ostream &out) const;
 
   /**
@@ -2506,35 +2506,35 @@ public:
    * The output vector is resized if necessary.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags(std::vector<bool> &v) const;
 
   /**
    * Read the information stored by @p save_user_flags.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags(std::istream &in);
 
   /**
    * Read the information stored by @p save_user_flags.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags(const std::vector<bool> &v);
 
   /**
    * Clear all user flags on lines.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   clear_user_flags_line();
 
   /**
    * Save the user flags on lines.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags_line(std::ostream &out) const;
 
   /**
@@ -2542,35 +2542,35 @@ public:
    * The output vector is resized if necessary.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags_line(std::vector<bool> &v) const;
 
   /**
    * Load the user flags located on lines.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags_line(std::istream &in);
 
   /**
    * Load the user flags located on lines.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags_line(const std::vector<bool> &v);
 
   /**
    * Clear all user flags on quads.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   clear_user_flags_quad();
 
   /**
    * Save the user flags on quads.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags_quad(std::ostream &out) const;
 
   /**
@@ -2578,21 +2578,21 @@ public:
    * The output vector is resized if necessary.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags_quad(std::vector<bool> &v) const;
 
   /**
    * Load the user flags located on quads.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags_quad(std::istream &in);
 
   /**
    * Load the user flags located on quads.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags_quad(const std::vector<bool> &v);
 
 
@@ -2600,14 +2600,14 @@ public:
    * Clear all user flags on quads.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   clear_user_flags_hex();
 
   /**
    * Save the user flags on hexs.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags_hex(std::ostream &out) const;
 
   /**
@@ -2615,21 +2615,21 @@ public:
    * The output vector is resized if necessary.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   save_user_flags_hex(std::vector<bool> &v) const;
 
   /**
    * Load the user flags located on hexs.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags_hex(std::istream &in);
 
   /**
    * Load the user flags located on hexs.  See also
    * @ref GlossUserFlags.
    */
-  void
+  virtual void
   load_user_flags_hex(const std::vector<bool> &v);
 
   /**
@@ -2637,7 +2637,7 @@ public:
    * access.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   clear_user_data();
 
   /**
@@ -2645,14 +2645,14 @@ public:
    * also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_indices(std::vector<unsigned int> &v) const;
 
   /**
    * Read the information stored by save_user_indices().  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_indices(const std::vector<unsigned int> &v);
 
   /**
@@ -2660,14 +2660,14 @@ public:
    * also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_pointers(std::vector<void *> &v) const;
 
   /**
    * Read the information stored by save_user_pointers().  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_pointers(const std::vector<void *> &v);
 
   /**
@@ -2675,14 +2675,14 @@ public:
    * necessary.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_indices_line(std::vector<unsigned int> &v) const;
 
   /**
    * Load the user indices located on lines.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_indices_line(const std::vector<unsigned int> &v);
 
   /**
@@ -2690,14 +2690,14 @@ public:
    * necessary.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_indices_quad(std::vector<unsigned int> &v) const;
 
   /**
    * Load the user indices located on quads.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_indices_quad(const std::vector<unsigned int> &v);
 
   /**
@@ -2705,28 +2705,28 @@ public:
    * necessary.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_indices_hex(std::vector<unsigned int> &v) const;
 
   /**
    * Load the user indices located on hexs.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_indices_hex(const std::vector<unsigned int> &v);
   /**
    * Save the user indices on lines. The output vector is resized if
    * necessary.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_pointers_line(std::vector<void *> &v) const;
 
   /**
    * Load the user pointers located on lines.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_pointers_line(const std::vector<void *> &v);
 
   /**
@@ -2734,14 +2734,14 @@ public:
    * necessary.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_pointers_quad(std::vector<void *> &v) const;
 
   /**
    * Load the user pointers located on quads.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_pointers_quad(const std::vector<void *> &v);
 
   /**
@@ -2749,14 +2749,14 @@ public:
    * necessary.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   save_user_pointers_hex(std::vector<void *> &v) const;
 
   /**
    * Load the user pointers located on hexs.  See also
    * @ref GlossUserData.
    */
-  void
+  virtual void
   load_user_pointers_hex(const std::vector<void *> &v);
 
   /*
@@ -2785,7 +2785,7 @@ public:
    *   at this level, and the function simply returns what end() would
    *   return.
    */
-  cell_iterator
+  virtual cell_iterator
   begin(const unsigned int level = 0) const;
 
   /**
@@ -2818,14 +2818,14 @@ public:
    *   at this level, and the function simply returns what end() would
    *   return.
    */
-  active_cell_iterator
+  virtual active_cell_iterator
   begin_active(const unsigned int level = 0) const;
 
   /**
    * Iterator past the end; this iterator serves for comparisons of iterators
    * with past-the-end or before-the-beginning states.
    */
-  cell_iterator
+  virtual cell_iterator
   end() const;
 
   /**
@@ -2846,7 +2846,7 @@ public:
    *   at this level, and the function simply returns what end() would
    *   return.
    */
-  cell_iterator
+  virtual cell_iterator
   end(const unsigned int level) const;
 
   /**
@@ -2868,20 +2868,20 @@ public:
    *   at this level, and the function simply returns what end() would
    *   return.
    */
-  active_cell_iterator
+  virtual active_cell_iterator
   end_active(const unsigned int level) const;
 
 
   /**
    * Return an iterator pointing to the last used cell.
    */
-  cell_iterator
+  virtual cell_iterator
   last() const;
 
   /**
    * Return an iterator pointing to the last active cell.
    */
-  active_cell_iterator
+  virtual active_cell_iterator
   last_active() const;
 
   /**
@@ -2898,7 +2898,7 @@ public:
    *
    * @ingroup CPP11
    */
-  IteratorRange<cell_iterator>
+  virtual IteratorRange<cell_iterator>
   cell_iterators() const;
 
   /**
@@ -2936,7 +2936,7 @@ public:
    *
    * @ingroup CPP11
    */
-  IteratorRange<active_cell_iterator>
+  virtual IteratorRange<active_cell_iterator>
   active_cell_iterators() const;
 
   /**
@@ -2954,7 +2954,7 @@ public:
    *
    * @ingroup CPP11
    */
-  IteratorRange<cell_iterator>
+  virtual IteratorRange<cell_iterator>
   cell_iterators_on_level(const unsigned int level) const;
 
   /**
@@ -2972,7 +2972,7 @@ public:
    *
    * @ingroup CPP11
    */
-  IteratorRange<active_cell_iterator>
+  virtual IteratorRange<active_cell_iterator>
   active_cell_iterators_on_level(const unsigned int level) const;
 
   /*
@@ -2989,20 +2989,20 @@ public:
   /**
    * Iterator to the first used face.
    */
-  face_iterator
+  virtual face_iterator
   begin_face() const;
 
   /**
    * Iterator to the first active face.
    */
-  active_face_iterator
+  virtual active_face_iterator
   begin_active_face() const;
 
   /**
    * Iterator past the end; this iterator serves for comparisons of iterators
    * with past-the-end or before-the-beginning states.
    */
-  face_iterator
+  virtual face_iterator
   end_face() const;
 
   /**
@@ -3023,7 +3023,7 @@ public:
    *
    * @ingroup CPP11
    */
-  IteratorRange<active_face_iterator>
+  virtual IteratorRange<active_face_iterator>
   active_face_iterators() const;
 
   /*
@@ -3041,7 +3041,7 @@ public:
    * Iterator to the first used vertex. This function can only be used if dim
    * is not one.
    */
-  vertex_iterator
+  virtual vertex_iterator
   begin_vertex() const;
 
   /**
@@ -3049,7 +3049,7 @@ public:
    * begin_vertex() and begin_active_vertex() return the same vertex. This
    * function can only be used if dim is not one.
    */
-  active_vertex_iterator
+  virtual active_vertex_iterator
   begin_active_vertex() const;
 
   /**
@@ -3057,7 +3057,7 @@ public:
    * with past-the-end or before-the-beginning states. This function can only
    * be used if dim is not one.
    */
-  vertex_iterator
+  virtual vertex_iterator
   end_vertex() const;
 
   /*
@@ -3081,96 +3081,96 @@ public:
   /**
    * Return the total number of used lines, active or not.
    */
-  unsigned int
+  virtual unsigned int
   n_lines() const;
 
   /**
    * Return the total number of used lines, active or not on level @p level.
    */
-  unsigned int
+  virtual unsigned int
   n_lines(const unsigned int level) const;
 
   /**
    * Return the total number of active lines.
    */
-  unsigned int
+  virtual unsigned int
   n_active_lines() const;
 
   /**
    * Return the total number of active lines, on level @p level.
    */
-  unsigned int
+  virtual unsigned int
   n_active_lines(const unsigned int level) const;
 
   /**
    * Return the total number of used quads, active or not.
    */
-  unsigned int
+  virtual unsigned int
   n_quads() const;
 
   /**
    * Return the total number of used quads, active or not on level @p level.
    */
-  unsigned int
+  virtual unsigned int
   n_quads(const unsigned int level) const;
 
   /**
    * Return the total number of active quads, active or not.
    */
-  unsigned int
+  virtual unsigned int
   n_active_quads() const;
 
   /**
    * Return the total number of active quads, active or not on level @p level.
    */
-  unsigned int
+  virtual unsigned int
   n_active_quads(const unsigned int level) const;
 
   /**
    * Return the total number of used hexahedra, active or not.
    */
-  unsigned int
+  virtual unsigned int
   n_hexs() const;
 
   /**
    * Return the total number of used hexahedra, active or not on level @p
    * level.
    */
-  unsigned int
+  virtual unsigned int
   n_hexs(const unsigned int level) const;
 
   /**
    * Return the total number of active hexahedra, active or not.
    */
-  unsigned int
+  virtual unsigned int
   n_active_hexs() const;
 
   /**
    * Return the total number of active hexahedra, active or not on level @p
    * level.
    */
-  unsigned int
+  virtual unsigned int
   n_active_hexs(const unsigned int level) const;
 
   /**
    * Return the total number of used cells, active or not.  Maps to
    * <tt>n_lines()</tt> in one space dimension and so on.
    */
-  unsigned int
+  virtual unsigned int
   n_cells() const;
 
   /**
    * Return the total number of used cells, active or not, on level @p level.
    * Maps to <tt>n_lines(level)</tt> in one space dimension and so on.
    */
-  unsigned int
+  virtual unsigned int
   n_cells(const unsigned int level) const;
 
   /**
    * Return the total number of active cells. Maps to
    * <tt>n_active_lines()</tt> in one space dimension and so on.
    */
-  unsigned int
+  virtual unsigned int
   n_active_cells() const;
 
   /**
@@ -3188,7 +3188,7 @@ public:
    * Return the total number of active cells on level @p level.  Maps to
    * <tt>n_active_lines(level)</tt> in one space dimension and so on.
    */
-  unsigned int
+  virtual unsigned int
   n_active_cells(const unsigned int level) const;
 
   /**
@@ -3196,7 +3196,7 @@ public:
    * equals n_lines(), in 3D it equals n_quads(), while in 1D it equals
    * the number of used vertices.
    */
-  unsigned int
+  virtual unsigned int
   n_faces() const;
 
   /**
@@ -3204,7 +3204,7 @@ public:
    * n_active_lines(), in 3D it equals n_active_quads(), while in 1D it equals
    * the number of used vertices.
    */
-  unsigned int
+  virtual unsigned int
   n_active_faces() const;
 
   /**
@@ -3224,7 +3224,7 @@ public:
    * because in a coarse, unrefined mesh, all cells have level zero -- making
    * the number of levels equal to one.)
    */
-  unsigned int
+  virtual unsigned int
   n_levels() const;
 
   /**
@@ -3255,7 +3255,7 @@ public:
    * holes in the numbers of used vertices.  You can get the number of used
    * vertices using @p n_used_vertices function.
    */
-  unsigned int
+  virtual unsigned int
   n_vertices() const;
 
   /**
@@ -3266,27 +3266,27 @@ public:
    * of vertices are only allocated once. You can find out about which
    * vertices are actually used by the function get_used_vertices().
    */
-  const std::vector<Point<spacedim>> &
+  virtual const std::vector<Point<spacedim>> &
   get_vertices() const;
 
   /**
    * Return the number of vertices that are presently in use, i.e. belong to
    * at least one used element.
    */
-  unsigned int
+  virtual unsigned int
   n_used_vertices() const;
 
   /**
    * Return @p true if the vertex with this @p index is used.
    */
-  bool
+  virtual bool
   vertex_used(const unsigned int index) const;
 
   /**
    * Return a constant reference to the array of @p bools indicating whether
    * an entry in the vertex array is used or not.
    */
-  const std::vector<bool> &
+  virtual const std::vector<bool> &
   get_used_vertices() const;
 
   /**
@@ -3300,7 +3300,7 @@ public:
    *
    * In one space dimension, two is returned.
    */
-  unsigned int
+  virtual unsigned int
   max_adjacent_cells() const;
 
   /**
@@ -3321,14 +3321,14 @@ public:
    * (which may not only be a triangulation, but also a DoFHandler, for
    * example).
    */
-  Triangulation<dim, spacedim> &
+  virtual Triangulation<dim, spacedim> &
   get_triangulation();
 
   /**
    * Return a reference to the current object. This is the const-version of
    * the previous function.
    */
-  const Triangulation<dim, spacedim> &
+  virtual const Triangulation<dim, spacedim> &
   get_triangulation() const;
 
 
@@ -3350,7 +3350,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_lines() const;
 
   /**
@@ -3362,7 +3362,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_lines(const unsigned int level) const;
 
   /**
@@ -3374,7 +3374,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_quads() const;
 
   /**
@@ -3386,7 +3386,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_quads(const unsigned int level) const;
 
   /**
@@ -3398,7 +3398,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_hexs(const unsigned int level) const;
 
   /**
@@ -3410,7 +3410,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_cells(const unsigned int level) const;
 
   /**
@@ -3424,7 +3424,7 @@ public:
    * the other classes that build very closely on it (in particular, the
    * DoFHandler class).
    */
-  unsigned int
+  virtual unsigned int
   n_raw_faces() const;
 
   /*
@@ -3496,7 +3496,7 @@ public:
   /**
    * Return the periodic_face_map.
    */
-  const std::map<
+  virtual const std::map<
     std::pair<cell_iterator, unsigned int>,
     std::pair<std::pair<cell_iterator, unsigned int>, std::bitset<3>>> &
   get_periodic_face_map() const;
