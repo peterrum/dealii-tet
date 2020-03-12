@@ -191,7 +191,6 @@ template <int structdim, int dim, int spacedim>
 inline const Triangulation<dim, spacedim> &
 TriaAccessorBase<structdim, dim, spacedim>::get_triangulation() const
 {
-  Assert(false, ExcNotImplemented());
   return *tria;
 }
 

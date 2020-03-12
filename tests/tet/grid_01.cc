@@ -17,6 +17,12 @@
 // Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
+#include <deal.II/base/quadrature_lib.h>
+
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/fe_values.h>
+#include <deal.II/fe/mapping_tet.h>
+
 #include <deal.II/grid/tria.h>
 
 #include "./tests.h"
@@ -29,6 +35,12 @@ test()
 {
   TetTriangulation<dim> tria;
   tria.setup();
+
+  MappingTet<dim> mapping(1);
+  FE_Q<dim>       fe(1);
+  QGauss<dim>     quad(2);
+
+  FEValues<dim> fe_values(mapping, fe, quad, update_values | update_JxW_values);
 
   for (auto &cell : tria.cell_iterators())
     {
@@ -54,6 +66,8 @@ test()
         deallog << "  " << i << " " << cell->vertex_index(i) << " "
                 << cell->vertex(i) << std::endl;
 
+
+      fe_values.reinit(cell);
 
       deallog << std::endl;
     }

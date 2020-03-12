@@ -152,6 +152,7 @@ public:
       mesh_smoothing)
   {
     Assert(false, ExcNotImplemented());
+    (void)mesh_smoothing;
   }
   virtual const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing &
   get_mesh_smoothing() const
