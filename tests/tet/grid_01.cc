@@ -17,7 +17,7 @@
 // Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
-#include <deal.II/grid/tria_tet.h>
+#include <deal.II/grid/tria.h>
 
 #include "./tests.h"
 
@@ -28,9 +28,34 @@ void
 test()
 {
   TetTriangulation<dim> tria;
+  tria.setup();
 
-  for (auto cell : tria.cell_iterators())
+  for (auto &cell : tria.cell_iterators())
     {
+      deallog << "level              = " << cell->level() << " " << std::endl;
+      deallog << "index              = " << cell->index() << " " << std::endl;
+      deallog << "id                 = " << cell->id() << " " << std::endl;
+      deallog << "active             = " << cell->active() << " " << std::endl;
+      deallog << "is_locally_owned   = " << cell->is_locally_owned() << " "
+              << std::endl;
+      deallog << "is_ghost           = " << cell->is_ghost() << " "
+              << std::endl;
+      deallog << "material_id        = " << cell->material_id() << " "
+              << std::endl;
+      deallog << "manifold_id        = " << cell->manifold_id() << " "
+              << std::endl;
+      deallog << "subdomain_id       = " << cell->subdomain_id() << " "
+              << std::endl;
+      deallog << "level_subdomain_id = " << cell->level_subdomain_id() << " "
+              << std::endl;
+
+      deallog << "vertices:" << std::endl;
+      for (unsigned int i = 0; i < cell->n_vertices(); i++)
+        deallog << "  " << i << " " << cell->vertex_index(i) << " "
+                << cell->vertex(i) << std::endl;
+
+
+      deallog << std::endl;
     }
 }
 

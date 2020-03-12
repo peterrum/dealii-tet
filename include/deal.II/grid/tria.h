@@ -4005,6 +4005,7 @@ private:
    * Array of pointers pointing to the objects storing the cell data on the
    * different levels.
    */
+protected:
   std::vector<std::unique_ptr<
     dealii::internal::TriangulationImplementation::TriaLevel<dim>>>
     levels;
@@ -4023,6 +4024,7 @@ private:
    */
   std::vector<Point<spacedim>> vertices;
 
+private:
   /**
    * Array storing a bit-pattern which vertices are used.
    */
@@ -4449,6 +4451,9 @@ Triangulation<1, 3>::max_adjacent_cells() const;
 #endif // DOXYGEN
 
 DEAL_II_NAMESPACE_CLOSE
+
+// TODO: <deal.II/grid/tria_accessor.h> has to come after this!!!
+#include <deal.II/grid/tria_tet.h>
 
 // Include tria_accessor.h here, so that it is possible for an end
 // user to use the iterators of Triangulation<dim> directly without

@@ -17,9 +17,9 @@
 #define dealii_tria_tet_h
 
 
-#include <deal.II/base/config.h>
+//#include <deal.II/base/config.h>
 
-#include <deal.II/grid/tria.h>
+//#include <deal.II/grid/tria.h>
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -64,6 +64,81 @@ public:
     typename dealii::Triangulation<dim, spacedim>::active_hex_iterator;
 
   using CellStatus = typename dealii::Triangulation<dim, spacedim>::CellStatus;
+
+  std::vector<types::global_dof_index> vertex_indices;
+  std::vector<types::global_dof_index> vertex_indices_ptr;
+
+  void
+  setup()
+  {
+    this->levels.clear();
+    this->levels.push_back(
+      std::make_unique<
+        internal::TriangulationImplementation::TriaLevel<dim>>());
+
+
+    const unsigned int n_cell = 1;
+
+    this->levels[0]->reserve_space(n_cell, dim, spacedim);
+
+    // step 1: used
+    this->levels[0]->cells.used.clear();
+    this->levels[0]->cells.used.resize(1);
+
+    for (unsigned int i = 0; i < n_cell; i++)
+      this->levels[0]->cells.used[i] = true;
+
+    // step 2: material id
+    this->levels[0]->cells.boundary_or_material_id.clear();
+    this->levels[0]->cells.boundary_or_material_id.resize(n_cell);
+    for (unsigned int i = 0; i < n_cell; i++)
+      this->levels[0]->cells.boundary_or_material_id[i].material_id = 0;
+
+    // step 3: manifold id
+    this->levels[0]->cells.manifold_id.clear();
+    this->levels[0]->cells.manifold_id.resize(n_cell);
+    for (unsigned int i = 0; i < n_cell; i++)
+      this->levels[0]->cells.manifold_id[i] = 0;
+
+    // step 4: subdomain id
+    this->levels[0]->subdomain_ids.clear();
+    this->levels[0]->subdomain_ids.resize(n_cell);
+    for (unsigned int i = 0; i < n_cell; i++)
+      this->levels[0]->subdomain_ids[i] = 0;
+
+    // step 5: level_subdomain id
+    this->levels[0]->level_subdomain_ids.clear();
+    this->levels[0]->level_subdomain_ids.resize(n_cell);
+    for (unsigned int i = 0; i < n_cell; i++)
+      this->levels[0]->level_subdomain_ids[i] = 0;
+
+    // step 6: no children...
+    this->levels[0]->cells.children.clear();
+    this->levels[0]->cells.children.resize(
+      GeometryInfo<dim>::max_children_per_cell / 2 * n_cell);
+    for (unsigned int i = 0;
+         i < GeometryInfo<dim>::max_children_per_cell / 2 * n_cell;
+         i++)
+      this->levels[0]->cells.children[i] = -1;
+
+    // faces [TODO]
+    this->faces =
+      std::make_unique<internal::TriangulationImplementation::TriaFaces<dim>>();
+
+    // vertices
+    vertex_indices_ptr.push_back(vertex_indices.size());
+    vertex_indices.push_back(0);
+    vertex_indices.push_back(1);
+    vertex_indices.push_back(2);
+
+    vertex_indices_ptr.push_back(vertex_indices.size());
+
+    this->vertices.emplace_back(Point<spacedim>(0, 0));
+    this->vertices.emplace_back(Point<spacedim>(1, 0));
+    this->vertices.emplace_back(Point<spacedim>(1, 1));
+
+    // this->vertices.resize(3);
+  }
 
   virtual void
   clear()
@@ -481,7 +556,12 @@ public:
   virtual cell_iterator
   begin(const unsigned int level = 0) const
   {
-    Assert(false, ExcNotImplemented());
+    AssertDimension(level, 0);
+    return cell_iterator(
+      const_cast<dealii::Triangulation<dim, spacedim> *>(
+        dynamic_cast<const dealii::Triangulation<dim, spacedim> *>(this)),
+      0,
+      0);
   }
 
   virtual active_cell_iterator
@@ -493,7 +573,11 @@ public:
   virtual cell_iterator
   end() const
   {
-    Assert(false, ExcNotImplemented());
+    return cell_iterator(
+      const_cast<dealii::Triangulation<dim, spacedim> *>(
+        dynamic_cast<const dealii::Triangulation<dim, spacedim> *>(this)),
+      -1,
+      -1);
   }
 
   virtual cell_iterator
@@ -523,7 +607,8 @@ public:
   virtual IteratorRange<cell_iterator>
   cell_iterators() const
   {
-    Assert(false, ExcNotImplemented());
+    return IteratorRange<typename Triangulation<dim, spacedim>::cell_iterator>(
+      begin(), end());
   }
 
   virtual IteratorRange<active_cell_iterator>
@@ -757,7 +842,7 @@ public:
   virtual types::subdomain_id
   locally_owned_subdomain() const
   {
-    Assert(false, ExcNotImplemented());
+    return 0; // [TODO]: make parallel
   }
 
   virtual Triangulation<dim, spacedim> &
@@ -846,7 +931,7 @@ public:
   coarse_cell_index_to_coarse_cell_id(
     const unsigned int coarse_cell_index) const
   {
-    Assert(false, ExcNotImplemented());
+    return coarse_cell_index;
   }
 };
 

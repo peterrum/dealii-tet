@@ -788,6 +788,9 @@ public:
   unsigned int
   vertex_index(const unsigned int i) const;
 
+  unsigned int
+  n_vertices() const;
+
   /**
    * Return a reference to the @p ith vertex. The reference is not const,
    * i.e., it is possible to call this function on the left hand side of an
