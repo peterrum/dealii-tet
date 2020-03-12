@@ -116,7 +116,7 @@ namespace parallel
      *
      * @note This function involves global communication!
      */
-    std::vector<unsigned int>
+    virtual std::vector<unsigned int>
     compute_n_locally_owned_active_cells_per_processor() const;
 
     /**
@@ -137,7 +137,7 @@ namespace parallel
      * and
      * @ref GlossGhostCell).
      */
-    unsigned int
+    virtual unsigned int
     n_locally_owned_active_cells() const;
 
     /**
@@ -171,7 +171,7 @@ namespace parallel
      * subdomain id are either owned by another processor or have children
      * that only exist on other processors.
      */
-    types::subdomain_id
+    virtual types::subdomain_id
     locally_owned_subdomain() const override;
 
     /**
@@ -182,7 +182,7 @@ namespace parallel
      * @note If @p i is contained in the list of processor @p j, then @p j
      * will also be contained in the list of processor @p i.
      */
-    const std::set<types::subdomain_id> &
+    virtual const std::set<types::subdomain_id> &
     ghost_owners() const;
 
     /**
@@ -194,7 +194,7 @@ namespace parallel
      * @note If @p i is contained in the list of processor @p j, then @p j
      * will also be contained in the list of processor @p i.
      */
-    const std::set<types::subdomain_id> &
+    virtual const std::set<types::subdomain_id> &
     level_ghost_owners() const;
 
     /**
