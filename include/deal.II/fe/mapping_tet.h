@@ -18,8 +18,10 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/std_cxx14/memory.h>
 
+#include <deal.II/fe/fe_q_tet.h>
 #include <deal.II/fe/fe_update_flags.h>
 #include <deal.II/fe/mapping.h>
 
@@ -44,18 +46,51 @@ public:
       (void)update_flags;
       (void)quadrature;
       (void)n_original_q_points;
+      n_shape_functions = 3;
+
+      this->update_each = update_flags;
+
+      FE_QTet<dim> fe(polynomial_degree);
+
+      quadrature_points.resize(quadrature.size());
+
+
+      // step 1: shape functions
+      shape_.clear();
+      shape_.reserve(n_shape_functions * quadrature.size());
+
+      for (unsigned int j = 0; j < quadrature.size(); j++)
+        for (unsigned int i = 0; i < n_shape_functions; i++)
+          {
+            std::cout << fe.shape_value(i, quadrature.point(j)) << std::endl;
+            shape_.push_back(fe.shape_value(i, quadrature.point(j)));
+          }
+    }
+
+    const double &
+    shape(const unsigned int qpoint, const unsigned int shape_nr) const
+    {
+      return shape_[qpoint * n_shape_functions + shape_nr];
     }
 
     const unsigned int polynomial_degree;
+
+    unsigned int n_shape_functions;
 
     mutable std::vector<Point<spacedim>> mapping_support_points;
 
     mutable typename Triangulation<dim, spacedim>::cell_iterator
       cell_of_current_support_points;
+
+    std::vector<Point<spacedim>> quadrature_points;
+
+    std::vector<double> shape_;
+
+    mutable std::vector<DerivativeForm<1, dim, spacedim>> contravariant;
   };
 
   MappingTet(const unsigned int degree)
-    : polynomial_degree(polynomial_degree)
+    : polynomial_degree(degree)
   {}
 
   const unsigned int polynomial_degree;
@@ -172,6 +207,8 @@ public:
   virtual std::unique_ptr<typename Mapping<dim, spacedim>::InternalDataBase>
   get_data(const UpdateFlags update_flags, const Quadrature<dim> &q) const
   {
+    std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
+
     std::unique_ptr<typename Mapping<dim, spacedim>::InternalDataBase>
           data_ptr = std_cxx14::make_unique<InternalData>(polynomial_degree);
     auto &data     = dynamic_cast<InternalData &>(*data_ptr);
@@ -201,20 +238,7 @@ public:
     const Quadrature<dim> &                                     quadrature,
     const typename Mapping<dim, spacedim>::InternalDataBase &   internal_data,
     dealii::internal::FEValuesImplementation::MappingRelatedData<dim, spacedim>
-      &output_data) const
-  {
-    // ensure that the following static_cast is really correct:
-    Assert(dynamic_cast<const InternalData *>(&internal_data) != nullptr,
-           ExcInternalError());
-    const InternalData &data = static_cast<const InternalData &>(internal_data);
-
-    const unsigned int n_q_points = quadrature.size();
-
-    data.mapping_support_points = this->compute_mapping_support_points(cell);
-    data.cell_of_current_support_points = cell;
-
-    Assert(false, ExcNotImplemented());
-  }
+      &output_data) const;
 
   virtual void
   fill_fe_face_values(
@@ -246,12 +270,100 @@ public:
   compute_mapping_support_points(
     const typename Triangulation<dim, spacedim>::cell_iterator &cell) const
   {
-    std::vector<Point<spacedim>> a;
-    Assert(false, ExcNotImplemented());
+    AssertDimension(polynomial_degree, 1);
+
+    std::vector<Point<spacedim>> a(cell->n_vertices());
+
+    for (unsigned int i = 0; i < a.size(); i++)
+      a[i] = cell->vertex(i);
 
     return a;
   }
 };
+
+
+
+namespace internal
+{
+  namespace MappingTet
+  {
+    template <int dim, int spacedim>
+    void
+    maybe_compute_q_points(
+      const typename dealii::MappingTet<dim, spacedim>::InternalData &data,
+      std::vector<Point<spacedim>> &quadrature_points)
+    {
+      const UpdateFlags update_flags = data.update_each;
+
+      if (update_flags & update_quadrature_points)
+        {
+          for (unsigned int point = 0; point < quadrature_points.size();
+               ++point)
+            {
+              const double *  shape = &data.shape(point, 0);
+              Point<spacedim> result =
+                (shape[0] * data.mapping_support_points[0]);
+              for (unsigned int k = 1; k < data.n_shape_functions; ++k)
+                for (unsigned int i = 0; i < spacedim; ++i)
+                  result[i] += shape[k] * data.mapping_support_points[k][i];
+              quadrature_points[point] = result;
+
+              std::cout << "B" << std::endl;
+            }
+        }
+    }
+  } // namespace MappingTet
+} // namespace internal
+
+template <int dim, int spacedim>
+CellSimilarity::Similarity
+MappingTet<dim, spacedim>::fill_fe_values(
+  const typename Triangulation<dim, spacedim>::cell_iterator &cell,
+  const CellSimilarity::Similarity                            cell_similarity,
+  const Quadrature<dim> &                                     quadrature,
+  const typename Mapping<dim, spacedim>::InternalDataBase &   internal_data,
+  dealii::internal::FEValuesImplementation::MappingRelatedData<dim, spacedim>
+    &output_data) const
+{
+  // ensure that the following static_cast is really correct:
+  Assert(dynamic_cast<const InternalData *>(&internal_data) != nullptr,
+         ExcInternalError());
+  const InternalData &data = static_cast<const InternalData &>(internal_data);
+
+  const unsigned int n_q_points = quadrature.size();
+
+  data.mapping_support_points = this->compute_mapping_support_points(cell);
+  data.cell_of_current_support_points = cell;
+
+  // TODO
+  const CellSimilarity::Similarity computed_cell_similarity =
+    CellSimilarity::none;
+
+  internal::MappingTet::maybe_compute_q_points<dim, spacedim>(
+    data, output_data.quadrature_points);
+
+  // internal::MappingQGeneric::maybe_update_Jacobians<dim,spacedim>
+  //(computed_cell_similarity,
+  // QProjector<dim>::DataSetDescriptor::cell (),
+  // data);
+
+  const UpdateFlags          update_flags = data.update_each;
+  const std::vector<double> &weights      = quadrature.get_weights();
+
+  if (update_flags & update_JxW_values)
+    {
+      AssertDimension(output_data.JxW_values.size(), n_q_points);
+      AssertDimension(dim, spacedim);
+
+      for (unsigned int point = 0; point < n_q_points; ++point)
+        output_data.JxW_values[point] =
+          weights[point] * data.contravariant[point].determinant();
+    }
+
+
+
+  // Assert(false, ExcNotImplemented());
+}
 
 DEAL_II_NAMESPACE_CLOSE
 

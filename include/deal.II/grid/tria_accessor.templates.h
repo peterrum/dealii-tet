@@ -74,7 +74,6 @@ inline void
 TriaAccessorBase<structdim, dim, spacedim>::copy_from(
   const TriaAccessorBase<structdim, dim, spacedim> &a)
 {
-  Assert(false, ExcNotImplemented());
   present_level = a.present_level;
   present_index = a.present_index;
   tria          = a.tria;

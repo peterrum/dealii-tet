@@ -133,9 +133,9 @@ public:
 
     vertex_indices_ptr.push_back(vertex_indices.size());
 
-    this->vertices.emplace_back(Point<spacedim>(0, 0));
     this->vertices.emplace_back(Point<spacedim>(1, 0));
-    this->vertices.emplace_back(Point<spacedim>(1, 1));
+    this->vertices.emplace_back(Point<spacedim>(0, 1));
+    this->vertices.emplace_back(Point<spacedim>(0, 0));
 
     // this->vertices.resize(3);
   }

@@ -20,6 +20,7 @@
 #include <deal.II/base/quadrature_lib.h>
 
 #include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/fe_q_tet.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/fe/mapping_tet.h>
 
@@ -37,10 +38,10 @@ test()
   tria.setup();
 
   MappingTet<dim> mapping(1);
-  FE_Q<dim>       fe(1);
-  QGauss<dim>     quad(2);
+  FE_QTet<dim>    fe(1);
+  QGaussTet<dim>  quad(3);
 
-  FEValues<dim> fe_values(mapping, fe, quad, update_values | update_JxW_values);
+  FEValues<dim> fe_values(mapping, fe, quad, update_quadrature_points);
 
   for (auto &cell : tria.cell_iterators())
     {
@@ -65,9 +66,14 @@ test()
       for (unsigned int i = 0; i < cell->n_vertices(); i++)
         deallog << "  " << i << " " << cell->vertex_index(i) << " "
                 << cell->vertex(i) << std::endl;
+      deallog << std::endl;
 
 
       fe_values.reinit(cell);
+
+
+      for (unsigned int i = 0; i < quad.size(); i++)
+        deallog << fe_values.quadrature_point(i) << std::endl;
 
       deallog << std::endl;
     }
