@@ -34,13 +34,21 @@ template <int dim>
 void
 test()
 {
+  // 1) Create triangulation (TODO: this should be general mesh - not only for
+  // TET)
   TetTriangulation<dim> tria;
-  tria.setup();
+  tria.setup(); // TODO: load mesh
 
+  // 2) Create finite element (for TET)
+  FE_QTet<dim> fe(1);
+
+  // 3) Create quadrature rule (for TET)
+  QGaussTet<dim> quad(3);
+
+  // 4) Create mapping (for TET)
   MappingTet<dim> mapping(1);
-  FE_QTet<dim>    fe(1);
-  QGaussTet<dim>  quad(3);
 
+  // 5) Create FEValues (for a single set of FiniteElement, Quadrature, Mapping)
   FEValues<dim> fe_values(mapping,
                           fe,
                           quad,
@@ -48,8 +56,10 @@ test()
                             update_contravariant_transformation |
                             update_covariant_transformation | update_gradients);
 
+  // 6) Loop over all cells of triangulation
   for (auto &cell : tria.cell_iterators())
     {
+      // 6a) get different cell quantities
       deallog << "level              = " << cell->level() << " " << std::endl;
       deallog << "index              = " << cell->index() << " " << std::endl;
       deallog << "id                 = " << cell->id() << " " << std::endl;
@@ -73,15 +83,16 @@ test()
                 << cell->vertex(i) << std::endl;
       deallog << std::endl;
 
-
+      // 6b) test FEValues::reinit
       fe_values.reinit(cell);
 
-
+      // 6c) get quadrature points
       for (unsigned int i = 0; i < quad.size(); i++)
         deallog << fe_values.quadrature_point(i) << std::endl;
 
       deallog << std::endl;
 
+      // 6d) compute element-stiffness matrix
       {
         const unsigned int dofs_per_cell = 3; // TODO: fe.dofs_per_cell
         const unsigned int n_q_points    = quad.size();
