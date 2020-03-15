@@ -41,7 +41,12 @@ test()
   FE_QTet<dim>    fe(1);
   QGaussTet<dim>  quad(3);
 
-  FEValues<dim> fe_values(mapping, fe, quad, update_quadrature_points);
+  FEValues<dim> fe_values(mapping,
+                          fe,
+                          quad,
+                          update_quadrature_points | update_JxW_values |
+                            update_contravariant_transformation |
+                            update_covariant_transformation | update_gradients);
 
   for (auto &cell : tria.cell_iterators())
     {
@@ -76,6 +81,22 @@ test()
         deallog << fe_values.quadrature_point(i) << std::endl;
 
       deallog << std::endl;
+
+      {
+        const unsigned int dofs_per_cell = 3; // TODO: fe.dofs_per_cell
+        const unsigned int n_q_points    = quad.size();
+        FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
+
+        for (unsigned int q_index = 0; q_index < n_q_points; ++q_index)
+          for (unsigned int i = 0; i < dofs_per_cell; ++i)
+            for (unsigned int j = 0; j < dofs_per_cell; ++j)
+              cell_matrix(i, j) +=
+                (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                 fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                 fe_values.JxW(q_index));           // dx
+
+        cell_matrix.print_formatted(deallog.get_file_stream(), 3, false, 10);
+      }
     }
 }
 

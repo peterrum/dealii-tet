@@ -58,12 +58,14 @@ public:
       // step 1: shape functions
       shape_.clear();
       shape_.reserve(n_shape_functions * quadrature.size());
+      shape_derivatives.reserve(n_shape_functions * quadrature.size());
 
       for (unsigned int j = 0; j < quadrature.size(); j++)
         for (unsigned int i = 0; i < n_shape_functions; i++)
           {
             std::cout << fe.shape_value(i, quadrature.point(j)) << std::endl;
             shape_.push_back(fe.shape_value(i, quadrature.point(j)));
+            shape_derivatives.push_back(fe.shape_grad(i, quadrature.point(j)));
           }
     }
 
@@ -72,6 +74,13 @@ public:
     {
       return shape_[qpoint * n_shape_functions + shape_nr];
     }
+
+    const Tensor<1, dim> &
+    derivative(const unsigned int qpoint, const unsigned int shape_nr) const
+    {
+      return shape_derivatives[qpoint * n_shape_functions + shape_nr];
+    }
+
 
     const unsigned int polynomial_degree;
 
@@ -85,6 +94,10 @@ public:
     std::vector<Point<spacedim>> quadrature_points;
 
     std::vector<double> shape_;
+
+    std::vector<Tensor<1, dim>> shape_derivatives;
+
+    mutable std::vector<DerivativeForm<1, dim, spacedim>> covariant;
 
     mutable std::vector<DerivativeForm<1, dim, spacedim>> contravariant;
   };
@@ -159,7 +172,10 @@ public:
             const typename Mapping<dim, spacedim>::InternalDataBase &internal,
             const ArrayView<Tensor<1, spacedim>> &output) const
   {
-    Assert(false, ExcNotImplemented());
+    AssertDimension(input.size(), output.size());
+
+    for (unsigned int i = 0; i < output.size(); ++i)
+      output[i] = input[i];
   }
 
   virtual void
@@ -312,6 +328,60 @@ namespace internal
             }
         }
     }
+
+    template <int dim, int spacedim>
+    void
+    maybe_update_Jacobians(
+      const typename dealii::MappingTet<dim, spacedim>::InternalData &data)
+    {
+      const UpdateFlags update_flags = data.update_each;
+
+      if (update_flags & update_contravariant_transformation)
+        {
+          const unsigned int n_q_points = data.contravariant.size();
+
+          std::fill(data.contravariant.begin(),
+                    data.contravariant.end(),
+                    DerivativeForm<1, dim, spacedim>());
+
+          Assert(data.n_shape_functions > 0, ExcInternalError());
+          const Tensor<1, spacedim> *supp_pts = &data.mapping_support_points[0];
+
+          for (unsigned int point = 0; point < n_q_points; ++point)
+            {
+              const Tensor<1, dim> *data_derv = &data.derivative(point, 0);
+
+              double result[spacedim][dim];
+
+              // peel away part of sum to avoid zeroing the
+              // entries and adding for the first time
+              for (unsigned int i = 0; i < spacedim; ++i)
+                for (unsigned int j = 0; j < dim; ++j)
+                  result[i][j] = data_derv[0][j] * supp_pts[0][i];
+              for (unsigned int k = 1; k < data.n_shape_functions; ++k)
+                for (unsigned int i = 0; i < spacedim; ++i)
+                  for (unsigned int j = 0; j < dim; ++j)
+                    result[i][j] += data_derv[k][j] * supp_pts[k][i];
+
+              // write result into contravariant data. for
+              // j=dim in the case dim<spacedim, there will
+              // never be any nonzero data that arrives in
+              // here, so it is ok anyway because it was
+              // initialized to zero at the initialization
+              for (unsigned int i = 0; i < spacedim; ++i)
+                for (unsigned int j = 0; j < dim; ++j)
+                  data.contravariant[point][i][j] = result[i][j];
+            }
+        }
+
+      if (update_flags & update_covariant_transformation)
+        {
+          const unsigned int n_q_points = data.contravariant.size();
+          for (unsigned int point = 0; point < n_q_points; ++point)
+            data.covariant[point] =
+              (data.contravariant[point]).covariant_form();
+        }
+    }
   } // namespace MappingTet
 } // namespace internal
 
@@ -342,16 +412,19 @@ MappingTet<dim, spacedim>::fill_fe_values(
   internal::MappingTet::maybe_compute_q_points<dim, spacedim>(
     data, output_data.quadrature_points);
 
-  // internal::MappingQGeneric::maybe_update_Jacobians<dim,spacedim>
-  //(computed_cell_similarity,
-  // QProjector<dim>::DataSetDescriptor::cell (),
-  // data);
+  data.contravariant.resize(n_q_points);
+  data.covariant.resize(n_q_points);
+
+
+  internal::MappingTet::maybe_update_Jacobians<dim, spacedim>(data);
 
   const UpdateFlags          update_flags = data.update_each;
   const std::vector<double> &weights      = quadrature.get_weights();
 
   if (update_flags & update_JxW_values)
     {
+      output_data.JxW_values.resize(n_q_points);
+
       AssertDimension(output_data.JxW_values.size(), n_q_points);
       AssertDimension(dim, spacedim);
 

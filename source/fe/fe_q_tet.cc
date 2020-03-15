@@ -22,9 +22,9 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-template <int dim>
-FE_QTet<dim>::FE_QTet(const unsigned int degree)
-  : FE_Poly<PolynomialsTet<dim>, dim>(
+template <int dim, int spacedim>
+FE_QTet<dim, spacedim>::FE_QTet(const unsigned int degree)
+  : FE_Poly<PolynomialsTet<dim>, dim, spacedim>(
       PolynomialsTet<dim>(degree),
       FiniteElementData<dim>(get_dpo_vector(degree),
                              1,
@@ -38,16 +38,16 @@ FE_QTet<dim>::FE_QTet(const unsigned int degree)
         std::vector<bool>(1, true)))
 {}
 
-template <int dim>
+template <int dim, int spacedim>
 std::unique_ptr<FiniteElement<dim, dim>>
-FE_QTet<dim>::clone() const
+FE_QTet<dim, spacedim>::clone() const
 {
-  return std_cxx14::make_unique<FE_QTet<dim>>(*this);
+  return std_cxx14::make_unique<FE_QTet<dim, spacedim>>(*this);
 }
 
-template <int dim>
+template <int dim, int spacedim>
 std::string
-FE_QTet<dim>::get_name() const
+FE_QTet<dim, spacedim>::get_name() const
 {
   std::ostringstream namebuf;
   namebuf << "FE_QTet<" << dim << ">(" << this->degree << ")";
