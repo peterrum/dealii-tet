@@ -95,6 +95,8 @@ public:
     for (unsigned int i = 0; i < n_cell; i++)
       this->levels[0]->cells.used[i] = true;
 
+    this->levels[0]->cells.reserve_space(0, 0); // TODO: what is happening here?
+
     // step 2: material id
     this->levels[0]->cells.boundary_or_material_id.clear();
     this->levels[0]->cells.boundary_or_material_id.resize(n_cell);

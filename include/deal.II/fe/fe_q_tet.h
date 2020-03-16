@@ -70,11 +70,6 @@ protected:
     const unsigned int n_q_points    = quadrature.size();
     const unsigned int dofs_per_cell = dim == 2 ? 3 : 4; // TODO
 
-    if (update_flags & update_gradients)
-      std::cout << "AAAAAAAAA" << std::endl;
-    else
-      std::cout << "BBBBBBBBB" << std::endl;
-
     // initialize some scratch arrays. we need them for the underlying
     // polynomial to put the values and derivatives of shape functions
     // to put there, depending on what the user requested
@@ -158,8 +153,6 @@ protected:
             for (unsigned int k = 0; k < dofs_per_cell; ++k)
               {
                 data.shape_gradients[k][i] = grads[k];
-                std::cout << data.shape_gradients[k][i] << std::endl
-                          << std::endl;
               }
 
           if (update_flags & update_hessians)

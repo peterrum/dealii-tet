@@ -63,7 +63,6 @@ public:
       for (unsigned int j = 0; j < quadrature.size(); j++)
         for (unsigned int i = 0; i < n_shape_functions; i++)
           {
-            std::cout << fe.shape_value(i, quadrature.point(j)) << std::endl;
             shape_.push_back(fe.shape_value(i, quadrature.point(j)));
             shape_derivatives.push_back(fe.shape_grad(i, quadrature.point(j)));
           }
@@ -223,8 +222,6 @@ public:
   virtual std::unique_ptr<typename Mapping<dim, spacedim>::InternalDataBase>
   get_data(const UpdateFlags update_flags, const Quadrature<dim> &q) const
   {
-    std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
-
     std::unique_ptr<typename Mapping<dim, spacedim>::InternalDataBase>
           data_ptr = std_cxx14::make_unique<InternalData>(polynomial_degree);
     auto &data     = dynamic_cast<InternalData &>(*data_ptr);
@@ -323,8 +320,6 @@ namespace internal
                 for (unsigned int i = 0; i < spacedim; ++i)
                   result[i] += shape[k] * data.mapping_support_points[k][i];
               quadrature_points[point] = result;
-
-              std::cout << "B" << std::endl;
             }
         }
     }

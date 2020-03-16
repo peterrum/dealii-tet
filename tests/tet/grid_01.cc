@@ -42,11 +42,16 @@ test()
   vertices.push_back(Point<dim>(1, 0));
   vertices.push_back(Point<dim>(0, 1));
   vertices.push_back(Point<dim>(0, 0));
+  vertices.push_back(Point<dim>(1, 1));
 
-  CellDataTet<dim> cell;
-  cell.vertices = {0, 1, 2};
+  CellDataTet<dim> cell_1;
+  cell_1.vertices = {0, 1, 2};
+  cells.push_back(cell_1);
 
-  cells.push_back(cell);
+  CellDataTet<dim> cell_2;
+  cell_2.vertices = {1, 2, 3};
+  cells.push_back(cell_2);
+
 
   TetTriangulation<dim> tria;
   tria.create_triangulation_tet(vertices, cells); // TODO: load mesh
