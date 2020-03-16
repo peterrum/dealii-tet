@@ -17,8 +17,9 @@
 
 using namespace dealii;
 
-#include <deal.II/fe/fe.h>
 #include <deal.II/base/quadrature.h>
+
+#include <deal.II/fe/fe.h>
 
 namespace
 {

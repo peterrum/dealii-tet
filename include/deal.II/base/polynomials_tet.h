@@ -23,61 +23,62 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-
-template <int dim>
-class PolynomialsTet : public ScalarPolynomialsBase<dim>
+namespace Tet
 {
-public:
-  static const unsigned int dimension = dim;
+  template <int dim>
+  class ScalarPolynomial : public ScalarPolynomialsBase<dim>
+  {
+  public:
+    static const unsigned int dimension = dim;
 
-  PolynomialsTet(const unsigned int degree);
+    ScalarPolynomial(const unsigned int degree);
 
-  double
-  compute_value(const unsigned int i, const Point<dim> &p) const;
+    double
+    compute_value(const unsigned int i, const Point<dim> &p) const;
 
+    template <int order>
+    Tensor<order, dim>
+    compute_derivative(const unsigned int i, const Point<dim> &p) const;
+
+    Tensor<1, dim>
+    compute_grad(const unsigned int i, const Point<dim> &p) const;
+
+    Tensor<2, dim>
+    compute_grad_grad(const unsigned int i, const Point<dim> &p) const;
+
+    void
+    evaluate(const Point<dim> &           unit_point,
+             std::vector<double> &        values,
+             std::vector<Tensor<1, dim>> &grads,
+             std::vector<Tensor<2, dim>> &grad_grads,
+             std::vector<Tensor<3, dim>> &third_derivatives,
+             std::vector<Tensor<4, dim>> &fourth_derivatives) const override;
+
+    std::string
+    name() const override;
+
+    virtual std::unique_ptr<ScalarPolynomialsBase<dim>>
+    clone() const override;
+  };
+
+  // template functions
+  template <int dim>
   template <int order>
   Tensor<order, dim>
-  compute_derivative(const unsigned int i, const Point<dim> &p) const;
+  ScalarPolynomial<dim>::compute_derivative(const unsigned int i,
+                                            const Point<dim> & p) const
+  {
+    Tensor<order, dim> der;
 
-  Tensor<1, dim>
-  compute_grad(const unsigned int i, const Point<dim> &p) const;
+    AssertDimension(order, 1);
+    const auto grad = compute_grad(i, p);
 
-  Tensor<2, dim>
-  compute_grad_grad(const unsigned int i, const Point<dim> &p) const;
+    for (unsigned int i = 0; i < dim; i++)
+      der[i] = grad[i];
 
-  void
-  evaluate(const Point<dim> &           unit_point,
-           std::vector<double> &        values,
-           std::vector<Tensor<1, dim>> &grads,
-           std::vector<Tensor<2, dim>> &grad_grads,
-           std::vector<Tensor<3, dim>> &third_derivatives,
-           std::vector<Tensor<4, dim>> &fourth_derivatives) const override;
-
-  std::string
-  name() const override;
-
-  virtual std::unique_ptr<ScalarPolynomialsBase<dim>>
-  clone() const override;
-};
-
-// template functions
-template <int dim>
-template <int order>
-Tensor<order, dim>
-PolynomialsTet<dim>::compute_derivative(const unsigned int i,
-                                        const Point<dim> & p) const
-{
-  Tensor<order, dim> der;
-
-  AssertDimension(order, 1);
-  const auto grad = compute_grad(i, p);
-
-  for (unsigned int i = 0; i < dim; i++)
-    der[i] = grad[i];
-
-  return der;
-}
-
+    return der;
+  }
+} // namespace Tet
 
 DEAL_II_NAMESPACE_CLOSE
 

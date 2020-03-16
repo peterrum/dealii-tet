@@ -31,8 +31,8 @@ template <int dim>
 void
 test(const unsigned int degree = 1)
 {
-  FESystem<dim>  fe(FE_QTet<dim>(degree), dim);
-  QGaussTet<dim> quad(3);
+  FESystem<dim>    fe(Tet::FE_Q<dim>(degree), dim);
+  Tet::QGauss<dim> quad(3);
 
   FEValues_<dim> fe_values(fe, quad); // TODO: use actual FEValues
 

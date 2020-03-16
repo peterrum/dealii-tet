@@ -28,8 +28,8 @@ template <int dim>
 void
 test(const unsigned int degree, const unsigned int n_points)
 {
-  PolynomialsTet<dim> poly(degree);
-  QGaussTet<dim>      quad(n_points);
+  Tet::ScalarPolynomial<dim> poly(degree);
+  Tet::QGauss<dim>           quad(n_points);
 
   std::vector<double>         values(poly.n());
   std::vector<Tensor<1, dim>> grads;

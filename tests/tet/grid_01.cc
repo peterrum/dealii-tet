@@ -36,34 +36,33 @@ test()
 {
   // 1) Create triangulation (TODO: this should be general mesh - not only for
   // TET)
-  std::vector<Point<dim>>       vertices;
-  std::vector<CellDataTet<dim>> cells;
+  std::vector<Point<dim>>         vertices;
+  std::vector<Tet::CellData<dim>> cells;
 
   vertices.push_back(Point<dim>(1, 0));
   vertices.push_back(Point<dim>(0, 1));
   vertices.push_back(Point<dim>(0, 0));
   vertices.push_back(Point<dim>(1, 1));
 
-  CellDataTet<dim> cell_1;
+  Tet::CellData<dim> cell_1;
   cell_1.vertices = {0, 1, 2};
   cells.push_back(cell_1);
 
-  CellDataTet<dim> cell_2;
+  Tet::CellData<dim> cell_2;
   cell_2.vertices = {1, 2, 3};
   cells.push_back(cell_2);
 
-
-  TetTriangulation<dim> tria;
+  Tet::Triangulation<dim> tria;
   tria.create_triangulation_tet(vertices, cells); // TODO: load mesh
 
   // 2) Create finite element (for TET)
-  FE_QTet<dim> fe(1);
+  Tet::FE_Q<dim> fe(1);
 
   // 3) Create quadrature rule (for TET)
-  QGaussTet<dim> quad(3);
+  Tet::QGauss<dim> quad(3);
 
   // 4) Create mapping (for TET)
-  MappingTet<dim> mapping(1);
+  Tet::MappingQ<dim> mapping(1);
 
   // 5) Create FEValues (for a single set of FiniteElement, Quadrature, Mapping)
   FEValues<dim> fe_values(mapping,

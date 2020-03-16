@@ -1198,8 +1198,7 @@ TriaAccessor<structdim, dim, spacedim>::vertex_index(
   const unsigned int corner) const
 {
   if (auto tria_tet =
-        dynamic_cast<const dealii::TetTriangulation<dim, spacedim> *>(
-          this->tria))
+        dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria))
     {
       AssertIndexRange(corner, this->n_vertices());
       return tria_tet
@@ -1220,8 +1219,7 @@ inline unsigned int
 TriaAccessor<structdim, dim, spacedim>::n_vertices() const
 {
   if (auto tria_tet =
-        dynamic_cast<const dealii::TetTriangulation<dim, spacedim> *>(
-          this->tria))
+        dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria))
     return tria_tet->vertex_indices_ptr[this->index() + 1] -
            tria_tet->vertex_indices_ptr[this->index()];
 

@@ -22,39 +22,44 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-template <int dim, int spacedim>
-FE_QTet<dim, spacedim>::FE_QTet(const unsigned int degree)
-  : FE_Poly<PolynomialsTet<dim>, dim, spacedim>(
-      PolynomialsTet<dim>(degree),
-      FiniteElementData<dim>(get_dpo_vector(degree),
-                             1,
-                             degree,
-                             FiniteElementData<dim>::L2),
-      std::vector<bool>(
-        FiniteElementData<dim>(get_dpo_vector(degree), 1, degree).dofs_per_cell,
-        true),
-      std::vector<ComponentMask>(
-        FiniteElementData<dim>(get_dpo_vector(degree), 1, degree).dofs_per_cell,
-        std::vector<bool>(1, true)))
-{}
-
-template <int dim, int spacedim>
-std::unique_ptr<FiniteElement<dim, dim>>
-FE_QTet<dim, spacedim>::clone() const
+namespace Tet
 {
-  return std_cxx14::make_unique<FE_QTet<dim, spacedim>>(*this);
-}
+  template <int dim, int spacedim>
+  FE_Q<dim, spacedim>::FE_Q(const unsigned int degree)
+    : FE_Poly<Tet::ScalarPolynomial<dim>, dim, spacedim>(
+        Tet::ScalarPolynomial<dim>(degree),
+        FiniteElementData<dim>(get_dpo_vector(degree),
+                               1,
+                               degree,
+                               FiniteElementData<dim>::L2),
+        std::vector<bool>(
+          FiniteElementData<dim>(get_dpo_vector(degree), 1, degree)
+            .dofs_per_cell,
+          true),
+        std::vector<ComponentMask>(
+          FiniteElementData<dim>(get_dpo_vector(degree), 1, degree)
+            .dofs_per_cell,
+          std::vector<bool>(1, true)))
+  {}
 
-template <int dim, int spacedim>
-std::string
-FE_QTet<dim, spacedim>::get_name() const
-{
-  std::ostringstream namebuf;
-  namebuf << "FE_QTet<" << dim << ">(" << this->degree << ")";
+  template <int dim, int spacedim>
+  std::unique_ptr<FiniteElement<dim, dim>>
+  FE_Q<dim, spacedim>::clone() const
+  {
+    return std_cxx14::make_unique<FE_Q<dim, spacedim>>(*this);
+  }
 
-  return namebuf.str();
-}
+  template <int dim, int spacedim>
+  std::string
+  FE_Q<dim, spacedim>::get_name() const
+  {
+    std::ostringstream namebuf;
+    namebuf << "FE_Q<" << dim << ">(" << this->degree << ")";
 
+    return namebuf.str();
+  }
+
+} // namespace Tet
 
 // explicit instantiations
 #include "fe_q_tet.inst"
