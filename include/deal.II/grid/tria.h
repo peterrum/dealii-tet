@@ -3664,8 +3664,6 @@ protected:
   void
   update_periodic_face_map();
 
-
-private:
   /**
    * If add_periodicity() is called, this variable stores the given periodic
    * face pairs on level 0 for later access during the identification of ghost
@@ -3683,6 +3681,7 @@ private:
            std::pair<std::pair<cell_iterator, unsigned int>, std::bitset<3>>>
     periodic_face_map;
 
+private:
   /**
    * @name Cell iterator functions for internal use
    * @{
@@ -4023,13 +4022,12 @@ protected:
    * Array of the vertices of this triangulation.
    */
   std::vector<Point<spacedim>> vertices;
-
-private:
   /**
    * Array storing a bit-pattern which vertices are used.
    */
   std::vector<bool> vertices_used;
 
+private:
   /**
    * Collection of manifold objects. We store only objects, which are not of
    * type FlatManifold.

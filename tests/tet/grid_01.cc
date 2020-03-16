@@ -36,8 +36,20 @@ test()
 {
   // 1) Create triangulation (TODO: this should be general mesh - not only for
   // TET)
+  std::vector<Point<dim>>       vertices;
+  std::vector<CellDataTet<dim>> cells;
+
+  vertices.push_back(Point<dim>(1, 0));
+  vertices.push_back(Point<dim>(0, 1));
+  vertices.push_back(Point<dim>(0, 0));
+
+  CellDataTet<dim> cell;
+  cell.vertices = {0, 1, 2};
+
+  cells.push_back(cell);
+
   TetTriangulation<dim> tria;
-  tria.setup(); // TODO: load mesh
+  tria.create_triangulation_tet(vertices, cells); // TODO: load mesh
 
   // 2) Create finite element (for TET)
   FE_QTet<dim> fe(1);

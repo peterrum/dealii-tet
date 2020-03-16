@@ -23,6 +23,12 @@
 
 DEAL_II_NAMESPACE_OPEN
 
+template <int dim>
+struct CellDataTet
+{
+  std::vector<unsigned int> vertices;
+};
+
 template <int dim, int spacedim = dim>
 class TetTriangulation : public Triangulation<dim, spacedim>
 {
@@ -69,7 +75,8 @@ public:
   std::vector<types::global_dof_index> vertex_indices_ptr;
 
   void
-  setup()
+  create_triangulation_tet(const std::vector<Point<spacedim>> & vertices,
+                           const std::vector<CellDataTet<dim>> &cells)
   {
     this->levels.clear();
     this->levels.push_back(
@@ -77,7 +84,7 @@ public:
         internal::TriangulationImplementation::TriaLevel<dim>>());
 
 
-    const unsigned int n_cell = 1;
+    const unsigned int n_cell = cells.size();
 
     this->levels[0]->reserve_space(n_cell, dim, spacedim);
 
@@ -127,15 +134,16 @@ public:
 
     // vertices
     vertex_indices_ptr.push_back(vertex_indices.size());
-    vertex_indices.push_back(0);
-    vertex_indices.push_back(1);
-    vertex_indices.push_back(2);
 
-    vertex_indices_ptr.push_back(vertex_indices.size());
+    for (const auto &cell : cells)
+      {
+        for (const auto vertex : cell.vertices)
+          vertex_indices.push_back(vertex);
 
-    this->vertices.emplace_back(Point<spacedim>(1, 0));
-    this->vertices.emplace_back(Point<spacedim>(0, 1));
-    this->vertices.emplace_back(Point<spacedim>(0, 0));
+        vertex_indices_ptr.push_back(vertex_indices.size());
+      }
+
+    this->vertices = vertices;
   }
 
   virtual void
@@ -922,7 +930,7 @@ public:
   get_used_vertices() const override
   {
     Assert(false, ExcNotImplemented());
-    return this->vertices;
+    return this->vertices_used;
   }
 
   virtual unsigned int
