@@ -83,7 +83,7 @@ public:
 
     // step 1: used
     this->levels[0]->cells.used.clear();
-    this->levels[0]->cells.used.resize(1);
+    this->levels[0]->cells.used.resize(n_cell);
 
     for (unsigned int i = 0; i < n_cell; i++)
       this->levels[0]->cells.used[i] = true;
@@ -136,12 +136,10 @@ public:
     this->vertices.emplace_back(Point<spacedim>(1, 0));
     this->vertices.emplace_back(Point<spacedim>(0, 1));
     this->vertices.emplace_back(Point<spacedim>(0, 0));
-
-    // this->vertices.resize(3);
   }
 
   virtual void
-  clear()
+  clear() override
   {
     Assert(false, ExcNotImplemented());
   }
@@ -149,90 +147,100 @@ public:
   virtual void
   set_mesh_smoothing(
     const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
-      mesh_smoothing)
+      mesh_smoothing) override
   {
     Assert(false, ExcNotImplemented());
     (void)mesh_smoothing;
   }
   virtual const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing &
-  get_mesh_smoothing() const
+  get_mesh_smoothing() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
   set_manifold(const types::manifold_id       number,
-               const Manifold<dim, spacedim> &manifold_object)
+               const Manifold<dim, spacedim> &manifold_object) override
   {
     Assert(false, ExcNotImplemented());
+    (void)number;
+    (void)manifold_object;
   }
 
   DEAL_II_DEPRECATED
   virtual void
-  set_manifold(const types::manifold_id number)
+  set_manifold(const types::manifold_id number) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)number;
+  }
+
+  virtual void
+  reset_manifold(const types::manifold_id manifold_number) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)manifold_number;
+  }
+
+  virtual void
+  reset_all_manifolds() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  reset_manifold(const types::manifold_id manifold_number)
+  set_all_manifold_ids(const types::manifold_id number) override
   {
     Assert(false, ExcNotImplemented());
+    (void)number;
   }
 
   virtual void
-  reset_all_manifolds()
+  set_all_manifold_ids_on_boundary(const types::manifold_id number) override
   {
     Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  set_all_manifold_ids(const types::manifold_id number)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  set_all_manifold_ids_on_boundary(const types::manifold_id number)
-  {
-    Assert(false, ExcNotImplemented());
+    (void)number;
   }
 
   virtual void
   set_all_manifold_ids_on_boundary(const types::boundary_id b_id,
-                                   const types::manifold_id number)
+                                   const types::manifold_id number) override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual const Manifold<dim, spacedim> &
-  get_manifold(const types::manifold_id number) const
+  get_manifold(const types::manifold_id number) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)number;
   }
 
   virtual std::vector<types::boundary_id>
-  get_boundary_ids() const
+  get_boundary_ids() const override
   {
     Assert(false, ExcNotImplemented());
+    return std::vector<types::boundary_id>();
   }
 
   virtual std::vector<types::manifold_id>
-  get_manifold_ids() const
+  get_manifold_ids() const override
   {
     Assert(false, ExcNotImplemented());
+    return std::vector<types::manifold_id>();
   }
 
   virtual void
-  copy_triangulation(const Triangulation<dim, spacedim> &other_tria)
+  copy_triangulation(const Triangulation<dim, spacedim> &other_tria) override
   {
     Assert(false, ExcNotImplemented());
+    (void)other_tria;
   }
 
   virtual void
   create_triangulation(const std::vector<Point<spacedim>> &vertices,
                        const std::vector<CellData<dim>> &  cells,
-                       const SubCellData &                 subcelldata)
+                       const SubCellData &                 subcelldata) override
   {
     Assert(false, ExcNotImplemented());
   }
@@ -241,321 +249,365 @@ public:
   create_triangulation_compatibility(
     const std::vector<Point<spacedim>> &vertices,
     const std::vector<CellData<dim>> &  cells,
-    const SubCellData &                 subcelldata)
+    const SubCellData &                 subcelldata) override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  flip_all_direction_flags()
+  flip_all_direction_flags() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  set_all_refine_flags()
+  set_all_refine_flags() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  refine_global(const unsigned int times = 1)
+  refine_global(const unsigned int times = 1) override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  execute_coarsening_and_refinement()
+  execute_coarsening_and_refinement() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual bool
-  prepare_coarsening_and_refinement()
+  prepare_coarsening_and_refinement() override
   {
     Assert(false, ExcNotImplemented());
+
+    return false;
   }
 
   virtual void
-  save_refine_flags(std::ostream &out) const
+  save_refine_flags(std::ostream &out) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)out;
   }
 
   virtual void
-  save_refine_flags(std::vector<bool> &v) const
+  save_refine_flags(std::vector<bool> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_refine_flags(std::istream &in)
+  load_refine_flags(std::istream &in) override
   {
     Assert(false, ExcNotImplemented());
+    (void)in;
   }
 
   virtual void
-  load_refine_flags(const std::vector<bool> &v)
+  load_refine_flags(const std::vector<bool> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_coarsen_flags(std::ostream &out) const
+  save_coarsen_flags(std::ostream &out) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)out;
   }
 
   virtual void
-  save_coarsen_flags(std::vector<bool> &v) const
+  save_coarsen_flags(std::vector<bool> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_coarsen_flags(std::istream &out)
+  load_coarsen_flags(std::istream &out) override
   {
     Assert(false, ExcNotImplemented());
+    (void)out;
   }
 
   virtual void
-  load_coarsen_flags(const std::vector<bool> &v)
+  load_coarsen_flags(const std::vector<bool> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual bool
-  get_anisotropic_refinement_flag() const
+  get_anisotropic_refinement_flag() const override
+  {
+    Assert(false, ExcNotImplemented());
+
+    return false;
+  }
+
+  virtual void
+  clear_user_flags() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  clear_user_flags()
+  save_user_flags(std::ostream &out) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)out;
+  }
+
+  virtual void
+  save_user_flags(std::vector<bool> &v) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+  virtual void
+  load_user_flags(std::istream &in) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)in;
+  }
+
+  virtual void
+  load_user_flags(const std::vector<bool> &v) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+  virtual void
+  clear_user_flags_line() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  save_user_flags(std::ostream &out) const
+  save_user_flags_line(std::ostream &out) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)out;
+  }
+
+  virtual void
+  save_user_flags_line(std::vector<bool> &v) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+  virtual void
+  load_user_flags_line(std::istream &in) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)in;
+  }
+
+  virtual void
+  load_user_flags_line(const std::vector<bool> &v) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+
+  virtual void
+  clear_user_flags_quad() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  save_user_flags(std::vector<bool> &v) const
+  save_user_flags_quad(std::ostream &out) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)out;
+  }
+
+  virtual void
+  save_user_flags_quad(std::vector<bool> &v) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+  virtual void
+  load_user_flags_quad(std::istream &in) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)in;
+  }
+
+  virtual void
+  load_user_flags_quad(const std::vector<bool> &v) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+
+  virtual void
+  clear_user_flags_hex() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  load_user_flags(std::istream &in)
+  save_user_flags_hex(std::ostream &out) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)out;
+  }
+
+  virtual void
+  save_user_flags_hex(std::vector<bool> &v) const override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+  virtual void
+  load_user_flags_hex(std::istream &in) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)in;
+  }
+
+  virtual void
+  load_user_flags_hex(const std::vector<bool> &v) override
+  {
+    Assert(false, ExcNotImplemented());
+    (void)v;
+  }
+
+  virtual void
+  clear_user_data() override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual void
-  load_user_flags(const std::vector<bool> &v)
+  save_user_indices(std::vector<unsigned int> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  clear_user_flags_line()
+  load_user_indices(const std::vector<unsigned int> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_flags_line(std::ostream &out) const
+  save_user_pointers(std::vector<void *> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_flags_line(std::vector<bool> &v) const
+  load_user_pointers(const std::vector<void *> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_user_flags_line(std::istream &in)
+  save_user_indices_line(std::vector<unsigned int> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_user_flags_line(const std::vector<bool> &v)
+  load_user_indices_line(const std::vector<unsigned int> &v) override
   {
     Assert(false, ExcNotImplemented());
-  }
-
-
-  virtual void
-  clear_user_flags_quad()
-  {
-    Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_flags_quad(std::ostream &out) const
+  save_user_indices_quad(std::vector<unsigned int> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_flags_quad(std::vector<bool> &v) const
+  load_user_indices_quad(const std::vector<unsigned int> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_user_flags_quad(std::istream &in)
+  save_user_indices_hex(std::vector<unsigned int> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_user_flags_quad(const std::vector<bool> &v)
+  load_user_indices_hex(const std::vector<unsigned int> &v) override
   {
     Assert(false, ExcNotImplemented());
-  }
-
-
-  virtual void
-  clear_user_flags_hex()
-  {
-    Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_flags_hex(std::ostream &out) const
+  save_user_pointers_line(std::vector<void *> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_flags_hex(std::vector<bool> &v) const
+  load_user_pointers_line(const std::vector<void *> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_user_flags_hex(std::istream &in)
+  save_user_pointers_quad(std::vector<void *> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  load_user_flags_hex(const std::vector<bool> &v)
+  load_user_pointers_quad(const std::vector<void *> &v) override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  clear_user_data()
+  save_user_pointers_hex(std::vector<void *> &v) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual void
-  save_user_indices(std::vector<unsigned int> &v) const
+  load_user_pointers_hex(const std::vector<void *> &v) override
   {
     Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_indices(const std::vector<unsigned int> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_pointers(std::vector<void *> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_pointers(const std::vector<void *> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_indices_line(std::vector<unsigned int> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_indices_line(const std::vector<unsigned int> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_indices_quad(std::vector<unsigned int> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_indices_quad(const std::vector<unsigned int> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_indices_hex(std::vector<unsigned int> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_indices_hex(const std::vector<unsigned int> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_pointers_line(std::vector<void *> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_pointers_line(const std::vector<void *> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_pointers_quad(std::vector<void *> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_pointers_quad(const std::vector<void *> &v)
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  save_user_pointers_hex(std::vector<void *> &v) const
-  {
-    Assert(false, ExcNotImplemented());
-  }
-
-  virtual void
-  load_user_pointers_hex(const std::vector<void *> &v)
-  {
-    Assert(false, ExcNotImplemented());
+    (void)v;
   }
 
   virtual cell_iterator
-  begin(const unsigned int level = 0) const
+  begin(const unsigned int level = 0) const override
   {
     AssertDimension(level, 0);
     return cell_iterator(
@@ -566,13 +618,14 @@ public:
   }
 
   virtual active_cell_iterator
-  begin_active(const unsigned int level = 0) const
+  begin_active(const unsigned int level = 0) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
   }
 
   virtual cell_iterator
-  end() const
+  end() const override
   {
     return cell_iterator(
       const_cast<dealii::Triangulation<dim, spacedim> *>(
@@ -582,333 +635,386 @@ public:
   }
 
   virtual cell_iterator
-  end(const unsigned int level) const
+  end(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
   }
 
   virtual active_cell_iterator
-  end_active(const unsigned int level) const
+  end_active(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
   }
 
   virtual cell_iterator
-  last() const
+  last() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual active_cell_iterator
-  last_active() const
+  last_active() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual IteratorRange<cell_iterator>
-  cell_iterators() const
+  cell_iterators() const override
   {
     return IteratorRange<typename Triangulation<dim, spacedim>::cell_iterator>(
       begin(), end());
   }
 
   virtual IteratorRange<active_cell_iterator>
-  active_cell_iterators() const
+  active_cell_iterators() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual IteratorRange<cell_iterator>
-  cell_iterators_on_level(const unsigned int level) const
+  cell_iterators_on_level(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
   }
 
   virtual IteratorRange<active_cell_iterator>
-  active_cell_iterators_on_level(const unsigned int level) const
+  active_cell_iterators_on_level(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
   }
 
   virtual face_iterator
-  begin_face() const
+  begin_face() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual active_face_iterator
-  begin_active_face() const
+  begin_active_face() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual face_iterator
-  end_face() const
+  end_face() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual IteratorRange<active_face_iterator>
-  active_face_iterators() const
+  active_face_iterators() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual vertex_iterator
-  begin_vertex() const
+  begin_vertex() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual active_vertex_iterator
-  begin_active_vertex() const
+  begin_active_vertex() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual vertex_iterator
-  end_vertex() const
+  end_vertex() const override
   {
     Assert(false, ExcNotImplemented());
   }
 
   virtual unsigned int
-  n_lines() const
+  n_lines() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_lines(const unsigned int level) const
+  n_lines(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_active_lines() const
+  n_active_lines() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_active_lines(const unsigned int level) const
+  n_active_lines(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_quads() const
+  n_quads() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_quads(const unsigned int level) const
+  n_quads(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_active_quads() const
+  n_active_quads() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_active_quads(const unsigned int level) const
+  n_active_quads(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_hexs() const
+  n_hexs() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_hexs(const unsigned int level) const
+  n_hexs(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_active_hexs() const
+  n_active_hexs() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_active_hexs(const unsigned int level) const
+  n_active_hexs(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_cells() const
+  n_cells() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_cells(const unsigned int level) const
+  n_cells(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_active_cells() const
+  n_active_cells() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual types::global_dof_index
-  n_global_active_cells() const
+  n_global_active_cells() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_active_cells(const unsigned int level) const
+  n_active_cells(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_faces() const
+  n_faces() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_active_faces() const
+  n_active_faces() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_levels() const
+  n_levels() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_global_levels() const
+  n_global_levels() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual bool
-  has_hanging_nodes() const
+  has_hanging_nodes() const override
   {
     Assert(false, ExcNotImplemented());
+    return false;
   }
 
   virtual unsigned int
-  n_vertices() const
+  n_vertices() const override
   {
-    Assert(false, ExcNotImplemented());
+    return this->vertices.size();
   }
 
   virtual const std::vector<Point<spacedim>> &
-  get_vertices() const
+  get_vertices() const override
   {
-    Assert(false, ExcNotImplemented());
+    return this->vertices;
   }
 
   virtual unsigned int
-  n_used_vertices() const
+  n_used_vertices() const override
   {
     Assert(false, ExcNotImplemented());
+    return this->vertices.size();
   }
 
   virtual bool
-  vertex_used(const unsigned int index) const
+  vertex_used(const unsigned int index) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)index;
+    return true;
   }
 
   virtual const std::vector<bool> &
-  get_used_vertices() const
+  get_used_vertices() const override
   {
     Assert(false, ExcNotImplemented());
+    return this->vertices;
   }
 
   virtual unsigned int
-  max_adjacent_cells() const
+  max_adjacent_cells() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual types::subdomain_id
-  locally_owned_subdomain() const
+  locally_owned_subdomain() const override
   {
     return 0; // [TODO]: make parallel
   }
 
   virtual Triangulation<dim, spacedim> &
-  get_triangulation()
+  get_triangulation() override
   {
     Assert(false, ExcNotImplemented());
+    return *this;
   }
 
   virtual const Triangulation<dim, spacedim> &
-  get_triangulation() const
+  get_triangulation() const override
   {
     Assert(false, ExcNotImplemented());
+    return *this;
   }
 
   virtual unsigned int
-  n_raw_lines() const
+  n_raw_lines() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_raw_lines(const unsigned int level) const
+  n_raw_lines(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_raw_quads() const
+  n_raw_quads() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual unsigned int
-  n_raw_quads(const unsigned int level) const
+  n_raw_quads(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_raw_hexs(const unsigned int level) const
+  n_raw_hexs(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_raw_cells(const unsigned int level) const
+  n_raw_cells(const unsigned int level) const override
   {
     Assert(false, ExcNotImplemented());
+    (void)level;
+    return 0;
   }
 
   virtual unsigned int
-  n_raw_faces() const
+  n_raw_faces() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual std::size_t
-  memory_consumption() const
+  memory_consumption() const override
   {
     Assert(false, ExcNotImplemented());
+    return 0;
   }
 
   virtual void
   add_periodicity(
-    const std::vector<GridTools::PeriodicFacePair<cell_iterator>> &)
+    const std::vector<GridTools::PeriodicFacePair<cell_iterator>> &) override
   {
     Assert(false, ExcNotImplemented());
   }
@@ -916,21 +1022,23 @@ public:
   virtual const std::map<
     std::pair<cell_iterator, unsigned int>,
     std::pair<std::pair<cell_iterator, unsigned int>, std::bitset<3>>> &
-  get_periodic_face_map() const
+  get_periodic_face_map() const override
   {
     Assert(false, ExcNotImplemented());
+    return this->periodic_face_map;
   }
 
   virtual unsigned int
   coarse_cell_id_to_coarse_cell_index(
-    const types::coarse_cell_id coarse_cell_id) const
+    const types::coarse_cell_id coarse_cell_id) const override
   {
     Assert(false, ExcNotImplemented());
+    return coarse_cell_id;
   }
 
   virtual types::coarse_cell_id
   coarse_cell_index_to_coarse_cell_id(
-    const unsigned int coarse_cell_index) const
+    const unsigned int coarse_cell_index) const override
   {
     return coarse_cell_index;
   }

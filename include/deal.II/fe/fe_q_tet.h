@@ -188,6 +188,8 @@ protected:
                                                                        spacedim>
       &output_data) const override
   {
+    (void)cell;
+
     // convert data object to internal data for this class. fails with an
     // exception if that is not possible
     Assert(dynamic_cast<const InternalData *>(&fe_internal) != nullptr,
