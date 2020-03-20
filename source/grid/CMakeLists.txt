@@ -31,6 +31,7 @@ SET(_unity_include_src
   tria_faces.cc
   tria_levels.cc
   tria_objects.cc
+  tria_tet_cell_type.cc
   )
 
 SET(_separate_src
