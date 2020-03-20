@@ -32,6 +32,7 @@ SET(_unity_include_src
   tria_levels.cc
   tria_objects.cc
   tria_tet_cell_type.cc
+  tria_tet_connectivity.cc
   )
 
 SET(_separate_src

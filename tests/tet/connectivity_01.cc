@@ -17,39 +17,27 @@
 // Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
-#include <deal.II/base/quadrature_lib.h>
-
 #include <deal.II/grid/tria_tet_cell_type.h>
+#include <deal.II/grid/tria_tet_connectivity.h>
 
 #include "./tests.h"
 
 using namespace dealii;
-
-
-template <int dim>
-void
-test_cell_type(const std::shared_ptr<Tet::CellTypeBase<dim>> &cell)
-{
-  deallog.push(cell->get_name());
-  for (unsigned int d = 1; d <= dim; d++)
-    {
-      deallog << "  " << cell->n_entities(d) << std::endl;
-      for (unsigned int e = 0; e < cell->n_entities(d); e++)
-        {
-          for (const unsigned int v : cell->vertices_of_entity(d, e))
-            deallog << v << " ";
-          deallog << std::endl;
-        }
-      deallog << std::endl;
-    }
-  deallog.pop();
-}
 
 int
 main()
 {
   initlog();
 
-  test_cell_type(Tet::CellTypeFactory<2>::build(Tet::CellTypeEnum::tet));
-  test_cell_type(Tet::CellTypeFactory<2>::build(Tet::CellTypeEnum::quad));
+  const int dim = 2;
+
+  // clang-format off
+  const std::vector<Tet::CellTypeEnum>     cell_types{Tet::CellTypeEnum::quad, Tet::CellTypeEnum::quad, Tet::CellTypeEnum::tet};
+  const std::vector<unsigned int> cell_vertices{0, 1, 2, 3, 1, 4, 5, 2, 4, 6, 5};
+  // clang-format on
+
+  Tet::Connectivity<dim> connectivity;
+
+  connectivity.build(cell_types, cell_vertices);
+  connectivity.print(deallog.get_file_stream());
 }

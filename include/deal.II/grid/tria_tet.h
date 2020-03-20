@@ -21,6 +21,8 @@
 
 //#include <deal.II/grid/tria.h>
 
+#include <deal.II/grid/tria_tet_connectivity.h>
+
 DEAL_II_NAMESPACE_OPEN
 
 namespace Tet
@@ -28,6 +30,8 @@ namespace Tet
   template <int dim>
   struct CellData
   {
+    CellTypeEnum type;
+
     std::vector<unsigned int> vertices;
   };
 
@@ -77,10 +81,26 @@ namespace Tet
     std::vector<types::global_dof_index> vertex_indices;
     std::vector<types::global_dof_index> vertex_indices_ptr;
 
+    Connectivity<dim> connectivity;
+
     void
     create_triangulation_tet(const std::vector<Point<spacedim>> &vertices,
                              const std::vector<CellData<dim>> &  cells)
     {
+      {
+        std::vector<CellTypeEnum> cell_types;
+        std::vector<unsigned int> cell_vertices;
+
+        for (const auto &cell : cells)
+          {
+            cell_types.push_back(cell.type);
+            for (const auto &vertex : cell.vertices)
+              cell_vertices.push_back(vertex);
+          }
+
+        connectivity.build(cell_types, cell_vertices);
+      }
+
       this->levels.clear();
       this->levels.push_back(
         std::make_unique<
