@@ -18,6 +18,8 @@
 
 DEAL_II_NAMESPACE_OPEN
 
+#include <iomanip>
+#include <set>
 
 namespace Tet
 {

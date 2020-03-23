@@ -47,10 +47,12 @@ test()
     vertices.push_back(Point<dim>(1, 1));
 
     Tet::CellData<dim> cell_1;
+    cell_1.type     = Tet::CellTypeEnum::tet;
     cell_1.vertices = {0, 1, 2};
     cells.push_back(cell_1);
 
     Tet::CellData<dim> cell_2;
+    cell_2.type     = Tet::CellTypeEnum::tet;
     cell_2.vertices = {1, 2, 3};
     cells.push_back(cell_2);
 
