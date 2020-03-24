@@ -1261,6 +1261,10 @@ DoFHandler<dim, spacedim>::distribute_dofs(
   // first, assign the finite_element
   set_fe(ff);
 
+  if (dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+        this->tria.operator->()))
+    return;
+
   // delete all levels and set them
   // up newly. note that we still
   // have to allocate space for all

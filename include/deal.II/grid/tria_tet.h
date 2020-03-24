@@ -682,8 +682,8 @@ namespace Tet
     virtual cell_iterator
     end(const unsigned int level) const override
     {
-      Assert(false, ExcNotImplemented());
-      (void)level;
+      Assert(level == 0, ExcNotImplemented());
+      return end();
     }
 
     virtual active_cell_iterator
@@ -918,15 +918,13 @@ namespace Tet
     virtual unsigned int
     n_levels() const override
     {
-      Assert(false, ExcNotImplemented());
-      return 0;
+      return 1; // [TODO]: correct
     }
 
     virtual unsigned int
     n_global_levels() const override
     {
-      Assert(false, ExcNotImplemented());
-      return 0;
+      return 1;
     }
 
     virtual bool
