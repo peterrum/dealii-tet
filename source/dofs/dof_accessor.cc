@@ -112,6 +112,24 @@ void
 DoFCellAccessor<DoFHandlerType, lda>::set_dof_indices(
   const std::vector<types::global_dof_index> &local_dof_indices)
 {
+  if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
+    {
+      const unsigned int dim = DoFHandlerType::dimension;
+
+      auto ptr = local_dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          this->dof_handler->set_entity_dofs(d, index, ptr);
+
+      // ... and finally cell
+      this->dof_handler->set_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
+
   Assert(static_cast<unsigned int>(this->present_level) <
            this->dof_handler->levels.size(),
          ExcMessage("DoFHandler not initialized"));

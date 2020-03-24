@@ -172,6 +172,23 @@ namespace Tet
       this->vertices = vertices;
     }
 
+    virtual ArrayView<unsigned int>
+    get_entity_indices(const unsigned int d1,
+                       const unsigned int d2,
+                       const unsigned int index) const
+    {
+      (void)d1;
+      (void)d2;
+      (void)index;
+
+      unsigned int *ptr;
+      unsigned int  n_entities;
+
+      AssertThrow(false, ExcNotImplemented());
+
+      return ArrayView<unsigned int>(ptr, n_entities);
+    }
+
     virtual void
     clear() override
     {

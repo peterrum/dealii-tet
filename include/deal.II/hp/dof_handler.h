@@ -420,6 +420,28 @@ namespace hp
     DoFHandler &
     operator=(const DoFHandler &) = delete;
 
+    void
+    set_entity_dofs(unsigned int                    d,
+                    unsigned int                    index,
+                    const types::global_dof_index *&ptr)
+    {
+      AssertThrow(false, ExcNotImplemented());
+      (void)d;
+      (void)index;
+      (void)ptr;
+    }
+
+    void
+    get_entity_dofs(unsigned int              d,
+                    unsigned int              index,
+                    types::global_dof_index *&ptr)
+    {
+      AssertThrow(false, ExcNotImplemented());
+      (void)d;
+      (void)index;
+      (void)ptr;
+    }
+
     /**
      * Assign a Triangulation and a FECollection to the DoFHandler and compute
      * the distribution of degrees of freedom over the mesh.

@@ -3832,6 +3832,24 @@ DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
   const auto dofs_per_cell = this->get_fe().dofs_per_cell;
   if (dofs_per_cell > 0)
     {
+      if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
+        {
+          const unsigned int dim = DoFHandlerType::dimension;
+
+          auto ptr = dof_indices.data();
+
+          // enumerate in sequence: vertex, line, face, ...
+          for (unsigned int d = 0; d < dim; d++)
+            for (unsigned int index :
+                 tria->get_entity_indices(dim, d, this->index()))
+              this->dof_handler->get_entity_dofs(d, index, ptr);
+
+          // ... and finally cell
+          this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
+
+          return;
+        }
+
       const types::global_dof_index *cache =
         this->dof_handler->levels[this->present_level]->get_cell_cache_start(
           this->present_index, dofs_per_cell);
