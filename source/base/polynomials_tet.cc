@@ -29,6 +29,8 @@ namespace Tet
         {
           if (degree == 1) // TRI3
             return 3;
+          if (degree == 2) // TRI3
+            return 7;
         }
       else if (dim == 3)
         {

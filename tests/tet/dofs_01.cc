@@ -34,7 +34,7 @@ using namespace dealii;
 
 template <int dim>
 void
-test()
+test(const unsigned int degree)
 {
   // 1) Create triangulation (TODO: this should be general mesh - not only for
   // TET)
@@ -60,21 +60,7 @@ test()
   tria.create_triangulation_tet(vertices, cells); // TODO: load mesh
 
   // 2) Create finite element (for TET)
-  Tet::FE_Q<dim> fe(1);
-
-  // 3) Create quadrature rule (for TET)
-  Tet::QGauss<dim> quad(3);
-
-  // 4) Create mapping (for TET)
-  Tet::MappingQ<dim> mapping(1);
-
-  // 5) Create FEValues (for a single set of FiniteElement, Quadrature, Mapping)
-  FEValues<dim> fe_values(mapping,
-                          fe,
-                          quad,
-                          update_quadrature_points | update_JxW_values |
-                            update_contravariant_transformation |
-                            update_covariant_transformation | update_gradients);
+  Tet::FE_Q<dim> fe(degree);
 
   DoFHandler<dim> dof_handler(tria);
   dof_handler.distribute_dofs(fe);
@@ -82,14 +68,12 @@ test()
   // 6) Loop over all cells of triangulation
   for (auto &cell : dof_handler.cell_iterators())
     {
-      fe_values.reinit(cell);
-
       std::vector<types::global_dof_index> dof_indices;
       cell->get_dof_indices(dof_indices);
 
       for (auto &dof_index : dof_indices)
-        std::cout << dof_index << " ";
-      std::cout << std::endl;
+        deallog << dof_index << " ";
+      deallog << std::endl;
     }
 }
 
@@ -100,7 +84,12 @@ main()
 
   {
     deallog.push("2d-1");
-    test<2>();
+    test<2>(1);
+    deallog.pop();
+  }
+  {
+    deallog.push("2d-2");
+    test<2>(2);
     deallog.pop();
   }
 }
