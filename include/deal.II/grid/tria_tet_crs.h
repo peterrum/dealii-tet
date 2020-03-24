@@ -24,10 +24,11 @@ DEAL_II_NAMESPACE_OPEN
 
 namespace Tet
 {
+  template <typename T = unsigned int>
   struct CRS
   {
-    std::vector<std::size_t>  ptr = {0};
-    std::vector<unsigned int> col;
+    std::vector<std::size_t> ptr = {0};
+    std::vector<T>           col;
   };
 
 } // namespace Tet

@@ -172,21 +172,25 @@ namespace Tet
       this->vertices = vertices;
     }
 
-    virtual ArrayView<unsigned int>
+    const std::array<std::array<CRS<unsigned int>, dim + 1>, dim + 1> &
+    get_entity_table() const
+    {
+      return connectivity.table;
+    }
+
+    virtual ArrayView<const unsigned int>
     get_entity_indices(const unsigned int d1,
                        const unsigned int d2,
                        const unsigned int index) const
     {
-      (void)d1;
-      (void)d2;
-      (void)index;
+      AssertIndexRange(d1, dim + 1);
+      AssertIndexRange(d2, dim + 1);
 
-      unsigned int *ptr;
-      unsigned int  n_entities;
+      auto const &crs = this->connectivity.table[d1][d2];
 
-      AssertThrow(false, ExcNotImplemented());
-
-      return ArrayView<unsigned int>(ptr, n_entities);
+      AssertIndexRange(index + 1, crs.ptr.size());
+      return ArrayView<const unsigned int>(crs.col.data() + crs.ptr[index],
+                                           crs.ptr[index + 1] - crs.ptr[index]);
     }
 
     virtual void

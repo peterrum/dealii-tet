@@ -36,8 +36,8 @@ namespace Tet
     void
     print(std::ostream &out) const;
 
-  private:
-    std::array<std::array<CRS, dim + 1>, dim + 1> table;
+    // private:
+    std::array<std::array<CRS<unsigned int>, dim + 1>, dim + 1> table;
   };
 
 } // namespace Tet

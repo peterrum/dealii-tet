@@ -434,7 +434,7 @@ namespace hp
     void
     get_entity_dofs(unsigned int              d,
                     unsigned int              index,
-                    types::global_dof_index *&ptr)
+                    types::global_dof_index *&ptr) const
     {
       AssertThrow(false, ExcNotImplemented());
       (void)d;

@@ -114,8 +114,6 @@ DoFCellAccessor<DoFHandlerType, lda>::set_dof_indices(
 {
   if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
     {
-      const unsigned int dim = DoFHandlerType::dimension;
-
       auto ptr = local_dof_indices.data();
 
       // enumerate in sequence: vertex, line, face, ...

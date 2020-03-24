@@ -27,6 +27,7 @@
 #include <deal.II/dofs/dof_levels.h>
 
 #include <deal.II/fe/fe.h>
+#include <deal.II/fe/fe_q_tet.h>
 
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_accessor.h>
@@ -1261,9 +1262,51 @@ DoFHandler<dim, spacedim>::distribute_dofs(
   // first, assign the finite_element
   set_fe(ff);
 
-  if (dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+  if (auto tria = dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
         this->tria.operator->()))
-    return;
+    {
+      AssertThrow(dynamic_cast<const Tet::FE_Q<dim> *>(&ff) != nullptr,
+                  ExcNotImplemented());
+      AssertDimension(dim, 2);
+
+      std::array<unsigned int, dim + 1> dofs_per_d;
+
+      if (ff.degree == 1)
+        {
+          dofs_per_d[0] = 1;
+          dofs_per_d[1] = 0;
+          dofs_per_d[2] = 0;
+        }
+      else if (ff.degree == 2)
+        {
+          dofs_per_d[0] = 1;
+          dofs_per_d[1] = 1;
+          dofs_per_d[2] = 1;
+        }
+      else
+        {
+          AssertThrow(false, ExcNotImplemented());
+        }
+
+      const auto &entity_table = tria->get_entity_table();
+
+      for (int d = 0; d <= dim; d++)
+        {
+          entity_dofs[d].ptr.clear();
+          entity_dofs[d].ptr.push_back(0);
+
+          for (unsigned int i = 0;
+               i < entity_table[d][std::max(1, d)].ptr.size() - 1;
+               i++)
+            {
+              for (unsigned int j = 0; j < dofs_per_d[d]; j++)
+                entity_dofs[d].col.push_back(numbers::invalid_dof_index);
+              entity_dofs[d].ptr.push_back(entity_dofs[d].col.size());
+            }
+        }
+
+      return;
+    }
 
   // delete all levels and set them
   // up newly. note that we still

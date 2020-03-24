@@ -474,22 +474,35 @@ public:
                   unsigned int                    index,
                   const types::global_dof_index *&ptr)
   {
-    AssertThrow(false, ExcNotImplemented());
-    (void)d;
-    (void)index;
-    (void)ptr;
+    AssertIndexRange(d, entity_dofs.size());
+    AssertIndexRange(index + 1, entity_dofs[d].ptr.size());
+
+    const unsigned int n_dofs =
+      entity_dofs[d].ptr[index + 1] - entity_dofs[d].ptr[index];
+
+    std::memcpy(entity_dofs[d].col.data() + entity_dofs[d].ptr[index],
+                ptr,
+                n_dofs * sizeof(types::global_dof_index));
+
+    ptr += n_dofs;
   }
 
   void
   get_entity_dofs(unsigned int              d,
                   unsigned int              index,
-                  types::global_dof_index *&ptr)
+                  types::global_dof_index *&ptr) const
   {
-    AssertThrow(false, ExcNotImplemented());
-    (void)d;
-    (void)index;
-    (void)ptr;
+    const unsigned int n_dofs =
+      entity_dofs[d].ptr[index + 1] - entity_dofs[d].ptr[index];
+
+    std::memcpy(ptr,
+                entity_dofs[d].col.data() + entity_dofs[d].ptr[index],
+                n_dofs * sizeof(types::global_dof_index));
+
+    ptr += n_dofs;
   }
+
+  std::array<Tet::CRS<types::global_dof_index>, dim + 1> entity_dofs;
 
   /**
    * Assign a Triangulation and a FiniteElement to the DoFHandler and compute

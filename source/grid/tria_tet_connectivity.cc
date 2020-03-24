@@ -26,12 +26,16 @@ namespace Tet
   namespace internal
   {
     void
-    transpose(const CRS &in, CRS &out)
+    transpose(const CRS<unsigned int> &in, CRS<unsigned int> &out)
     {
-      const auto &col   = in.col;
-      const auto &ptr   = in.ptr;
+      auto        in_   = in;
+      auto &      col   = in_.col;
+      const auto &ptr   = in_.ptr;
       auto &      col_t = out.col;
       auto &      ptr_t = out.ptr;
+
+      for (unsigned int i = 0; i < ptr.size() - 1; i++)
+        std::sort(col.data() + ptr[i], col.data() + ptr[i + 1]);
 
       col_t.clear();
       ptr_t.clear();
@@ -66,7 +70,9 @@ namespace Tet
     }
 
     void
-    transitive_closure(const CRS &in_0, const CRS &in_1, CRS &out)
+    transitive_closure(const CRS<unsigned int> &in_0,
+                       const CRS<unsigned int> &in_1,
+                       CRS<unsigned int> &      out)
     {
       const auto &col_0 = in_0.col;
       const auto &ptr_0 = in_0.ptr;
@@ -104,7 +110,7 @@ namespace Tet
 
     template <class StreamType>
     void
-    print(const CRS &in, StreamType &out)
+    print(const CRS<unsigned int> &in, StreamType &out)
     {
       unsigned w = 3;
 
@@ -128,7 +134,8 @@ namespace Tet
 
     template <int dim, class StreamType>
     void
-    print(const std::array<std::array<CRS, dim>, dim> &table, StreamType &out)
+    print(const std::array<std::array<CRS<unsigned int>, dim>, dim> &table,
+          StreamType &                                               out)
     {
       for (unsigned int i = 0; i < dim; i++)
         for (unsigned int j = 0; j < dim; j++)
@@ -144,16 +151,16 @@ namespace Tet
       const unsigned int                                     d,
       const std::vector<std::shared_ptr<CellTypeBase<dim>>> &cell_types,
       const std::vector<unsigned int> &                      cell_types_index,
-      const CRS &                                            crs,
-      CRS &                                                  crs_d,
-      CRS &                                                  crs_0)
+      const CRS<unsigned int> &                              crs,
+      CRS<unsigned int> &                                    crs_d,
+      CRS<unsigned int> &                                    crs_0)
     {
       const std::vector<std::size_t> & cell_ptr      = crs.ptr;
       const std::vector<unsigned int> &cell_vertices = crs.col;
       std::vector<std::size_t> &       ptr_d         = crs_d.ptr;
       std::vector<unsigned int> &      col_d         = crs_d.col;
-      std::vector<std::size_t> &       ptr_0         = crs_0.ptr;
-      std::vector<unsigned int> &      col_0         = crs_0.col;
+      std::vector<std::size_t> &       ptr_0 = crs_0.ptr = {};
+      std::vector<unsigned int> &      col_0             = crs_0.col;
 
       std::vector<std::pair<std::array<unsigned int, key_length>, unsigned int>>
         keys;
@@ -188,6 +195,7 @@ namespace Tet
 
 
               std::array<unsigned int, key_length> key;
+              std::fill(key.begin(), key.end(), 0);
               for (unsigned int i = 0; i < global_entity_vertices.size(); i++)
                 key[i] = global_entity_vertices[i] + 1;
 
@@ -234,9 +242,9 @@ namespace Tet
       const unsigned int                                     d,
       const std::vector<std::shared_ptr<CellTypeBase<dim>>> &cell_types,
       const std::vector<unsigned int> &                      cell_types_index,
-      const CRS &                                            crs,
-      CRS &                                                  crs_d,
-      CRS &                                                  crs_0)
+      const CRS<unsigned int> &                              crs,
+      CRS<unsigned int> &                                    crs_d,
+      CRS<unsigned int> &                                    crs_0)
     {
       if (!(0 < d && d < dim))
         AssertThrow(false, dealii::StandardExceptions::ExcNotImplemented());
@@ -265,8 +273,8 @@ namespace Tet
     build_table(
       const std::vector<std::shared_ptr<CellTypeBase<dim>>> &cell_types,
       const std::vector<unsigned int> &                      cell_types_index,
-      const CRS &                                            crs,
-      std::array<std::array<CRS, dim + 1>, dim + 1> &        table)
+      const CRS<unsigned int> &                              crs,
+      std::array<std::array<CRS<unsigned int>, dim + 1>, dim + 1> &table)
     {
       table[dim][0] = crs;
 
@@ -320,7 +328,7 @@ namespace Tet
         cell_ptr[i + 1] = cell_ptr[i] + cell_types_impl[index]->n_vertices();
       }
 
-    CRS crs;
+    CRS<unsigned int> crs;
     crs.col = cell_vertices;
     crs.ptr = cell_ptr;
 

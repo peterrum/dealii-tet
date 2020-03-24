@@ -25,6 +25,8 @@
 #include <deal.II/dofs/dof_faces.h>
 #include <deal.II/dofs/dof_levels.h>
 
+#include <deal.II/fe/fe_q_tet.h>
+
 #include <deal.II/grid/tria_iterator.h>
 #include <deal.II/grid/tria_iterator.templates.h>
 
@@ -3823,6 +3825,41 @@ inline void
 DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
   std::vector<types::global_dof_index> &dof_indices) const
 {
+  if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
+    {
+      const unsigned int dim = DoFHandlerType::dimension;
+
+      const auto fe = &this->dof_handler->get_fe();
+
+      unsigned int n_dofs;
+
+      if (auto fe_ = dynamic_cast<const Tet::FE_Q<dim> *>(fe))
+        {
+          n_dofs = fe_->degree == 1 ? 3 : 7;
+        }
+      else
+        {
+          AssertThrow(false, ExcNotImplemented());
+        }
+
+      dof_indices.resize(n_dofs);
+
+      auto ptr = dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          {
+            this->dof_handler->get_entity_dofs(d, index, ptr);
+          }
+
+      // ... and finally cell
+      this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
+
   Assert(this->is_active(),
          ExcMessage("get_dof_indices() only works on active cells."));
   Assert(this->is_artificial() == false,
@@ -3832,24 +3869,6 @@ DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
   const auto dofs_per_cell = this->get_fe().dofs_per_cell;
   if (dofs_per_cell > 0)
     {
-      if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
-        {
-          const unsigned int dim = DoFHandlerType::dimension;
-
-          auto ptr = dof_indices.data();
-
-          // enumerate in sequence: vertex, line, face, ...
-          for (unsigned int d = 0; d < dim; d++)
-            for (unsigned int index :
-                 tria->get_entity_indices(dim, d, this->index()))
-              this->dof_handler->get_entity_dofs(d, index, ptr);
-
-          // ... and finally cell
-          this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
-
-          return;
-        }
-
       const types::global_dof_index *cache =
         this->dof_handler->levels[this->present_level]->get_cell_cache_start(
           this->present_index, dofs_per_cell);
