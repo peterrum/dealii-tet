@@ -95,6 +95,14 @@ template <typename DoFHandlerType, bool lda>
 void
 DoFCellAccessor<DoFHandlerType, lda>::update_cell_dof_indices_cache() const
 {
+  if (auto tria_tet =
+        dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria))
+    {
+      (void)tria_tet; // [TODO] create a new cache
+      return;
+    }
+
+
   Assert(static_cast<unsigned int>(this->present_level) <
            this->dof_handler->levels.size(),
          ExcMessage("DoFHandler not initialized"));

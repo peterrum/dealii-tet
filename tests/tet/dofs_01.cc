@@ -80,26 +80,6 @@ test()
   dof_handler.distribute_dofs(fe);
 
   // 6) Loop over all cells of triangulation
-  types::global_dof_index next_free_dof = 0;
-
-  for (auto &cell : tria.cell_iterators())
-    {
-      fe_values.reinit(cell);
-
-      typename DoFHandler<dim>::cell_iterator cell_dh(*cell, &dof_handler);
-
-      std::vector<types::global_dof_index> dof_indices;
-
-      cell_dh->get_dof_indices(dof_indices);
-
-      for (auto &dof_index : dof_indices)
-        if (dof_index == numbers::invalid_dof_index)
-          dof_index = next_free_dof++;
-
-      cell_dh->set_dof_indices(dof_indices);
-    }
-
-
   for (auto &cell : dof_handler.cell_iterators())
     {
       fe_values.reinit(cell);

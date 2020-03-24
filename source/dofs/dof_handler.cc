@@ -1305,6 +1305,8 @@ DoFHandler<dim, spacedim>::distribute_dofs(
             }
         }
 
+      number_cache = policy->distribute_dofs();
+
       return;
     }
 
