@@ -16,10 +16,10 @@
 #include <deal.II/grid/tria_tet_cell_type.h>
 #include <deal.II/grid/tria_tet_connectivity.h>
 
-DEAL_II_NAMESPACE_OPEN
-
 #include <iomanip>
 #include <set>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace Tet
 {
