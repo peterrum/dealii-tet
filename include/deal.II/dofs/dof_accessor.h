@@ -20,6 +20,7 @@
 #include <deal.II/base/config.h>
 
 #include <deal.II/dofs/dof_handler.h>
+#include <deal.II/dofs/dof_iterator_selector.h>
 
 #include <deal.II/grid/tria_accessor.h>
 
@@ -122,6 +123,8 @@ namespace internal
        */
       using BaseClass = dealii::CellAccessor<dim, spacedim>;
     };
+
+    struct Implementation;
   } // namespace DoFAccessorImplementation
 } // namespace internal
 

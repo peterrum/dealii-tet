@@ -327,7 +327,7 @@ namespace MatrixCreator
   void
   create_mass_matrix(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       dof,
+    const DoFHandler<dim, spacedim> &           dof,
     const hp::QCollection<dim> &                q,
     SparseMatrix<number> &                      matrix,
     const Function<spacedim, number> *const     a = nullptr,
@@ -339,7 +339,7 @@ namespace MatrixCreator
   template <int dim, int spacedim, typename number>
   void
   create_mass_matrix(
-    const hp::DoFHandler<dim, spacedim> &   dof,
+    const DoFHandler<dim, spacedim> &       dof,
     const hp::QCollection<dim> &            q,
     SparseMatrix<number> &                  matrix,
     const Function<spacedim, number> *const a    = nullptr,
@@ -352,7 +352,7 @@ namespace MatrixCreator
   void
   create_mass_matrix(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       dof,
+    const DoFHandler<dim, spacedim> &           dof,
     const hp::QCollection<dim> &                q,
     SparseMatrix<number> &                      matrix,
     const Function<spacedim, number> &          rhs,
@@ -366,7 +366,7 @@ namespace MatrixCreator
   template <int dim, int spacedim, typename number>
   void
   create_mass_matrix(
-    const hp::DoFHandler<dim, spacedim> &   dof,
+    const DoFHandler<dim, spacedim> &       dof,
     const hp::QCollection<dim> &            q,
     SparseMatrix<number> &                  matrix,
     const Function<spacedim, number> &      rhs,
@@ -439,7 +439,7 @@ namespace MatrixCreator
   void
   create_boundary_mass_matrix(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       dof,
+    const DoFHandler<dim, spacedim> &           dof,
     const hp::QCollection<dim - 1> &            q,
     SparseMatrix<number> &                      matrix,
     const std::map<types::boundary_id, const Function<spacedim, number> *>
@@ -455,9 +455,9 @@ namespace MatrixCreator
   template <int dim, int spacedim, typename number>
   void
   create_boundary_mass_matrix(
-    const hp::DoFHandler<dim, spacedim> &dof,
-    const hp::QCollection<dim - 1> &     q,
-    SparseMatrix<number> &               matrix,
+    const DoFHandler<dim, spacedim> &dof,
+    const hp::QCollection<dim - 1> & q,
+    SparseMatrix<number> &           matrix,
     const std::map<types::boundary_id, const Function<spacedim, number> *>
       &                                     boundary_functions,
     Vector<number> &                        rhs_vector,
@@ -560,7 +560,7 @@ namespace MatrixCreator
   void
   create_laplace_matrix(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       dof,
+    const DoFHandler<dim, spacedim> &           dof,
     const hp::QCollection<dim> &                q,
     SparseMatrix<double> &                      matrix,
     const Function<spacedim> *const             a = nullptr,
@@ -573,10 +573,10 @@ namespace MatrixCreator
   template <int dim, int spacedim>
   void
   create_laplace_matrix(
-    const hp::DoFHandler<dim, spacedim> &dof,
-    const hp::QCollection<dim> &         q,
-    SparseMatrix<double> &               matrix,
-    const Function<spacedim> *const      a       = nullptr,
+    const DoFHandler<dim, spacedim> &dof,
+    const hp::QCollection<dim> &     q,
+    SparseMatrix<double> &           matrix,
+    const Function<spacedim> *const  a           = nullptr,
     const AffineConstraints<double> &constraints = AffineConstraints<double>());
 
   /**
@@ -587,7 +587,7 @@ namespace MatrixCreator
   void
   create_laplace_matrix(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       dof,
+    const DoFHandler<dim, spacedim> &           dof,
     const hp::QCollection<dim> &                q,
     SparseMatrix<double> &                      matrix,
     const Function<spacedim> &                  rhs,
@@ -602,12 +602,12 @@ namespace MatrixCreator
   template <int dim, int spacedim>
   void
   create_laplace_matrix(
-    const hp::DoFHandler<dim, spacedim> &dof,
-    const hp::QCollection<dim> &         q,
-    SparseMatrix<double> &               matrix,
-    const Function<spacedim> &           rhs,
-    Vector<double> &                     rhs_vector,
-    const Function<spacedim> *const      a       = nullptr,
+    const DoFHandler<dim, spacedim> &dof,
+    const hp::QCollection<dim> &     q,
+    SparseMatrix<double> &           matrix,
+    const Function<spacedim> &       rhs,
+    Vector<double> &                 rhs_vector,
+    const Function<spacedim> *const  a           = nullptr,
     const AffineConstraints<double> &constraints = AffineConstraints<double>());
 
   /**

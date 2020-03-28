@@ -14,44 +14,35 @@
 // ---------------------------------------------------------------------
 
 // co-dim instantiations not for hp-DoFHandler
-for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : DIMENSIONS)
+for (DoFHandler : DOFHANDLER_TEMPLATES; deal_II_dimension : DIMENSIONS;
+     deal_II_space_dimension : DIMENSIONS)
   {
-#if deal_II_dimension < deal_II_space_dimension
-    template void DoFTools::make_hanging_node_constraints(
+#if deal_II_dimension <= deal_II_space_dimension
+    template void DoFTools::make_hanging_node_constraints<
+      DoFHandler<deal_II_dimension, deal_II_space_dimension>>(
       const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
       AffineConstraints<double> &);
 
-    template void DoFTools::make_hanging_node_constraints(
+    template void DoFTools::make_hanging_node_constraints<
+      DoFHandler<deal_II_dimension, deal_II_space_dimension>>(
       const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
       AffineConstraints<float> &);
 
 #  ifdef DEAL_II_WITH_COMPLEX_VALUES
-    template void DoFTools::make_hanging_node_constraints(
+    template void DoFTools::make_hanging_node_constraints<
+      DoFHandler<deal_II_dimension, deal_II_space_dimension>>(
       const DoFHandler<deal_II_dimension, deal_II_space_dimension> &,
       AffineConstraints<std::complex<double>> &);
 #  endif
 #endif
   }
 
-for (DH : DOFHANDLER_TEMPLATES; deal_II_dimension : DIMENSIONS)
+// co-dim instantiations not for hp-DoFHandler
+for (deal_II_dimension : DIMENSIONS)
   {
-    template void DoFTools::make_hanging_node_constraints(
-      const DH<deal_II_dimension, deal_II_dimension> &,
-      AffineConstraints<double> &);
-
-    template void DoFTools::make_hanging_node_constraints(
-      const DH<deal_II_dimension, deal_II_dimension> &,
-      AffineConstraints<float> &);
-
-#ifdef DEAL_II_WITH_COMPLEX_VALUES
-    template void DoFTools::make_hanging_node_constraints(
-      const DH<deal_II_dimension, deal_II_dimension> &,
-      AffineConstraints<std::complex<double>> &);
-#endif
-
     template void DoFTools::make_periodicity_constraints(
-      const DH<deal_II_dimension>::face_iterator &,
-      const DH<deal_II_dimension>::face_iterator &,
+      const DoFHandler<deal_II_dimension>::face_iterator &,
+      const DoFHandler<deal_II_dimension>::face_iterator &,
       AffineConstraints<double> &,
       const ComponentMask &,
       bool,
@@ -63,8 +54,8 @@ for (DH : DOFHANDLER_TEMPLATES; deal_II_dimension : DIMENSIONS)
 
 #ifdef DEAL_II_WITH_COMPLEX_VALUES
     template void DoFTools::make_periodicity_constraints(
-      const DH<deal_II_dimension>::face_iterator &,
-      const DH<deal_II_dimension>::face_iterator &,
+      const DoFHandler<deal_II_dimension>::face_iterator &,
+      const DoFHandler<deal_II_dimension>::face_iterator &,
       AffineConstraints<std::complex<double>> &,
       const ComponentMask &,
       bool,
@@ -74,7 +65,10 @@ for (DH : DOFHANDLER_TEMPLATES; deal_II_dimension : DIMENSIONS)
       const std::vector<unsigned int> &,
       std::complex<double>);
 #endif
+  }
 
+for (DH : DOFHANDLER_TEMPLATES; deal_II_dimension : DIMENSIONS)
+  {
     template void
     DoFTools::make_periodicity_constraints<DH<deal_II_dimension>, double>(
       const std::vector<

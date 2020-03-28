@@ -48,13 +48,17 @@ void
 DoFCellAccessor<DoFHandlerType, lda>::set_dof_values_by_interpolation(
   const Vector<number> &local_values,
   OutputVector &        values,
-  const unsigned int    fe_index) const
+  const unsigned int    fe_index_) const
 {
+  const unsigned int fe_index =
+    (this->dof_handler->is_hp_dof_handler == false &&
+     fe_index_ == DoFHandlerType::default_fe_index) ?
+      0 :
+      fe_index_;
+
   if (this->is_active() && !this->is_artificial())
     {
-      if ((dynamic_cast<DoFHandler<DoFHandlerType::dimension,
-                                   DoFHandlerType::space_dimension> *>(
-             this->dof_handler) != nullptr) ||
+      if ((this->dof_handler->is_hp_dof_handler == false) ||
           // for hp-DoFHandlers, we need to require that on
           // active cells, you either don't specify an fe_index,
           // or that you specify the correct one
@@ -89,9 +93,7 @@ DoFCellAccessor<DoFHandlerType, lda>::set_dof_values_by_interpolation(
   else
     // otherwise distribute them to the children
     {
-      Assert((dynamic_cast<DoFHandler<DoFHandlerType::dimension,
-                                      DoFHandlerType::space_dimension> *>(
-                this->dof_handler) != nullptr) ||
+      Assert((this->dof_handler->is_hp_dof_handler == false) ||
                (fe_index != DoFHandlerType::default_fe_index),
              ExcMessage(
                "You cannot call this function on non-active cells "

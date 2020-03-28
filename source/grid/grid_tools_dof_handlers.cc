@@ -1255,11 +1255,11 @@ namespace GridTools
 
 
   template <int dim, int spacedim>
-  std::pair<typename hp::DoFHandler<dim, spacedim>::active_cell_iterator,
+  std::pair<typename dealii::DoFHandler<dim, spacedim>::active_cell_iterator,
             Point<dim>>
   find_active_cell_around_point(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       mesh,
+    const dealii::DoFHandler<dim, spacedim> &   mesh,
     const Point<spacedim> &                     p)
   {
     Assert((mapping.size() == 1) ||
@@ -1269,7 +1269,7 @@ namespace GridTools
                       "the FECollection."));
 
     using cell_iterator =
-      typename hp::DoFHandler<dim, spacedim>::active_cell_iterator;
+      typename dealii::DoFHandler<dim, spacedim>::active_cell_iterator;
 
     std::pair<cell_iterator, Point<dim>> best_cell;
     // If we have only one element in the MappingCollection,
@@ -1371,7 +1371,7 @@ namespace GridTools
             if (!found && cells_searched < n_cells)
               {
                 find_active_cell_around_point_internal<dim,
-                                                       hp::DoFHandler,
+                                                       dealii::DoFHandler,
                                                        spacedim>(
                   mesh, searched_cells, adjacent_cells);
               }

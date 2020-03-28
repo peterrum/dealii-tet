@@ -106,11 +106,11 @@ namespace internal
   };
 
   template <int dim, int spacedim>
-  class ActiveCellIterator<dim, spacedim, dealii::hp::DoFHandler<dim, spacedim>>
+  class ActiveCellIterator<dim, spacedim, dealii::DoFHandler<dim, spacedim>>
   {
   public:
     using type = TriaActiveIterator<
-      dealii::DoFCellAccessor<dealii::hp::DoFHandler<dim, spacedim>, false>>;
+      dealii::DoFCellAccessor<dealii::DoFHandler<dim, spacedim>, false>>;
   };
 #  endif
 } // namespace internal
@@ -1299,11 +1299,11 @@ namespace GridTools
    * what to do in that case.
    */
   template <int dim, int spacedim>
-  std::pair<typename hp::DoFHandler<dim, spacedim>::active_cell_iterator,
+  std::pair<typename DoFHandler<dim, spacedim>::active_cell_iterator,
             Point<dim>>
   find_active_cell_around_point(
     const hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &       mesh,
+    const DoFHandler<dim, spacedim> &           mesh,
     const Point<spacedim> &                     p);
 
   /**

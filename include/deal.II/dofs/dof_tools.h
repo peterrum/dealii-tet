@@ -260,7 +260,7 @@ namespace DoFTools
    */
   template <int dim, int spacedim>
   void
-  convert_couplings_to_blocks(const hp::DoFHandler<dim, spacedim> &dof_handler,
+  convert_couplings_to_blocks(const DoFHandler<dim, spacedim> &dof_handler,
                               const Table<2, Coupling> &table_by_component,
                               std::vector<Table<2, Coupling>> &tables_by_block);
 
@@ -324,17 +324,6 @@ namespace DoFTools
   DEAL_II_DEPRECATED unsigned int
   max_dofs_per_cell(const DoFHandler<dim, spacedim> &dh);
 
-  /**
-   * Maximal number of degrees of freedom on a cell.
-   *
-   * @deprecated Use <code>dh.get_fe_collection().max_dofs_per_cell()</code>.
-   *
-   * @relatesalso hp::DoFHandler
-   */
-  template <int dim, int spacedim>
-  DEAL_II_DEPRECATED unsigned int
-  max_dofs_per_cell(const hp::DoFHandler<dim, spacedim> &dh);
-
 
   /**
    * Maximal number of degrees of freedom on a face.
@@ -349,20 +338,6 @@ namespace DoFTools
   template <int dim, int spacedim>
   DEAL_II_DEPRECATED unsigned int
   max_dofs_per_face(const DoFHandler<dim, spacedim> &dh);
-
-  /**
-   * Maximal number of degrees of freedom on a face.
-   *
-   * This function exists for both non-hp and hp DoFHandlers, to allow for a
-   * uniform interface to query this property.
-   *
-   * @deprecated Use <code>dh.get_fe_collection().max_dofs_per_face()</code>.
-   *
-   * @relatesalso hp::DoFHandler
-   */
-  template <int dim, int spacedim>
-  DEAL_II_DEPRECATED unsigned int
-  max_dofs_per_face(const hp::DoFHandler<dim, spacedim> &dh);
 
   /**
    * Maximal number of degrees of freedom on a vertex.
@@ -390,7 +365,7 @@ namespace DoFTools
    */
   template <int dim, int spacedim>
   DEAL_II_DEPRECATED unsigned int
-  max_dofs_per_vertex(const hp::DoFHandler<dim, spacedim> &dh);
+  max_dofs_per_vertex(const DoFHandler<dim, spacedim> &dh);
 
   /**
    * Number of vector components in the finite element object used by this
@@ -420,7 +395,7 @@ namespace DoFTools
    */
   template <int dim, int spacedim>
   DEAL_II_DEPRECATED unsigned int
-  n_components(const hp::DoFHandler<dim, spacedim> &dh);
+  n_components(const DoFHandler<dim, spacedim> &dh);
 
   /**
    * Find out whether the first FiniteElement used by this DoFHandler is
@@ -450,7 +425,7 @@ namespace DoFTools
    */
   template <int dim, int spacedim>
   DEAL_II_DEPRECATED bool
-  fe_is_primitive(const hp::DoFHandler<dim, spacedim> &dh);
+  fe_is_primitive(const DoFHandler<dim, spacedim> &dh);
 
   /**
    * @}
@@ -1372,18 +1347,18 @@ namespace DoFTools
    * @deprecated For the reason stated above, this function is deprecated in
    *   favor of the following function.
    */
-  template <int dim, int spacedim>
+  template <typename DoFHandlerType>
   DEAL_II_DEPRECATED void
-  extract_hanging_node_dofs(const DoFHandler<dim, spacedim> &dof_handler,
-                            std::vector<bool> &              selected_dofs);
+  extract_hanging_node_dofs(const DoFHandlerType &dof_handler,
+                            std::vector<bool> &   selected_dofs);
 
   /**
    * Same as above but return the selected DoFs as IndexSet. In particular,
    * for parallel::TriangulationBase objects this function should be preferred.
    */
-  template <int dim, int spacedim>
+  template <typename DoFHandlerType>
   IndexSet
-  extract_hanging_node_dofs(const DoFHandler<dim, spacedim> &dof_handler);
+  extract_hanging_node_dofs(const DoFHandlerType &dof_handler);
 
   /**
    * Extract the indices of the degrees of freedom belonging to certain vector
@@ -2492,7 +2467,7 @@ namespace DoFTools
   void
   map_dofs_to_support_points(
     const dealii::hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &               dof_handler,
+    const DoFHandler<dim, spacedim> &                   dof_handler,
     std::vector<Point<spacedim>> &                      support_points,
     const ComponentMask &                               mask = ComponentMask());
 
@@ -2541,7 +2516,7 @@ namespace DoFTools
   void
   map_dofs_to_support_points(
     const dealii::hp::MappingCollection<dim, spacedim> &mapping,
-    const hp::DoFHandler<dim, spacedim> &               dof_handler,
+    const DoFHandler<dim, spacedim> &                   dof_handler,
     std::map<types::global_dof_index, Point<spacedim>> &support_points,
     const ComponentMask &                               mask = ComponentMask());
 
@@ -2866,7 +2841,10 @@ namespace DoFTools
   inline unsigned int
   max_dofs_per_cell(const DoFHandler<dim, spacedim> &dh)
   {
-    return dh.get_fe().dofs_per_cell;
+    if (dh.is_hp_dof_handler == true)
+      return dh.get_fe_collection().max_dofs_per_cell();
+    else
+      return dh.get_fe().dofs_per_cell;
   }
 
 
@@ -2874,7 +2852,10 @@ namespace DoFTools
   inline unsigned int
   max_dofs_per_face(const DoFHandler<dim, spacedim> &dh)
   {
-    return dh.get_fe().dofs_per_face;
+    if (dh.is_hp_dof_handler == true)
+      return dh.get_fe_collection().max_dofs_per_face();
+    else
+      return dh.get_fe().dofs_per_face;
   }
 
 
@@ -2882,7 +2863,10 @@ namespace DoFTools
   inline unsigned int
   max_dofs_per_vertex(const DoFHandler<dim, spacedim> &dh)
   {
-    return dh.get_fe().dofs_per_vertex;
+    if (dh.is_hp_dof_handler == true)
+      return dh.get_fe_collection().max_dofs_per_vertex();
+    else
+      return dh.get_fe().dofs_per_vertex;
   }
 
 
@@ -2890,7 +2874,10 @@ namespace DoFTools
   inline unsigned int
   n_components(const DoFHandler<dim, spacedim> &dh)
   {
-    return dh.get_fe().n_components();
+    if (dh.is_hp_dof_handler == true)
+      return dh.get_fe(0).n_components();
+    else
+      return dh.get_fe().n_components();
   }
 
 
@@ -2899,47 +2886,10 @@ namespace DoFTools
   inline bool
   fe_is_primitive(const DoFHandler<dim, spacedim> &dh)
   {
-    return dh.get_fe().is_primitive();
-  }
-
-
-  template <int dim, int spacedim>
-  inline unsigned int
-  max_dofs_per_cell(const hp::DoFHandler<dim, spacedim> &dh)
-  {
-    return dh.get_fe_collection().max_dofs_per_cell();
-  }
-
-
-  template <int dim, int spacedim>
-  inline unsigned int
-  max_dofs_per_face(const hp::DoFHandler<dim, spacedim> &dh)
-  {
-    return dh.get_fe_collection().max_dofs_per_face();
-  }
-
-
-  template <int dim, int spacedim>
-  inline unsigned int
-  max_dofs_per_vertex(const hp::DoFHandler<dim, spacedim> &dh)
-  {
-    return dh.get_fe_collection().max_dofs_per_vertex();
-  }
-
-
-  template <int dim, int spacedim>
-  inline unsigned int
-  n_components(const hp::DoFHandler<dim, spacedim> &dh)
-  {
-    return dh.get_fe(0).n_components();
-  }
-
-
-  template <int dim, int spacedim>
-  inline bool
-  fe_is_primitive(const hp::DoFHandler<dim, spacedim> &dh)
-  {
-    return dh.get_fe(0).is_primitive();
+    if (dh.is_hp_dof_handler == true)
+      return dh.get_fe(0).is_primitive();
+    else
+      return dh.get_fe().is_primitive();
   }
 
 

@@ -48,7 +48,7 @@ namespace internal
     {
       (void)fe_index;
       Assert(
-        (fe_index == dealii::DoFHandler<dh_dim, spacedim>::default_fe_index),
+        (fe_index == 0),
         ExcMessage(
           "Only the default FE index is allowed for non-hp DoFHandler objects"));
       Assert(

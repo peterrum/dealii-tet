@@ -33,11 +33,8 @@ DEAL_II_NAMESPACE_OPEN
 template <typename Number>
 class Vector;
 
-namespace hp
-{
-  template <int dim, int spacedim>
-  class DoFHandler;
-}
+template <int dim, int spacedim>
+class DoFHandler;
 #endif
 
 
@@ -157,7 +154,7 @@ namespace hp
      */
     template <int dim, int spacedim>
     void
-    full_p_adaptivity(const hp::DoFHandler<dim, spacedim> &dof_handler);
+    full_p_adaptivity(const dealii::DoFHandler<dim, spacedim> &dof_handler);
 
     /**
      * Adapt which finite element to use on cells that have been specifically
@@ -174,8 +171,9 @@ namespace hp
      */
     template <int dim, int spacedim>
     void
-    p_adaptivity_from_flags(const hp::DoFHandler<dim, spacedim> &dof_handler,
-                            const std::vector<bool> &            p_flags);
+    p_adaptivity_from_flags(
+      const dealii::DoFHandler<dim, spacedim> &dof_handler,
+      const std::vector<bool> &                p_flags);
 
     /**
      * Adapt which finite element to use on cells whose criteria meet a certain
@@ -204,10 +202,10 @@ namespace hp
     template <int dim, typename Number, int spacedim>
     void
     p_adaptivity_from_absolute_threshold(
-      const hp::DoFHandler<dim, spacedim> &dof_handler,
-      const Vector<Number> &               criteria,
-      const Number                         p_refine_threshold,
-      const Number                         p_coarsen_threshold,
+      const dealii::DoFHandler<dim, spacedim> &dof_handler,
+      const Vector<Number> &                   criteria,
+      const Number                             p_refine_threshold,
+      const Number                             p_coarsen_threshold,
       const ComparisonFunction<typename identity<Number>::type>
         &compare_refine = std::greater_equal<Number>(),
       const ComparisonFunction<typename identity<Number>::type>
@@ -246,10 +244,10 @@ namespace hp
     template <int dim, typename Number, int spacedim>
     void
     p_adaptivity_from_relative_threshold(
-      const hp::DoFHandler<dim, spacedim> &dof_handler,
-      const Vector<Number> &               criteria,
-      const double                         p_refine_fraction  = 0.5,
-      const double                         p_coarsen_fraction = 0.5,
+      const dealii::DoFHandler<dim, spacedim> &dof_handler,
+      const Vector<Number> &                   criteria,
+      const double                             p_refine_fraction  = 0.5,
+      const double                             p_coarsen_fraction = 0.5,
       const ComparisonFunction<typename identity<Number>::type>
         &compare_refine = std::greater_equal<Number>(),
       const ComparisonFunction<typename identity<Number>::type>
@@ -289,10 +287,10 @@ namespace hp
     template <int dim, typename Number, int spacedim>
     void
     p_adaptivity_fixed_number(
-      const hp::DoFHandler<dim, spacedim> &dof_handler,
-      const Vector<Number> &               criteria,
-      const double                         p_refine_fraction  = 0.5,
-      const double                         p_coarsen_fraction = 0.5,
+      const dealii::DoFHandler<dim, spacedim> &dof_handler,
+      const Vector<Number> &                   criteria,
+      const double                             p_refine_fraction  = 0.5,
+      const double                             p_coarsen_fraction = 0.5,
       const ComparisonFunction<typename identity<Number>::type>
         &compare_refine = std::greater_equal<Number>(),
       const ComparisonFunction<typename identity<Number>::type>
@@ -340,8 +338,8 @@ namespace hp
     template <int dim, typename Number, int spacedim>
     void
     p_adaptivity_from_regularity(
-      const hp::DoFHandler<dim, spacedim> &dof_handler,
-      const Vector<Number> &               sobolev_indices);
+      const dealii::DoFHandler<dim, spacedim> &dof_handler,
+      const Vector<Number> &                   sobolev_indices);
 
     /**
      * Adapt which finite element to use on each cell based on how its criterion
@@ -365,7 +363,7 @@ namespace hp
     template <int dim, typename Number, int spacedim>
     void
     p_adaptivity_from_reference(
-      const hp::DoFHandler<dim, spacedim> &                      dof_handler,
+      const dealii::DoFHandler<dim, spacedim> &                  dof_handler,
       const Vector<Number> &                                     criteria,
       const Vector<Number> &                                     references,
       const ComparisonFunction<typename identity<Number>::type> &compare_refine,
@@ -537,12 +535,12 @@ namespace hp
      */
     template <int dim, typename Number, int spacedim>
     void
-    predict_error(const hp::DoFHandler<dim, spacedim> &dof_handler,
-                  const Vector<Number> &               error_indicators,
-                  Vector<Number> &                     predicted_errors,
-                  const double                         gamma_p = std::sqrt(0.1),
-                  const double                         gamma_h = 1.,
-                  const double                         gamma_n = 1.);
+    predict_error(const dealii::DoFHandler<dim, spacedim> &dof_handler,
+                  const Vector<Number> &                   error_indicators,
+                  Vector<Number> &                         predicted_errors,
+                  const double gamma_p = std::sqrt(0.1),
+                  const double gamma_h = 1.,
+                  const double gamma_n = 1.);
 
     /**
      * @}
@@ -565,7 +563,7 @@ namespace hp
      */
     template <int dim, int spacedim>
     void
-    force_p_over_h(const hp::DoFHandler<dim, spacedim> &dof_handler);
+    force_p_over_h(const dealii::DoFHandler<dim, spacedim> &dof_handler);
 
     /**
      * Choose p-adaptivity over h-adaptivity whenever it is invoked on all
@@ -609,7 +607,7 @@ namespace hp
      */
     template <int dim, int spacedim>
     void
-    choose_p_over_h(const hp::DoFHandler<dim, spacedim> &dof_handler);
+    choose_p_over_h(const dealii::DoFHandler<dim, spacedim> &dof_handler);
 
     /**
      * @}

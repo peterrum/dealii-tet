@@ -48,16 +48,20 @@ void
 DoFCellAccessor<DoFHandlerType, lda>::get_interpolated_dof_values(
   const InputVector &values,
   Vector<number> &   interpolated_values,
-  const unsigned int fe_index) const
+  const unsigned int fe_index_) const
 {
+  const unsigned int fe_index =
+    (this->dof_handler->is_hp_dof_handler == false &&
+     fe_index_ == DoFHandlerType::default_fe_index) ?
+      0 :
+      fe_index_;
+
   if (this->is_active())
     // If this cell is active: simply return the exact values on this
     // cell unless the finite element we need to interpolate to is different
     // than the one we have on the current cell
     {
-      if ((dynamic_cast<DoFHandler<DoFHandlerType::dimension,
-                                   DoFHandlerType::space_dimension> *>(
-             this->dof_handler) != nullptr) ||
+      if ((this->dof_handler->is_hp_dof_handler == false) ||
           // for hp-DoFHandlers, we need to require that on
           // active cells, you either don't specify an fe_index,
           // or that you specify the correct one
@@ -99,9 +103,7 @@ DoFCellAccessor<DoFHandlerType, lda>::get_interpolated_dof_values(
       // mesh). consequently, we cannot interpolate from children's FE
       // space to this cell's (unknown) FE space unless an explicit
       // fe_index is given
-      Assert((dynamic_cast<DoFHandler<DoFHandlerType::dimension,
-                                      DoFHandlerType::space_dimension> *>(
-                this->dof_handler) != nullptr) ||
+      Assert((this->dof_handler->is_hp_dof_handler == false) ||
                (fe_index != DoFHandlerType::default_fe_index),
              ExcMessage(
                "You cannot call this function on non-active cells "
