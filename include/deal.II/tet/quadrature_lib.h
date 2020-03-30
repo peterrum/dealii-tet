@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (C) 2020 by the deal.II authors
+// Copyright (C) 1998 - 2019 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -13,24 +13,24 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef dealii_tria_tet_crs_h
-#define dealii_tria_tet_crs_h
+#ifndef dealii_tet_quadrature_lib_h
+#define dealii_tet_quadrature_lib_h
+
 
 #include <deal.II/base/config.h>
 
-#include <deal.II/grid/tria_tet_cell_type.h>
+#include <deal.II/base/quadrature.h>
 
 DEAL_II_NAMESPACE_OPEN
 
 namespace Tet
 {
-  template <typename T = unsigned int>
-  struct CRS
+  template <int dim>
+  class QGauss : public Quadrature<dim>
   {
-    std::vector<std::size_t> ptr = {0};
-    std::vector<T>           col;
+  public:
+    QGauss(const unsigned int n_points);
   };
-
 } // namespace Tet
 
 DEAL_II_NAMESPACE_CLOSE

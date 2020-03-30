@@ -33,7 +33,8 @@
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_iterator.h>
-#include <deal.II/grid/tria_tet.h>
+
+#include <deal.II/tet/tria.h>
 
 #include <algorithm>
 #include <memory>

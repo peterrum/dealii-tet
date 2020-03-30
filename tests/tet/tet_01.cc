@@ -17,8 +17,8 @@
 // Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
-#include <deal.II/base/polynomials_tet.h>
-#include <deal.II/base/quadrature_lib.h>
+#include <deal.II/tet/polynomials.h>
+#include <deal.II/tet/quadrature_lib.h>
 
 #include "./tests.h"
 

@@ -17,11 +17,11 @@
 #define dealii_tria_tet_h
 
 
-//#include <deal.II/base/config.h>
+#include <deal.II/base/config.h>
 
-//#include <deal.II/grid/tria.h>
+#include <deal.II/grid/tria.h>
 
-#include <deal.II/grid/tria_tet_connectivity.h>
+#include <deal.II/tet/tria_connectivity.h>
 
 DEAL_II_NAMESPACE_OPEN
 

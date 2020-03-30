@@ -17,9 +17,8 @@
 // Test FE_QTet on quadrature points returned by QGaussTet.
 
 
-#include <deal.II/base/quadrature_lib.h>
-
-#include <deal.II/fe/fe_q_tet.h>
+#include <deal.II/tet/fe_q.h>
+#include <deal.II/tet/quadrature_lib.h>
 
 #include "./tests.h"
 

@@ -4264,7 +4264,7 @@ Triangulation<1, 3>::max_adjacent_cells() const;
 DEAL_II_NAMESPACE_CLOSE
 
 // TODO: <deal.II/grid/tria_accessor.h> has to come after this!!!
-#include <deal.II/grid/tria_tet.h>
+#include <deal.II/tet/tria.h>
 
 // Include tria_accessor.h here, so that it is possible for an end
 // user to use the iterators of Triangulation<dim> directly without

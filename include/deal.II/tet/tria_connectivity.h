@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (C) 2019 by the deal.II authors
+// Copyright (C) 2020 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -13,31 +13,35 @@
 //
 // ---------------------------------------------------------------------
 
+#ifndef dealii_tria_tet_connectivity_h
+#define dealii_tria_tet_connectivity_h
 
-// Test PolynomialsTet on quadrature points returned by QGaussTet.
-
+#include <deal.II/base/config.h>
 
 #include <deal.II/tet/tria_cell_type.h>
-#include <deal.II/tet/tria_connectivity.h>
+#include <deal.II/tet/tria_crs.h>
 
-#include "./tests.h"
+DEAL_II_NAMESPACE_OPEN
 
-using namespace dealii;
-
-int
-main()
+namespace Tet
 {
-  initlog();
+  template <int dim>
+  class Connectivity
+  {
+  public:
+    void
+    build(const std::vector<CellTypeEnum> &cell_types,
+          const std::vector<unsigned int> &cell_vertices);
 
-  const int dim = 2;
+    void
+    print(std::ostream &out) const;
 
-  // clang-format off
-  const std::vector<Tet::CellTypeEnum>     cell_types{Tet::CellTypeEnum::quad, Tet::CellTypeEnum::quad, Tet::CellTypeEnum::tet};
-  const std::vector<unsigned int> cell_vertices{0, 1, 2, 3, 1, 4, 5, 2, 4, 6, 5};
-  // clang-format on
+    // private:
+    std::array<std::array<CRS<unsigned int>, dim + 1>, dim + 1> table;
+  };
 
-  Tet::Connectivity<dim> connectivity;
+} // namespace Tet
 
-  connectivity.build(cell_types, cell_vertices);
-  connectivity.print(deallog.get_file_stream());
-}
+DEAL_II_NAMESPACE_CLOSE
+
+#endif

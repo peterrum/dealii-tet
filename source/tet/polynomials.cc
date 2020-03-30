@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-#include <deal.II/base/polynomials_tet.h>
+#include <deal.II/tet/polynomials.h>
 
 DEAL_II_NAMESPACE_OPEN
 

@@ -27,12 +27,13 @@
 #include <deal.II/dofs/dof_levels.h>
 
 #include <deal.II/fe/fe.h>
-#include <deal.II/fe/fe_q_tet.h>
 
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_accessor.h>
 #include <deal.II/grid/tria_iterator.h>
 #include <deal.II/grid/tria_levels.h>
+
+#include <deal.II/tet/fe_q.h>
 
 #include <algorithm>
 #include <set>

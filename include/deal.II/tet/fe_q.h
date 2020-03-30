@@ -18,9 +18,9 @@
 
 #include <deal.II/base/config.h>
 
-#include <deal.II/base/polynomials_tet.h>
-
 #include <deal.II/fe/fe_poly.h>
+
+#include <deal.II/tet/polynomials.h>
 
 DEAL_II_NAMESPACE_OPEN
 

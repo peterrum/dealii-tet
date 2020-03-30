@@ -13,31 +13,22 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef dealii_tria_tet_connectivity_h
-#define dealii_tria_tet_connectivity_h
+#ifndef dealii_tria_tet_crs_h
+#define dealii_tria_tet_crs_h
 
 #include <deal.II/base/config.h>
 
-#include <deal.II/grid/tria_tet_cell_type.h>
-#include <deal.II/grid/tria_tet_crs.h>
+#include <deal.II/tet/tria_cell_type.h>
 
 DEAL_II_NAMESPACE_OPEN
 
 namespace Tet
 {
-  template <int dim>
-  class Connectivity
+  template <typename T = unsigned int>
+  struct CRS
   {
-  public:
-    void
-    build(const std::vector<CellTypeEnum> &cell_types,
-          const std::vector<unsigned int> &cell_vertices);
-
-    void
-    print(std::ostream &out) const;
-
-    // private:
-    std::array<std::array<CRS<unsigned int>, dim + 1>, dim + 1> table;
+    std::vector<std::size_t> ptr = {0};
+    std::vector<T>           col;
   };
 
 } // namespace Tet

@@ -18,10 +18,10 @@
 // FEValues.
 
 
-#include <deal.II/base/quadrature_lib.h>
-
-#include <deal.II/fe/fe_q_tet.h>
 #include <deal.II/fe/fe_system.h>
+
+#include <deal.II/tet/fe_q.h>
+#include <deal.II/tet/quadrature_lib.h>
 
 #include "./tests.h"
 

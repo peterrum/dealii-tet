@@ -13,8 +13,8 @@
 //
 // ---------------------------------------------------------------------
 
-#include <deal.II/grid/tria_tet_cell_type.h>
-#include <deal.II/grid/tria_tet_connectivity.h>
+#include <deal.II/tet/tria_cell_type.h>
+#include <deal.II/tet/tria_connectivity.h>
 
 DEAL_II_NAMESPACE_OPEN
 

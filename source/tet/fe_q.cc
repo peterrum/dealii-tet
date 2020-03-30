@@ -18,7 +18,7 @@
 
 #include <deal.II/base/config.h>
 
-#include <deal.II/fe/fe_q_tet.h>
+#include <deal.II/tet/fe_q.h>
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -62,7 +62,7 @@ namespace Tet
 } // namespace Tet
 
 // explicit instantiations
-#include "fe_q_tet.inst"
+#include "fe_q.inst"
 
 DEAL_II_NAMESPACE_CLOSE
 

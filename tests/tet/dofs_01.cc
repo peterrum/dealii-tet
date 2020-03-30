@@ -17,16 +17,15 @@
 // Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
-#include <deal.II/base/quadrature_lib.h>
-
 #include <deal.II/dofs/dof_handler.h>
 
-#include <deal.II/fe/fe_q.h>
-#include <deal.II/fe/fe_q_tet.h>
 #include <deal.II/fe/fe_values.h>
-#include <deal.II/fe/mapping_tet.h>
 
 #include <deal.II/grid/tria.h>
+
+#include <deal.II/tet/fe_q.h>
+#include <deal.II/tet/mapping_q.h>
+#include <deal.II/tet/quadrature_lib.h>
 
 #include "./tests.h"
 

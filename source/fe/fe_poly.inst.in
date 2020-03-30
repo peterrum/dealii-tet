@@ -41,8 +41,5 @@ for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : SPACE_DIMENSIONS)
     template class FE_Poly<PolynomialsRannacherTurek<deal_II_dimension>,
                            deal_II_dimension,
                            deal_II_space_dimension>;
-    template class FE_Poly<Tet::ScalarPolynomial<deal_II_dimension>,
-                           deal_II_dimension,
-                           deal_II_space_dimension>;
 #endif
   }

@@ -17,23 +17,21 @@
 // Test PolynomialsTet on quadrature points returned by QGaussTet.
 
 
-#include <deal.II/base/quadrature_lib.h>
-
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/dofs/dof_renumbering.h>
 #include <deal.II/dofs/dof_tools.h>
 
-#include <deal.II/fe/fe_q.h>
-#include <deal.II/fe/fe_q_tet.h>
 #include <deal.II/fe/fe_values.h>
-#include <deal.II/fe/mapping_tet.h>
 
 #include <deal.II/grid/tria.h>
 
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
-#include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/full_matrix.h>
 #include <deal.II/lac/sparse_matrix.h>
+
+#include <deal.II/tet/fe_q.h>
+#include <deal.II/tet/mapping_q.h>
+#include <deal.II/tet/quadrature_lib.h>
 
 #include "./tests.h"
 
@@ -79,7 +77,7 @@ test(const unsigned int degree)
   DoFTools::make_sparsity_pattern(dof_handler, dynamic_sparsity_pattern);
   SparsityPattern sparsity_pattern;
   sparsity_pattern.copy_from(dynamic_sparsity_pattern);
-  
+
   SparseMatrix<double> system_matrix;
   system_matrix.reinit(sparsity_pattern);
 
@@ -91,19 +89,20 @@ test(const unsigned int degree)
       cell->get_dof_indices(dof_indices);
 
       FullMatrix<double> cell_matrix(dof_indices.size(), dof_indices.size());
-      
-      for(auto & i : cell_matrix)
+
+      for (auto &i : cell_matrix)
         i = counter;
-      
+
       counter++;
-      
+
       AffineConstraints constraint_matrix;
-      
-      constraint_matrix.distribute_local_to_global(cell_matrix, dof_indices, system_matrix);
-    }  
-  
-  system_matrix.print(deallog.get_file_stream ());
-  
+
+      constraint_matrix.distribute_local_to_global(cell_matrix,
+                                                   dof_indices,
+                                                   system_matrix);
+    }
+
+  system_matrix.print(deallog.get_file_stream());
 }
 
 int

@@ -21,9 +21,10 @@
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/std_cxx14/memory.h>
 
-#include <deal.II/fe/fe_q_tet.h>
 #include <deal.II/fe/fe_update_flags.h>
 #include <deal.II/fe/mapping.h>
+
+#include <deal.II/tet/fe_q.h>
 
 DEAL_II_NAMESPACE_OPEN
 

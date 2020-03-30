@@ -25,8 +25,6 @@
 #include <deal.II/dofs/dof_faces.h>
 #include <deal.II/dofs/dof_levels.h>
 
-#include <deal.II/fe/fe_q_tet.h>
-
 #include <deal.II/grid/tria_iterator.h>
 #include <deal.II/grid/tria_iterator.templates.h>
 
@@ -35,6 +33,8 @@
 
 #include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/read_write_vector.h>
+
+#include <deal.II/tet/fe_q.h>
 
 #include <limits>
 #include <type_traits>
