@@ -98,9 +98,8 @@ void Tet_test<dim>::output_results()
 template <int dim>
 void Tet_test<dim>::run()
 {
-	std::cout << "Hello!" << std::endl;
 	const unsigned int spacedim = 3;
-	Triangulation<dim, spacedim> tria;
+	Tet::Triangulation<dim, spacedim> tria;
 
 	  // TODO: create triangulation via GridIn
 //	  {
@@ -149,7 +148,7 @@ void Tet_test<dim>::run()
   GridIn<dim, spacedim> grid_in;
   grid_in.attach_triangulation(tria);
 
-  std::ifstream input_file("quad.inp");
+  std::ifstream input_file("tri8.inp");
 
   Assert(dim == 2, ExcInternalError());
 
@@ -164,7 +163,7 @@ void Tet_test<dim>::run()
   	    }
 
   GridOut grid_out;
-  std::ofstream out("grid.vtk");
+  std::ofstream out("grid_tri.vtk");
   grid_out.write_vtk(tria, out);
 
 ////
