@@ -23,6 +23,9 @@
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
 
+// added
+#include <deal.II/grid/tria_tet.h>
+
 #include <boost/io/ios_state.hpp>
 
 #include <algorithm>
@@ -106,7 +109,6 @@ GridIn<dim, spacedim>::attach_triangulation(Triangulation<dim, spacedim> &t)
 {
   tria = &t;
 }
-
 
 
 template <int dim, int spacedim>
@@ -749,7 +751,7 @@ void
 GridIn<dim, spacedim>::read_ucd(std::istream &in,
                                 const bool    apply_all_indicators_to_manifolds)
 {
-  Assert(tria != nullptr, ExcNoTriangulationSelected());
+  //Assert(tria != nullptr, ExcNoTriangulationSelected());
   AssertThrow(in, ExcIO());
 
   // skip comments at start of file
@@ -765,12 +767,20 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
     >> dummy;                          // model data
   AssertThrow(in, ExcIO());
 
+//  std::cout << "n_vertices: " << n_vertices << " n_cells: " << n_cells << std::endl;
+
   // set up array of vertices
   std::vector<Point<spacedim>> vertices(n_vertices);
   // set up mapping between numbering
   // in ucd-file (key) and in the
   // vertices vector
   std::map<int, int> vertex_indices;
+
+  // set up array of vertices for TET cells
+  // NOT REALLY NEEDED, a point is a point regardless of tet or quad.
+  std::vector<Point<spacedim>> vertices_tet(n_vertices);
+//  std::map<int, int> vertex_indices_tet;
+
 
   for (unsigned int vertex = 0; vertex < n_vertices; ++vertex)
     {
@@ -783,16 +793,33 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
 
       // store vertex
       for (unsigned int d = 0; d < spacedim; ++d)
+      {
         vertices[vertex](d) = x[d];
+        vertices_tet[vertex](d) = x[d];
+      }
+
+      std::cout << "vertex_number: " << vertex_number			<< " "
+				<< "x: " 			 << vertices_tet[vertex](0)	<< " "
+				<< "y: " 			 << vertices_tet[vertex](1)	<< " "
+				<< "z: " 			 << vertices_tet[vertex](2)
+				<< std::endl;
+
       // store mapping; note that
       // vertices_indices[i] is automatically
       // created upon first usage
-      vertex_indices[vertex_number] = vertex;
+//      vertex_indices[vertex_number] = vertex;
+      vertex_indices.emplace(vertex_number, vertex);
     }
+
 
   // set up array of cells
   std::vector<CellData<dim>> cells;
   SubCellData                subcelldata;
+
+  // set up array of cells for tets
+  // todo remove <dim> from CellData
+  std::vector<Tet::CellData<std::min(dim,2)>> tet_cells;
+
 
   for (unsigned int cell = 0; cell < n_cells; ++cell)
     {
@@ -813,6 +840,7 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
         >> material_id;
       in >> cell_type;
 
+
       if (((cell_type == "line") && (dim == 1)) ||
           ((cell_type == "quad") && (dim == 2)) ||
           ((cell_type == "hex") && (dim == 3)))
@@ -820,8 +848,8 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
         {
           // allocate and read indices
           cells.emplace_back();
-          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell;
-               ++i)
+
+          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell; ++i)
             in >> cells.back().vertices[i];
 
           // to make sure that the cast won't fail
@@ -842,8 +870,7 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
 
           // transform from ucd to
           // consecutive numbering
-          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell;
-               ++i)
+          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell; ++i)
             if (vertex_indices.find(cells.back().vertices[i]) !=
                 vertex_indices.end())
               // vertex with this index exists
@@ -859,6 +886,68 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
                 cells.back().vertices[i] = numbers::invalid_unsigned_int;
               }
         }
+      // add special case for triangles and tets
+      else if (((cell_type == "tri") && (dim == 2)))
+    	  // found a cell
+          {
+            // allocate and read indices
+            tet_cells.emplace_back();
+
+            // get type of cell
+            tet_cells.back().type = Tet::CellTypeEnum::tet;
+
+            std::cout << "vertices per cell hardcoded to 3 for tri element! " << std::endl;
+
+            unsigned int vertices_per_cell = 3;
+  //          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell; ++i)
+            for (unsigned int i = 0; i < vertices_per_cell; ++i)
+            {
+              unsigned int vertex_id;
+              in >> vertex_id;
+              tet_cells.back().vertices.emplace_back(vertex_id);
+            }
+//            // to make sure that the cast won't fail
+//            Assert(material_id <= std::numeric_limits<types::material_id>::max(),
+//                   ExcIndexRange(material_id,
+//                                 0,
+//                                 std::numeric_limits<types::material_id>::max()));
+//            // we use only material_ids in the range from 0 to
+//            // numbers::invalid_material_id-1
+//            Assert(material_id < numbers::invalid_material_id,
+//                   ExcIndexRange(material_id, 0, numbers::invalid_material_id));
+
+//            if (apply_all_indicators_to_manifolds)
+//              tet_cells.back().manifold_id =
+//                static_cast<types::manifold_id>(material_id);
+//            tet_cells.back().material_id =
+//              static_cast<types::material_id>(material_id);
+
+            // transform from ucd to
+            // consecutive numbering
+  //          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell; ++i)
+            for (unsigned int i = 0; i < vertices_per_cell; ++i)
+              if (vertex_indices.find(tet_cells.back().vertices[i]) != vertex_indices.end())
+              {
+                // vertex with this index exists
+                tet_cells.back().vertices[i] = vertex_indices[tet_cells.back().vertices[i]];
+//                std::cout << "tet_cells.back().vertices[i]: " << tet_cells.back().vertices[i] << std::endl;
+              }
+              else
+                {
+                  // no such vertex index
+                  AssertThrow(false,
+                              ExcInvalidVertexIndex(cell, tet_cells.back().vertices[i]));
+
+                  tet_cells.back().vertices[i] = numbers::invalid_unsigned_int;
+                }
+
+
+            // check if there are 3 vertices
+//            std::cout << "Number of vertices for cell: " << tet_cells.back().vertices.size() << std::endl;
+
+
+          }
+
       else if ((cell_type == "line") && ((dim == 2) || (dim == 3)))
         // boundary info
         {
@@ -912,6 +1001,7 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
               }
         }
       else if ((cell_type == "quad") && (dim == 3))
+    	  // TODO add tri in 3d
         // boundary info
         {
           subcelldata.boundary_quads.emplace_back();
@@ -977,13 +1067,51 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
   AssertThrow(in, ExcIO());
 
   // do some clean-up on vertices...
-  GridTools::delete_unused_vertices(vertices, cells, subcelldata);
+  // TODO change dependency on vertices_per_cell
+//  GridTools::delete_unused_vertices(vertices, cells, subcelldata);
   // ... and cells
   if (dim == spacedim)
-    GridReordering<dim, spacedim>::invert_all_cells_of_negative_grid(vertices,
-                                                                     cells);
-  GridReordering<dim, spacedim>::reorder_cells(cells);
-  tria->create_triangulation_compatibility(vertices, cells, subcelldata);
+  {
+	std::cout << "Skipping invert_all_cells_of_negative grid..." << std::endl;
+//    GridReordering<dim, spacedim>::invert_all_cells_of_negative_grid(vertices, cells);
+  }
+
+  std::cout << "Skipping redordering grid..." << std::endl;
+//  GridReordering<dim, spacedim>::reorder_cells(cells);
+
+  if (auto tria_tet = dynamic_cast<Tet::Triangulation<std::min(dim,2),spacedim>*>(&*this->tria))
+  {
+
+//	  // check if all vertices are correct
+//	  for(unsigned int i = 0; i < vertices_tet.size(); ++i)
+//	  {
+//		  std::cout << "x: " << vertices_tet[i](0) << " y: " << vertices_tet[i](1) << " z: " << vertices_tet[i](2) << std::endl;
+//	  }
+//
+//	  std::cout << "length of tet_cells vector: " << tet_cells.size() << std::endl;
+//	  // check if all cells are correct
+//	  std::cout << "number of vertices for first cell: " << tet_cells[0].vertices.size() << std::endl;
+//	  std::cout << "number of vertices for last cell: " << tet_cells.back().vertices.size() << std::endl;
+//
+//	  for(unsigned int i = 0; i < tet_cells.size(); ++i)
+//	  {
+//		  for(unsigned int j = 0; j < tet_cells[i].vertices.size(); ++j)
+//		  {
+//			  std::cout << "vertex " << j << ": " << tet_cells[i].vertices[j] << " ";
+//		  }
+//		  std::cout << std::endl;
+//	  }
+
+	  tria_tet->create_triangulation_tet(vertices_tet, tet_cells);
+//  }
+  }
+  else
+  {
+	  tria->create_triangulation_compatibility(vertices, cells, subcelldata);
+  }
+
+
+
 }
 
 namespace

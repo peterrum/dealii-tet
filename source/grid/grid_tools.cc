@@ -753,10 +753,15 @@ namespace GridTools
         "Invalid SubCellData supplied according to ::check_consistency(). "
         "This is caused by data containing objects for the wrong dimension."));
 
+    // TODO change
+//    unsigned int vertices_per_cell = 3;
+
     // first check which vertices are actually used
     std::vector<bool> vertex_used(vertices.size(), false);
     for (unsigned int c = 0; c < cells.size(); ++c)
+    	// TODO vertices per cell hard coded to 3
       for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v)
+//        for (unsigned int v = 0; v < vertices_per_cell; ++v)
         {
           Assert(cells[c].vertices[v] < vertices.size(),
                  ExcMessage("Invalid vertex index encountered! cells[" +

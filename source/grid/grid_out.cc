@@ -3108,184 +3108,407 @@ GridOut::write_vtk(const Triangulation<dim, spacedim> &tria,
       out << '\n';
     }
 
-  const auto faces = vtk_flags.output_only_relevant ?
-                       get_relevant_face_iterators(tria) :
-                       get_boundary_face_iterators(tria);
-  const auto edges = vtk_flags.output_only_relevant ?
-                       get_relevant_edge_iterators(tria) :
-                       get_boundary_edge_iterators(tria);
+  // need number of cells earlier so we can determine if quad or
+  // triangle and circumvent face and edge iterators because they
+  // are not yet implemented for tets
 
-  AssertThrow(
-    vtk_flags.output_cells || (dim >= 2 && vtk_flags.output_faces) ||
-      (dim >= 3 && vtk_flags.output_edges),
-    ExcMessage(
-      "At least one of the flags (output_cells, output_faces, output_edges) has to be enabled!"));
+  // WORKAROUND
+  // n_active_cells() not implemented yet in Tet::triangulation
+  // only cell_iterators available, therefore, we just loop over
+  // all cells an increase a counter by 1
+  unsigned int num_cells = 0;
+  for (const auto &cell : tria.cell_iterators())
+	  num_cells++;
 
-  // Write cells preamble
-  const int n_cells = (vtk_flags.output_cells ? tria.n_active_cells() : 0) +
-                      (vtk_flags.output_faces ? faces.size() : 0) +
-                      (vtk_flags.output_edges ? edges.size() : 0);
+//  std::cout << "number of cells: " << num_cells << std::endl;
 
-  // VTK now expects a number telling the total storage requirement to read all
-  // cell connectivity information. The connectivity information is read cell by
-  // cell, first specifying how many vertices are required to describe the cell,
-  // and then specifying the index of every vertex. This means that for every
-  // deal.II object type, we always need n_vertices + 1 integer per cell.
-  // Compute the total number here.
-  const int cells_size =
-    (vtk_flags.output_cells ?
-       tria.n_active_cells() * (GeometryInfo<dim>::vertices_per_cell + 1) :
-       0) +
-    (vtk_flags.output_faces ?
-       faces.size() * (GeometryInfo<dim>::vertices_per_face + 1) :
-       0) +
-    (vtk_flags.output_edges ? edges.size() * (3) :
-                              0); // only in 3d, otherwise it is always zero.
+  // if geometry is 2d, we can either have quads or triangles
+  // we can check that with the number of cells and the number of vertices
+  // if n_vertices = 2 * n_cells + 2, then we have quads, else triangles
+  // more general expression possible? Maybe depending on dim?
+  bool cell_type_is_tri;
+  if(dim == 2 && (n_vertices == 2 * num_cells + 2))
+ 	  cell_type_is_tri = false;
+  else
+ 	  cell_type_is_tri = true;
 
-  AssertThrow(cells_size > 0, ExcMessage("No cells given to be output!"));
 
-  out << "\nCELLS " << n_cells << ' ' << cells_size << '\n';
-  /*
-   * VTK cells:
-   *
-   * 1 VTK_VERTEX
-   * 3 VTK_LINE
-   * 9 VTK_QUAD
-   * 12 VTK_HEXAHEDRON
-   * ...
-   */
-  const int cell_type    = (dim == 1 ? 3 : dim == 2 ? 9 : 12);
-  const int face_type    = (dim == 1 ? 1 : dim == 2 ? 3 : 9);
-  const int co_face_type = (dim == 1 ? -1 : dim == 2 ? -1 : 3);
+  // if we have a triangle element we just don't do the following
+  if(cell_type_is_tri)
+  {
+	  // We can use this result to determine vertices_per_cell without using
+	  // GeometryInfo for triangular elements, otherwise we use GeometryInfo<dim>::vertices_per_cell
+	  unsigned int vertices_per_cell = 3;
 
-  // write cells.
-  if (vtk_flags.output_cells)
-    for (const auto &cell : tria.active_cell_iterators())
-      {
-        out << GeometryInfo<dim>::vertices_per_cell;
-        for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell; ++i)
-          {
-            out << ' ' << cell->vertex_index(GeometryInfo<dim>::ucd_to_deal[i]);
-          }
-        out << '\n';
-      }
-  if (vtk_flags.output_faces)
-    for (const auto &face : faces)
-      {
-        out << GeometryInfo<dim>::vertices_per_face;
-        for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_face; ++i)
-          {
-            out << ' '
-                << face->vertex_index(GeometryInfo < (dim > 1) ?
-                                        dim - 1 :
-                                        dim > ::ucd_to_deal[i]);
-          }
-        out << '\n';
-      }
-  if (vtk_flags.output_edges)
-    for (const auto &edge : edges)
-      {
-        out << 2;
-        for (unsigned int i = 0; i < 2; ++i)
-          out << ' ' << edge->vertex_index(i);
-        out << '\n';
-      }
+//	  // DEBUG
 
-  // write cell types
-  out << "\nCELL_TYPES " << n_cells << '\n';
-  if (vtk_flags.output_cells)
-    {
-      for (unsigned int i = 0; i < tria.n_active_cells(); ++i)
-        {
-          out << cell_type << ' ';
-        }
-      out << '\n';
-    }
-  if (vtk_flags.output_faces)
-    {
-      for (unsigned int i = 0; i < faces.size(); ++i)
-        {
-          out << face_type << ' ';
-        }
-      out << '\n';
-    }
-  if (vtk_flags.output_edges)
-    {
-      for (unsigned int i = 0; i < edges.size(); ++i)
-        {
-          out << co_face_type << ' ';
-        }
-    }
-  out << "\n\nCELL_DATA " << n_cells << '\n'
-      << "SCALARS MaterialID int 1\n"
-      << "LOOKUP_TABLE default\n";
+//	  const auto faces = vtk_flags.output_only_relevant ?
+//	  						   get_relevant_face_iterators(tria) :
+//	  						   get_boundary_face_iterators(tria);
+//	  	  const auto edges = vtk_flags.output_only_relevant ?
+//	  						   get_relevant_edge_iterators(tria) :
+//	  						   get_boundary_edge_iterators(tria);
 
-  // Now material id and boundary id
-  if (vtk_flags.output_cells)
-    {
-      for (const auto &cell : tria.active_cell_iterators())
-        {
-          out << static_cast<std::make_signed<types::material_id>::type>(
-                   cell->material_id())
-              << ' ';
-        }
-      out << '\n';
-    }
-  if (vtk_flags.output_faces)
-    {
-      for (const auto &face : faces)
-        {
-          out << static_cast<std::make_signed<types::boundary_id>::type>(
-                   face->boundary_id())
-              << ' ';
-        }
-      out << '\n';
-    }
-  if (vtk_flags.output_edges)
-    {
-      for (const auto &edge : edges)
-        {
-          out << static_cast<std::make_signed<types::boundary_id>::type>(
-                   edge->boundary_id())
-              << ' ';
-        }
-    }
+	  	  AssertThrow(
+	  		vtk_flags.output_cells || (dim >= 2 && vtk_flags.output_faces) ||
+	  		  (dim >= 3 && vtk_flags.output_edges),
+	  		ExcMessage(
+	  		  "At least one of the flags (output_cells, output_faces, output_edges) has to be enabled!"));
 
-  out << "\n\nSCALARS ManifoldID int 1\n"
-      << "LOOKUP_TABLE default\n";
+	  	  // Write cells preamble
+	  	  const int n_cells = (vtk_flags.output_cells ? num_cells : 0);// +
+//	  						  (vtk_flags.output_faces ? faces.size() : 0) +
+//	  						  (vtk_flags.output_edges ? edges.size() : 0);
 
-  // Now material id and boundary id
-  if (vtk_flags.output_cells)
-    {
-      for (const auto &cell : tria.active_cell_iterators())
-        {
-          out << static_cast<std::make_signed<types::boundary_id>::type>(
-                   cell->manifold_id())
-              << ' ';
-        }
-      out << '\n';
-    }
-  if (vtk_flags.output_faces)
-    {
-      for (const auto &face : faces)
-        {
-          out << static_cast<std::make_signed<types::boundary_id>::type>(
-                   face->manifold_id())
-              << ' ';
-        }
-      out << '\n';
-    }
-  if (vtk_flags.output_edges)
-    {
-      for (const auto &edge : edges)
-        {
-          out << static_cast<std::make_signed<types::boundary_id>::type>(
-                   edge->manifold_id())
-              << ' ';
-        }
-      out << '\n';
-    }
+	  	  // VTK now expects a number telling the total storage requirement to read all
+	  	  // cell connectivity information. The connectivity information is read cell by
+	  	  // cell, first specifying how many vertices are required to describe the cell,
+	  	  // and then specifying the index of every vertex. This means that for every
+	  	  // deal.II object type, we always need n_vertices + 1 integer per cell.
+	  	  // Compute the total number here.
+	  	  const int cells_size =
+	  		(vtk_flags.output_cells ?
+	  		   num_cells * (vertices_per_cell + 1) :
+	  		   0);// +
+//	  		(vtk_flags.output_faces ?
+//	  		   faces.size() * (GeometryInfo<dim>::vertices_per_face + 1) :
+//	  		   0) +
+//	  		(vtk_flags.output_edges ? edges.size() * (3) :
+//	  								  0); // only in 3d, otherwise it is always zero.
 
+	  	  AssertThrow(cells_size > 0, ExcMessage("No cells given to be output!"));
+
+	  	  out << "\nCELLS " << n_cells << ' ' << cells_size << '\n';
+	  	  /*
+	  	   * VTK cells:
+	  	   *
+	  	   * 1 VTK_VERTEX
+	  	   * 3 VTK_LINE
+	  	   * 5 VTK_TRIANGLE
+	  	   * 9 VTK_QUAD
+	  	   * 12 VTK_HEXAHEDRON
+	  	   * ...
+	  	   */
+	  	  int cell_type    = (dim == 1 ? 3 : dim == 2 ? 9 : 12);
+	  	  const int face_type    = (dim == 1 ? 1 : dim == 2 ? 3 : 9);
+	  	  const int co_face_type = (dim == 1 ? -1 : dim == 2 ? -1 : 3);
+
+	  	  // just reuse cell_type_is_tri to overwrite cell_type in case of quad
+	  	  if(dim==2)
+			  cell_type = 5;
+
+	  	  // write cells.
+	  	  if (vtk_flags.output_cells)
+	  		for (const auto &cell : tria.cell_iterators())
+	  		  {
+	  			out << vertices_per_cell;
+	  			for (unsigned int i = 0; i < vertices_per_cell; ++i)
+	  			  {
+	  				out << ' ' << cell->vertex_index(i);//GeometryInfo<dim>::ucd_to_deal[i]);
+	  			  }
+	  			out << '\n';
+	  		  }
+//	  	  if (vtk_flags.output_faces)
+//	  		for (const auto &face : faces)
+//	  		  {
+//	  			out << GeometryInfo<dim>::vertices_per_face;
+//	  			for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_face; ++i)
+//	  			  {
+//	  				out << ' '
+//	  					<< face->vertex_index(GeometryInfo < (dim > 1) ?
+//	  											dim - 1 :
+//	  											dim > ::ucd_to_deal[i]);
+//	  			  }
+//	  			out << '\n';
+//	  		  }
+//	  	  if (vtk_flags.output_edges)
+//	  		for (const auto &edge : edges)
+//	  		  {
+//	  			out << 2;
+//	  			for (unsigned int i = 0; i < 2; ++i)
+//	  			  out << ' ' << edge->vertex_index(i);
+//	  			out << '\n';
+//	  		  }
+
+	  	  // write cell types
+	  	  out << "\nCELL_TYPES " << n_cells << '\n';
+	  	  if (vtk_flags.output_cells)
+	  		{
+	  		  for (unsigned int i = 0; i < num_cells; ++i)
+	  			{
+	  			  out << cell_type << ' ';
+	  			}
+	  		  out << '\n';
+	  		}
+//	  	  if (vtk_flags.output_faces)
+//	  		{
+//	  		  for (unsigned int i = 0; i < faces.size(); ++i)
+//	  			{
+//	  			  out << face_type << ' ';
+//	  			}
+//	  		  out << '\n';
+//	  		}
+//	  	  if (vtk_flags.output_edges)
+//	  		{
+//	  		  for (unsigned int i = 0; i < edges.size(); ++i)
+//	  			{
+//	  			  out << co_face_type << ' ';
+//	  			}
+//	  		}
+//	  	  out << "\n\nCELL_DATA " << n_cells << '\n'
+//	  		  << "SCALARS MaterialID int 1\n"
+//	  		  << "LOOKUP_TABLE default\n";
+//
+//	  	  // Now material id and boundary id
+//	  	  if (vtk_flags.output_cells)
+//	  		{
+//	  		  for (const auto &cell : tria.active_cell_iterators())
+//	  			{
+//	  			  out << static_cast<std::make_signed<types::material_id>::type>(
+//	  					   cell->material_id())
+//	  				  << ' ';
+//	  			}
+//	  		  out << '\n';
+//	  		}
+//	  	  if (vtk_flags.output_faces)
+//	  		{
+//	  		  for (const auto &face : faces)
+//	  			{
+//	  			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+//	  					   face->boundary_id())
+//	  				  << ' ';
+//	  			}
+//	  		  out << '\n';
+//	  		}
+//	  	  if (vtk_flags.output_edges)
+//	  		{
+//	  		  for (const auto &edge : edges)
+//	  			{
+//	  			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+//	  					   edge->boundary_id())
+//	  				  << ' ';
+//	  			}
+//	  		}
+//
+//	  	  out << "\n\nSCALARS ManifoldID int 1\n"
+//	  		  << "LOOKUP_TABLE default\n";
+//
+//	  	  // Now material id and boundary id
+//	  	  if (vtk_flags.output_cells)
+//	  		{
+//	  		  for (const auto &cell : tria.active_cell_iterators())
+//	  			{
+//	  			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+//	  					   cell->manifold_id())
+//	  				  << ' ';
+//	  			}
+//	  		  out << '\n';
+//	  		}
+//	  	  if (vtk_flags.output_faces)
+//	  		{
+//	  		  for (const auto &face : faces)
+//	  			{
+//	  			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+//	  					   face->manifold_id())
+//	  				  << ' ';
+//	  			}
+//	  		  out << '\n';
+//	  		}
+//	  	  if (vtk_flags.output_edges)
+//	  		{
+//	  		  for (const auto &edge : edges)
+//	  			{
+//	  			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+//	  					   edge->manifold_id())
+//	  				  << ' ';
+//	  			}
+//	  		  out << '\n';
+//	  		}
+
+  }
+  else
+  {
+	  const auto faces = vtk_flags.output_only_relevant ?
+						   get_relevant_face_iterators(tria) :
+						   get_boundary_face_iterators(tria);
+	  const auto edges = vtk_flags.output_only_relevant ?
+						   get_relevant_edge_iterators(tria) :
+						   get_boundary_edge_iterators(tria);
+
+	  AssertThrow(
+		vtk_flags.output_cells || (dim >= 2 && vtk_flags.output_faces) ||
+		  (dim >= 3 && vtk_flags.output_edges),
+		ExcMessage(
+		  "At least one of the flags (output_cells, output_faces, output_edges) has to be enabled!"));
+
+	  // Write cells preamble
+	  const int n_cells = (vtk_flags.output_cells ? tria.n_active_cells() : 0) +
+						  (vtk_flags.output_faces ? faces.size() : 0) +
+						  (vtk_flags.output_edges ? edges.size() : 0);
+
+	  // VTK now expects a number telling the total storage requirement to read all
+	  // cell connectivity information. The connectivity information is read cell by
+	  // cell, first specifying how many vertices are required to describe the cell,
+	  // and then specifying the index of every vertex. This means that for every
+	  // deal.II object type, we always need n_vertices + 1 integer per cell.
+	  // Compute the total number here.
+	  const int cells_size =
+		(vtk_flags.output_cells ?
+		   tria.n_active_cells() * (GeometryInfo<dim>::vertices_per_cell + 1) :
+		   0) +
+		(vtk_flags.output_faces ?
+		   faces.size() * (GeometryInfo<dim>::vertices_per_face + 1) :
+		   0) +
+		(vtk_flags.output_edges ? edges.size() * (3) :
+								  0); // only in 3d, otherwise it is always zero.
+
+	  AssertThrow(cells_size > 0, ExcMessage("No cells given to be output!"));
+
+	  out << "\nCELLS " << n_cells << ' ' << cells_size << '\n';
+	  /*
+	   * VTK cells:
+	   *
+	   * 1 VTK_VERTEX
+	   * 3 VTK_LINE
+	   * 5 VTK_TRIANGLE
+	   * 9 VTK_QUAD
+	   * 12 VTK_HEXAHEDRON
+	   * ...
+	   */
+	  int cell_type    = (dim == 1 ? 3 : dim == 2 ? 9 : 12);
+	  const int face_type    = (dim == 1 ? 1 : dim == 2 ? 3 : 9);
+	  const int co_face_type = (dim == 1 ? -1 : dim == 2 ? -1 : 3);
+
+
+
+	  // write cells.
+	  if (vtk_flags.output_cells)
+		for (const auto &cell : tria.active_cell_iterators())
+		  {
+			out << GeometryInfo<dim>::vertices_per_cell;
+			for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell; ++i)
+			  {
+				out << ' ' << cell->vertex_index(GeometryInfo<dim>::ucd_to_deal[i]);
+			  }
+			out << '\n';
+		  }
+	  if (vtk_flags.output_faces)
+		for (const auto &face : faces)
+		  {
+			out << GeometryInfo<dim>::vertices_per_face;
+			for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_face; ++i)
+			  {
+				out << ' '
+					<< face->vertex_index(GeometryInfo < (dim > 1) ?
+											dim - 1 :
+											dim > ::ucd_to_deal[i]);
+			  }
+			out << '\n';
+		  }
+	  if (vtk_flags.output_edges)
+		for (const auto &edge : edges)
+		  {
+			out << 2;
+			for (unsigned int i = 0; i < 2; ++i)
+			  out << ' ' << edge->vertex_index(i);
+			out << '\n';
+		  }
+
+	  // write cell types
+	  out << "\nCELL_TYPES " << n_cells << '\n';
+	  if (vtk_flags.output_cells)
+		{
+		  for (unsigned int i = 0; i < tria.n_active_cells(); ++i)
+			{
+			  out << cell_type << ' ';
+			}
+		  out << '\n';
+		}
+	  if (vtk_flags.output_faces)
+		{
+		  for (unsigned int i = 0; i < faces.size(); ++i)
+			{
+			  out << face_type << ' ';
+			}
+		  out << '\n';
+		}
+	  if (vtk_flags.output_edges)
+		{
+		  for (unsigned int i = 0; i < edges.size(); ++i)
+			{
+			  out << co_face_type << ' ';
+			}
+		}
+	  out << "\n\nCELL_DATA " << n_cells << '\n'
+		  << "SCALARS MaterialID int 1\n"
+		  << "LOOKUP_TABLE default\n";
+
+	  // Now material id and boundary id
+	  if (vtk_flags.output_cells)
+		{
+		  for (const auto &cell : tria.active_cell_iterators())
+			{
+			  out << static_cast<std::make_signed<types::material_id>::type>(
+					   cell->material_id())
+				  << ' ';
+			}
+		  out << '\n';
+		}
+	  if (vtk_flags.output_faces)
+		{
+		  for (const auto &face : faces)
+			{
+			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+					   face->boundary_id())
+				  << ' ';
+			}
+		  out << '\n';
+		}
+	  if (vtk_flags.output_edges)
+		{
+		  for (const auto &edge : edges)
+			{
+			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+					   edge->boundary_id())
+				  << ' ';
+			}
+		}
+
+	  out << "\n\nSCALARS ManifoldID int 1\n"
+		  << "LOOKUP_TABLE default\n";
+
+	  // Now material id and boundary id
+	  if (vtk_flags.output_cells)
+		{
+		  for (const auto &cell : tria.active_cell_iterators())
+			{
+			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+					   cell->manifold_id())
+				  << ' ';
+			}
+		  out << '\n';
+		}
+	  if (vtk_flags.output_faces)
+		{
+		  for (const auto &face : faces)
+			{
+			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+					   face->manifold_id())
+				  << ' ';
+			}
+		  out << '\n';
+		}
+	  if (vtk_flags.output_edges)
+		{
+		  for (const auto &edge : edges)
+			{
+			  out << static_cast<std::make_signed<types::boundary_id>::type>(
+					   edge->manifold_id())
+				  << ' ';
+			}
+		  out << '\n';
+		}
+  }
   out.flush();
 
   AssertThrow(out, ExcIO());
