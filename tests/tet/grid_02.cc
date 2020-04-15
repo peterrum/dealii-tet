@@ -14,13 +14,10 @@
 // ---------------------------------------------------------------------
 
 
-// Test PolynomialsTet on quadrature points returned by QGaussTet.
+// Test GridIn and GridOut for TET meshes.
 
-
-#include <deal.II/base/quadrature_lib.h>
-
-#include <deal.II/fe/fe_values.h>
-
+#include <deal.II/grid/grid_in.h>
+#include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/tria.h>
 
 #include <deal.II/tet/fe_q.h>
@@ -30,34 +27,18 @@
 
 using namespace dealii;
 
-template <int dim>
+template <int dim, int spacedim = dim>
 void
-test()
+test(const std::string file_name)
 {
   Tet::Triangulation<dim> tria;
 
-  // TODO: create triangulation via GridIn
-  {
-    std::vector<Point<dim>>         vertices;
-    std::vector<Tet::CellData<dim>> cells;
+  GridIn<dim, spacedim> grid_in;
+  grid_in.attach_triangulation(tria);
 
-    vertices.push_back(Point<dim>(1, 0));
-    vertices.push_back(Point<dim>(0, 1));
-    vertices.push_back(Point<dim>(0, 0));
-    vertices.push_back(Point<dim>(1, 1));
+  std::ifstream input_file(file_name);
 
-    Tet::CellData<dim> cell_1;
-    cell_1.type     = Tet::CellTypeEnum::tet;
-    cell_1.vertices = {0, 1, 2};
-    cells.push_back(cell_1);
-
-    Tet::CellData<dim> cell_2;
-    cell_2.type     = Tet::CellTypeEnum::tet;
-    cell_2.vertices = {1, 2, 3};
-    cells.push_back(cell_2);
-
-    tria.create_triangulation_tet(vertices, cells);
-  }
+  grid_in.read_ucd(input_file);
 
   // print cell-by-cell the vertices
   for (const auto &cell : tria.cell_iterators())
@@ -68,7 +49,9 @@ test()
       deallog << std::endl;
     }
 
-  // TODO: write file for Paraview via GridOut
+  GridOut       grid_out;
+  std::ofstream out("grid_tri.vtk");
+  grid_out.write_vtk(tria, out);
 }
 
 int
@@ -78,7 +61,8 @@ main()
 
   {
     deallog.push("2d");
-    test<2>();
+    test<2>(SOURCE_DIR "/grid/tri_1element.inp");
+    test<2>(SOURCE_DIR "/grid/tri_2elements.inp");
     deallog.pop();
   }
 }

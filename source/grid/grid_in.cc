@@ -25,6 +25,8 @@
 
 #include <boost/io/ios_state.hpp>
 
+#include <deal.II/tet/tria.h>
+
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -103,7 +105,6 @@ GridIn<dim, spacedim>::attach_triangulation(Triangulation<dim, spacedim> &t)
 {
   tria = &t;
 }
-
 
 
 template <int dim, int spacedim>
@@ -786,8 +787,9 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
     }
 
   // set up array of cells
-  std::vector<CellData<dim>> cells;
-  SubCellData                subcelldata;
+  std::vector<CellData<dim>>                   cells;
+  SubCellData                                  subcelldata;
+  std::vector<Tet::CellData<std::min(dim, 2)>> tet_cells; // TODO fix
 
   for (unsigned int cell = 0; cell < n_cells; ++cell)
     {
@@ -851,6 +853,42 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
                 cells.back().vertices[i] = numbers::invalid_unsigned_int;
               }
         }
+      else if (((cell_type == "tri") && (dim == 2))) // TETS
+        {
+          // allocate and read indices
+          tet_cells.emplace_back();
+
+          // get type of cell
+          tet_cells.back().type = Tet::CellTypeEnum::tet;
+
+          unsigned int vertices_per_cell = 3;
+
+          for (unsigned int i = 0; i < vertices_per_cell; ++i)
+            {
+              unsigned int vertex_id;
+              in >> vertex_id;
+              tet_cells.back().vertices.emplace_back(vertex_id);
+            }
+
+          for (unsigned int i = 0; i < vertices_per_cell; ++i)
+            if (vertex_indices.find(tet_cells.back().vertices[i]) !=
+                vertex_indices.end())
+              {
+                // vertex with this index exists
+                tet_cells.back().vertices[i] =
+                  vertex_indices[tet_cells.back().vertices[i]];
+              }
+            else
+              {
+                // no such vertex index
+                AssertThrow(
+                  false,
+                  ExcInvalidVertexIndex(cell, tet_cells.back().vertices[i]));
+
+                tet_cells.back().vertices[i] = numbers::invalid_unsigned_int;
+              }
+        }
+
       else if ((cell_type == "line") && ((dim == 2) || (dim == 3)))
         // boundary info
         {
@@ -901,6 +939,7 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
               }
         }
       else if ((cell_type == "quad") && (dim == 3))
+        // TODO add tri in 3d
         // boundary info
         {
           subcelldata.boundary_quads.emplace_back();
@@ -961,6 +1000,14 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
   Assert(subcelldata.check_consistency(dim), ExcInternalError());
 
   AssertThrow(in, ExcIO());
+
+  if (auto tria_tet =
+        dynamic_cast<Tet::Triangulation<std::min(dim, 2), spacedim> *>(
+          &*this->tria))
+    {
+      tria_tet->create_triangulation_tet(vertices, tet_cells);
+      return;
+    }
 
   // do some clean-up on vertices...
   GridTools::delete_unused_vertices(vertices, cells, subcelldata);
