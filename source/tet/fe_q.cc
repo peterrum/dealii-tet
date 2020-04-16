@@ -29,15 +29,22 @@ namespace Tet
     : FE_Poly<Tet::ScalarPolynomial<dim>, dim, spacedim>(
         Tet::ScalarPolynomial<dim>(degree),
         FiniteElementData<dim>(get_dpo_vector(degree),
+                               GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0),
                                1,
                                degree,
                                FiniteElementData<dim>::L2),
         std::vector<bool>(
-          FiniteElementData<dim>(get_dpo_vector(degree), 1, degree)
+          FiniteElementData<dim>(get_dpo_vector(degree),
+                                 GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0),
+                                 1,
+                                 degree)
             .dofs_per_cell,
           true),
         std::vector<ComponentMask>(
-          FiniteElementData<dim>(get_dpo_vector(degree), 1, degree)
+          FiniteElementData<dim>(get_dpo_vector(degree),
+                                 GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0),
+                                 1,
+                                 degree)
             .dofs_per_cell,
           std::vector<bool>(1, true)))
   {}

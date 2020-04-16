@@ -42,12 +42,22 @@ namespace Tet
     static std::vector<unsigned int>
     get_dpo_vector(const unsigned int deg)
     {
-      // AssertDimension(deg, 1);
-      (void)deg;
+      AssertIndexRange(deg, 3);
       AssertDimension(dim, 2);
 
       std::vector<unsigned int> dpo(dim + 1, 0U);
-      dpo[0] = 1;
+
+      if (deg == 1)
+        {
+          dpo[0] = 1;
+        }
+      else
+        {
+          dpo[0] = 1;
+          dpo[1] = 1;
+          dpo[2] = 1;
+        }
+
       return dpo;
     }
 

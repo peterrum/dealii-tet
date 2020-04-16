@@ -127,6 +127,28 @@ namespace FiniteElementDomination
 } // namespace FiniteElementDomination
 
 
+template <int dim>
+struct GeometryInfoWrapper
+{
+  GeometryInfoWrapper();
+
+  GeometryInfoWrapper(unsigned int vertices_per_cell,
+                      unsigned int lines_per_cell,
+                      unsigned int quads_per_cell,
+                      unsigned int hexes_per_cell,
+                      unsigned int vertices_per_face,
+                      unsigned int lines_per_face,
+                      unsigned int quads_per_face);
+
+  const unsigned int vertices_per_cell;
+  const unsigned int lines_per_cell;
+  const unsigned int quads_per_cell;
+  const unsigned int hexes_per_cell;
+  const unsigned int vertices_per_face;
+  const unsigned int lines_per_face;
+  const unsigned int quads_per_face;
+};
+
 /**
  * A class that declares a number of scalar constant variables that describe
  * basic properties of a finite element implementation. This includes, for
@@ -348,6 +370,13 @@ public:
    * elements such as FESystem will want to pass a different value here.
    */
   FiniteElementData(const std::vector<unsigned int> &dofs_per_object,
+                    const GeometryInfoWrapper<dim> & geometry_info,
+                    const unsigned int               n_components,
+                    const unsigned int               degree,
+                    const Conformity                 conformity = unknown,
+                    const BlockIndices &block_indices = BlockIndices());
+
+  FiniteElementData(const std::vector<unsigned int> &dofs_per_object,
                     const unsigned int               n_components,
                     const unsigned int               degree,
                     const Conformity                 conformity = unknown,
@@ -448,6 +477,9 @@ public:
    */
   bool
   operator==(const FiniteElementData &) const;
+
+private:
+  const GeometryInfoWrapper<dim> geometry_info;
 };
 
 

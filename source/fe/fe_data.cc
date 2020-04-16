@@ -20,8 +20,41 @@
 DEAL_II_NAMESPACE_OPEN
 
 template <int dim>
+GeometryInfoWrapper<dim>::GeometryInfoWrapper(unsigned int vertices_per_cell,
+                                              unsigned int lines_per_cell,
+                                              unsigned int quads_per_cell,
+                                              unsigned int hexes_per_cell,
+                                              unsigned int vertices_per_face,
+                                              unsigned int lines_per_face,
+                                              unsigned int quads_per_face)
+  : vertices_per_cell(vertices_per_cell)
+  , lines_per_cell(lines_per_cell)
+  , quads_per_cell(quads_per_cell)
+  , hexes_per_cell(hexes_per_cell)
+  , vertices_per_face(vertices_per_face)
+  , lines_per_face(lines_per_face)
+  , quads_per_face(quads_per_face)
+{}
+
+
+
+template <int dim>
+GeometryInfoWrapper<dim>::GeometryInfoWrapper()
+  : vertices_per_cell(GeometryInfo<dim>::vertices_per_cell)
+  , lines_per_cell(GeometryInfo<dim>::lines_per_cell)
+  , quads_per_cell(GeometryInfo<dim>::quads_per_cell)
+  , hexes_per_cell(GeometryInfo<dim>::hexes_per_cell)
+  , vertices_per_face(GeometryInfo<dim>::vertices_per_face)
+  , lines_per_face(GeometryInfo<dim>::lines_per_face)
+  , quads_per_face(GeometryInfo<dim>::quads_per_face)
+{}
+
+
+
+template <int dim>
 FiniteElementData<dim>::FiniteElementData(
   const std::vector<unsigned int> &dofs_per_object,
+  const GeometryInfoWrapper<dim> & geometry_info,
   const unsigned int               n_components,
   const unsigned int               degree,
   const Conformity                 conformity,
@@ -30,34 +63,51 @@ FiniteElementData<dim>::FiniteElementData(
   , dofs_per_line(dofs_per_object[1])
   , dofs_per_quad(dim > 1 ? dofs_per_object[2] : 0)
   , dofs_per_hex(dim > 2 ? dofs_per_object[3] : 0)
-  , first_line_index(GeometryInfo<dim>::vertices_per_cell * dofs_per_vertex)
+  , first_line_index(geometry_info.vertices_per_cell * dofs_per_vertex)
   , first_quad_index(first_line_index +
-                     GeometryInfo<dim>::lines_per_cell * dofs_per_line)
+                     geometry_info.lines_per_cell * dofs_per_line)
   , first_hex_index(first_quad_index +
-                    GeometryInfo<dim>::quads_per_cell * dofs_per_quad)
-  , first_face_line_index(GeometryInfo<dim - 1>::vertices_per_cell *
-                          dofs_per_vertex)
+                    geometry_info.quads_per_cell * dofs_per_quad)
+  , first_face_line_index(geometry_info.vertices_per_face * dofs_per_vertex)
   , first_face_quad_index(
-      (dim == 3 ? GeometryInfo<dim - 1>::vertices_per_cell * dofs_per_vertex :
-                  GeometryInfo<dim>::vertices_per_cell * dofs_per_vertex) +
-      GeometryInfo<dim - 1>::lines_per_cell * dofs_per_line)
-  , dofs_per_face(GeometryInfo<dim>::vertices_per_face * dofs_per_vertex +
-                  GeometryInfo<dim>::lines_per_face * dofs_per_line +
-                  GeometryInfo<dim>::quads_per_face * dofs_per_quad)
-  , dofs_per_cell(GeometryInfo<dim>::vertices_per_cell * dofs_per_vertex +
-                  GeometryInfo<dim>::lines_per_cell * dofs_per_line +
-                  GeometryInfo<dim>::quads_per_cell * dofs_per_quad +
-                  GeometryInfo<dim>::hexes_per_cell * dofs_per_hex)
+      (dim == 3 ? geometry_info.vertices_per_face * dofs_per_vertex :
+                  geometry_info.vertices_per_cell * dofs_per_vertex) +
+      geometry_info.lines_per_face * dofs_per_line)
+  , dofs_per_face(geometry_info.vertices_per_face * dofs_per_vertex +
+                  geometry_info.lines_per_face * dofs_per_line +
+                  geometry_info.quads_per_face * dofs_per_quad)
+  , dofs_per_cell(geometry_info.vertices_per_cell * dofs_per_vertex +
+                  geometry_info.lines_per_cell * dofs_per_line +
+                  geometry_info.quads_per_cell * dofs_per_quad +
+                  geometry_info.hexes_per_cell * dofs_per_hex)
   , components(n_components)
   , degree(degree)
   , conforming_space(conformity)
   , block_indices_data(block_indices.size() == 0 ?
                          BlockIndices(1, dofs_per_cell) :
                          block_indices)
+  , geometry_info(geometry_info)
 {
   Assert(dofs_per_object.size() == dim + 1,
          ExcDimensionMismatch(dofs_per_object.size() - 1, dim));
 }
+
+
+
+template <int dim>
+FiniteElementData<dim>::FiniteElementData(
+  const std::vector<unsigned int> &dofs_per_object,
+  const unsigned int               n_components,
+  const unsigned int               degree,
+  const Conformity                 conformity,
+  const BlockIndices &             block_indices)
+  : FiniteElementData(dofs_per_object,
+                      GeometryInfoWrapper<dim>(),
+                      n_components,
+                      degree,
+                      conformity,
+                      block_indices)
+{}
 
 
 
@@ -72,6 +122,10 @@ FiniteElementData<dim>::operator==(const FiniteElementData<dim> &f) const
           (degree == f.degree) && (conforming_space == f.conforming_space));
 }
 
+
+template class GeometryInfoWrapper<1>;
+template class GeometryInfoWrapper<2>;
+template class GeometryInfoWrapper<3>;
 
 template class FiniteElementData<1>;
 template class FiniteElementData<2>;

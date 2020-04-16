@@ -85,7 +85,7 @@ test(const unsigned int degree)
 
   for (auto &cell : dof_handler.cell_iterators())
     {
-      std::vector<types::global_dof_index> dof_indices;
+      std::vector<types::global_dof_index> dof_indices(fe.dofs_per_cell);
       cell->get_dof_indices(dof_indices);
 
       FullMatrix<double> cell_matrix(dof_indices.size(), dof_indices.size());

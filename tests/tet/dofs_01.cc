@@ -67,7 +67,7 @@ test(const unsigned int degree)
   // 6) Loop over all cells of triangulation
   for (auto &cell : dof_handler.cell_iterators())
     {
-      std::vector<types::global_dof_index> dof_indices;
+      std::vector<types::global_dof_index> dof_indices(fe.dofs_per_cell);
       cell->get_dof_indices(dof_indices);
 
       for (auto &dof_index : dof_indices)

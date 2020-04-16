@@ -2473,24 +2473,11 @@ inline void
 DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
   std::vector<types::global_dof_index> &dof_indices) const
 {
+  AssertDimension(dof_indices.size(), this->get_fe().dofs_per_cell);
+
   if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
     {
       const unsigned int dim = DoFHandlerType::dimension;
-
-      const auto fe = &this->dof_handler->get_fe();
-
-      unsigned int n_dofs;
-
-      if (auto fe_ = dynamic_cast<const Tet::FE_Q<dim> *>(fe))
-        {
-          n_dofs = fe_->degree == 1 ? 3 : 7;
-        }
-      else
-        {
-          AssertThrow(false, ExcNotImplemented());
-        }
-
-      dof_indices.resize(n_dofs);
 
       auto ptr = dof_indices.data();
 
@@ -2512,7 +2499,6 @@ DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
          ExcMessage("get_dof_indices() only works on active cells."));
   Assert(this->is_artificial() == false,
          ExcMessage("Can't ask for DoF indices on artificial cells."));
-  AssertDimension(dof_indices.size(), this->get_fe().dofs_per_cell);
 
   const auto dofs_per_cell = this->get_fe().dofs_per_cell;
   if (dofs_per_cell > 0)
