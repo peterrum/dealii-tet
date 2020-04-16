@@ -1010,7 +1010,7 @@ namespace Tet
     virtual types::subdomain_id
     locally_owned_subdomain() const override
     {
-      return 0; // [TODO]: make parallel
+      return Utilities::MPI::this_mpi_process(comm);
     }
 
     virtual Triangulation<dim, spacedim> &
@@ -1107,7 +1107,6 @@ namespace Tet
     coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const override
     {
-      Assert(false, ExcNotImplemented());
       return coarse_cell_id;
     }
 
@@ -1124,18 +1123,77 @@ namespace Tet
       return comm;
     }
 
+    virtual std::set<types::subdomain_id>
+    compute_ghost_neighbors() const
+    {
+      std::set<types::subdomain_id> ghost_neighbors;
+
+      // 2) collect vertices belonging to local cells
+      std::vector<bool> vertex_of_own_cell(this->n_vertices(), false);
+      for (const auto &cell : this->active_cell_iterators())
+        if (cell->is_locally_owned())
+          for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+            vertex_of_own_cell[cell->vertex_index(v)] = true;
+
+      // 3) for each vertex belonging to a locally owned cell all ghost
+      //    neighbors (including the periodic own)
+      std::map<unsigned int, std::set<types::subdomain_id>> result;
+
+      // loop over all active ghost cells
+      for (const auto &cell : this->active_cell_iterators())
+        if (cell->is_ghost())
+          {
+            const types::subdomain_id owner = cell->subdomain_id();
+
+            // loop over all its vertices
+            for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+              {
+                // set owner if vertex belongs to a local cell
+                if (vertex_of_own_cell[cell->vertex_index(v)])
+                  ghost_neighbors.insert(owner);
+              }
+          }
+
+      return ghost_neighbors;
+    }
+
     virtual std::map<unsigned int, std::set<dealii::types::subdomain_id>>
     compute_vertices_with_ghost_neighbors() const
     {
-      std::map<unsigned int, std::set<dealii::types::subdomain_id>> result;
+      // 2) collect vertices belonging to local cells
+      std::vector<bool> vertex_of_own_cell(this->n_vertices(), false);
+      for (const auto &cell : this->active_cell_iterators())
+        if (cell->is_locally_owned())
+          for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+            vertex_of_own_cell[cell->vertex_index(v)] = true;
+
+      // 3) for each vertex belonging to a locally owned cell all ghost
+      //    neighbors (including the periodic own)
+      std::map<unsigned int, std::set<types::subdomain_id>> result;
+
+      // loop over all active ghost cells
+      for (const auto &cell : this->active_cell_iterators())
+        if (cell->is_ghost())
+          {
+            const types::subdomain_id owner = cell->subdomain_id();
+
+            // loop over all its vertices
+            for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+              {
+                // set owner if vertex belongs to a local cell
+                if (vertex_of_own_cell[cell->vertex_index(v)])
+                  result[cell->vertex_index(v)].insert(owner);
+              }
+          }
 
       return result;
     }
 
-    virtual const std::set<types::subdomain_id> &
+    virtual const std::set<types::subdomain_id> /*&*/
     ghost_owners() const
     {
-      return ghost_owners_set;
+      return compute_ghost_neighbors();
+      // return ghost_owners_set;
     }
   };
 } // namespace Tet

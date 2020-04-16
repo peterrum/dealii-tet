@@ -16,6 +16,9 @@
 
 // Test GridIn and GridOut for TET meshes.
 
+
+#include <deal.II/dofs/dof_handler.h>
+
 #include <deal.II/grid/grid_in.h>
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/tria.h>
@@ -29,7 +32,9 @@ using namespace dealii;
 
 template <int dim, int spacedim = dim>
 void
-test(const MPI_Comm &comm, const std::string file_name_in)
+test(const MPI_Comm &   comm,
+     const std::string  file_name_in,
+     const unsigned int degree)
 {
   Tet::Triangulation<dim> tria;
 
@@ -43,12 +48,30 @@ test(const MPI_Comm &comm, const std::string file_name_in)
   unsigned int counter = 0;
   for (const auto &cell : tria.cell_iterators())
     cell->set_subdomain_id(
-      std::min(counter++, Utilities::MPI::n_mpi_processes(comm)));
+      std::min(counter++, Utilities::MPI::n_mpi_processes(comm) - 1));
 
   GridOut       grid_out;
   std::ofstream out(
     "grid." + std::to_string(Utilities::MPI::this_mpi_process(comm)) + ".vtk");
   grid_out.write_vtk(tria, out);
+
+  // 2) Create finite element (for TET)
+  Tet::FE_Q<dim> fe(degree);
+
+  // 3) create DoFHandler
+  DoFHandler<dim> dof_handler(tria);
+  dof_handler.distribute_dofs(fe);
+
+  // 4) Loop over all cells of triangulation and print dofs
+  for (const auto &cell : dof_handler.cell_iterators())
+    {
+      std::vector<types::global_dof_index> dof_indices(fe.dofs_per_cell);
+      cell->get_dof_indices(dof_indices);
+
+      for (auto &dof_index : dof_indices)
+        deallog << dof_index << " ";
+      deallog << std::endl;
+    }
 }
 
 int
@@ -61,7 +84,7 @@ main(int argc, char *argv[])
 
   {
     deallog.push("2d");
-    test<2>(comm, SOURCE_DIR "/grid/tri_2elements.inp");
+    test<2>(comm, SOURCE_DIR "/grid/tri_2elements.inp", 1);
     deallog.pop();
   }
 }
