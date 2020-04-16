@@ -2695,15 +2695,17 @@ DoFHandler<dim, spacedim>::setup_policy()
         *this);
   else if (dynamic_cast<
              const dealii::parallel::DistributedTriangulationBase<dim, spacedim>
-               *>(&this->get_triangulation()) == nullptr)
-    this->policy =
-      std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
-                               Sequential<DoFHandler<dim, spacedim>>>(*this);
-  else
+               *>(&this->get_triangulation()) != nullptr ||
+           dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+             &this->get_triangulation()) != nullptr)
     this->policy =
       std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
                                ParallelDistributed<DoFHandler<dim, spacedim>>>(
         *this);
+  else
+    this->policy =
+      std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
+                               Sequential<DoFHandler<dim, spacedim>>>(*this);
 }
 
 

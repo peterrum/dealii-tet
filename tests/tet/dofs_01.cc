@@ -59,8 +59,9 @@ test(const unsigned int degree)
 }
 
 int
-main()
+main(int argc, char *argv[])
 {
+  Utilities::MPI::MPI_InitFinalize mpi_initialization(argc, argv, 1);
   initlog();
 
   {

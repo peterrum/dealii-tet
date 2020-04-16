@@ -4329,6 +4329,13 @@ namespace internal
               const int ierr = MPI_Barrier(triangulation->get_communicator());
               AssertThrowMPI(ierr);
             }
+          else if (const auto *triangulation = dynamic_cast<
+                     const dealii::Tet::Triangulation<dim, spacedim> *>(
+                     &dof_handler.get_triangulation()))
+            {
+              const int ierr = MPI_Barrier(triangulation->get_communicator());
+              AssertThrowMPI(ierr);
+            }
           else
             {
               Assert(false,
@@ -4355,24 +4362,16 @@ namespace internal
 
 
 
-      template <class DoFHandlerType>
+      template <class DoFHandlerType, class TriangulationType>
       NumberCache
-      ParallelDistributed<DoFHandlerType>::distribute_dofs() const
+      internal_distribute_dofs(dealii::SmartPointer<DoFHandlerType> dof_handler,
+                               TriangulationType *triangulation)
       {
 #ifndef DEAL_II_WITH_MPI
         Assert(false, ExcNotImplemented());
         return NumberCache();
 #else
-        const unsigned int dim      = DoFHandlerType::dimension;
-        const unsigned int spacedim = DoFHandlerType::space_dimension;
-
-        dealii::parallel::DistributedTriangulationBase<dim, spacedim>
-          *triangulation =
-            (dynamic_cast<
-              dealii::parallel::DistributedTriangulationBase<dim, spacedim> *>(
-              const_cast<dealii::Triangulation<dim, spacedim> *>(
-                &dof_handler->get_triangulation())));
-        Assert(triangulation != nullptr, ExcInternalError());
+        const unsigned int dim = DoFHandlerType::dimension;
 
         const types::subdomain_id subdomain_id =
           triangulation->locally_owned_subdomain();
@@ -4503,7 +4502,10 @@ namespace internal
           for (const auto &cell : dof_handler->active_cell_iterators())
             if (cell->is_locally_owned())
               {
-                for (const unsigned int v : GeometryInfo<dim>::vertex_indices())
+                for (unsigned int v = 0; v < dof_handler->get_fe()
+                                               .get_geometry_info()
+                                               .vertices_per_cell;
+                     v++)
                   if (vertices_with_ghost_neighbors.find(cell->vertex_index(
                         v)) != vertices_with_ghost_neighbors.end())
                     {
@@ -4588,6 +4590,34 @@ namespace internal
 #  endif // DEBUG
         return number_cache;
 #endif   // DEAL_II_WITH_MPI
+      }
+
+
+
+      template <class DoFHandlerType>
+      NumberCache
+      ParallelDistributed<DoFHandlerType>::distribute_dofs() const
+      {
+        const unsigned int dim      = DoFHandlerType::dimension;
+        const unsigned int spacedim = DoFHandlerType::space_dimension;
+
+        if (auto triangulation =
+              (dynamic_cast<
+                dealii::parallel::DistributedTriangulationBase<dim, spacedim>
+                  *>(const_cast<dealii::Triangulation<dim, spacedim> *>(
+                &dof_handler->get_triangulation()))))
+          {
+            return internal_distribute_dofs(dof_handler, triangulation);
+          }
+        else if (auto triangulation =
+                   (dynamic_cast<dealii::Tet::Triangulation<dim, spacedim> *>(
+                     const_cast<dealii::Triangulation<dim, spacedim> *>(
+                       &dof_handler->get_triangulation()))))
+          {
+            return internal_distribute_dofs(dof_handler, triangulation);
+          }
+
+        Assert(false, ExcInternalError());
       }
 
 

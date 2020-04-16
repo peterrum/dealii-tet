@@ -83,6 +83,10 @@ namespace Tet
 
     Connectivity<dim> connectivity;
 
+    std::set<types::subdomain_id> ghost_owners_set;
+
+    MPI_Comm comm = MPI_COMM_WORLD;
+
     void
     create_triangulation_tet(const std::vector<Point<spacedim>> &vertices,
                              const std::vector<CellData<dim>> &  cells)
@@ -411,7 +415,8 @@ namespace Tet
     virtual void
     clear_user_flags() override
     {
-      Assert(false, ExcNotImplemented());
+      for (auto cell : this->cell_iterators())
+        cell->clear_user_flag();
     }
 
     virtual void
@@ -424,8 +429,10 @@ namespace Tet
     virtual void
     save_user_flags(std::vector<bool> &v) const override
     {
-      Assert(false, ExcNotImplemented());
-      (void)v;
+      v.clear();
+
+      for (auto cell : this->cell_iterators())
+        v.push_back(cell->user_flag_set());
     }
 
     virtual void
@@ -438,8 +445,14 @@ namespace Tet
     virtual void
     load_user_flags(const std::vector<bool> &v) override
     {
-      Assert(false, ExcNotImplemented());
-      (void)v;
+      auto ptr = v.begin();
+      for (auto cell : this->cell_iterators())
+        {
+          if (*ptr++)
+            cell->set_user_flag();
+          else
+            cell->clear_user_flag();
+        }
     }
 
     virtual void
@@ -678,8 +691,12 @@ namespace Tet
     virtual active_cell_iterator
     begin_active(const unsigned int level = 0) const override
     {
-      Assert(false, ExcNotImplemented());
-      (void)level;
+      AssertDimension(level, 0);
+      return cell_iterator(
+        const_cast<dealii::Triangulation<dim, spacedim> *>(
+          dynamic_cast<const dealii::Triangulation<dim, spacedim> *>(this)),
+        0,
+        0);
     }
 
     virtual cell_iterator
@@ -728,7 +745,9 @@ namespace Tet
     virtual IteratorRange<active_cell_iterator>
     active_cell_iterators() const override
     {
-      Assert(false, ExcNotImplemented());
+      return IteratorRange<
+        typename Triangulation<dim, spacedim>::active_cell_iterator>(
+        begin_active(), end());
     }
 
     virtual IteratorRange<cell_iterator>
@@ -1097,6 +1116,26 @@ namespace Tet
       const unsigned int coarse_cell_index) const override
     {
       return coarse_cell_index;
+    }
+
+    virtual const MPI_Comm &
+    get_communicator() const
+    {
+      return comm;
+    }
+
+    virtual std::map<unsigned int, std::set<dealii::types::subdomain_id>>
+    compute_vertices_with_ghost_neighbors() const
+    {
+      std::map<unsigned int, std::set<dealii::types::subdomain_id>> result;
+
+      return result;
+    }
+
+    virtual const std::set<types::subdomain_id> &
+    ghost_owners() const
+    {
+      return ghost_owners_set;
     }
   };
 } // namespace Tet

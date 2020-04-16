@@ -3879,10 +3879,11 @@ namespace GridTools
 
 
 
-  template <typename DataType, typename MeshType>
+  template <typename DataType, typename MeshType, typename TriangulationType>
   void
-  exchange_cell_data_to_ghosts(
+  internal_exchange_cell_data_to_ghosts(
     const MeshType &                                     mesh,
+    const TriangulationType *                            tria,
     const std::function<std_cxx17::optional<DataType>(
       const typename MeshType::active_cell_iterator &)> &pack,
     const std::function<void(const typename MeshType::active_cell_iterator &,
@@ -3898,12 +3899,6 @@ namespace GridTools
 #    else
     constexpr int dim      = MeshType::dimension;
     constexpr int spacedim = MeshType::space_dimension;
-    auto tria = static_cast<const parallel::TriangulationBase<dim, spacedim> *>(
-      &mesh.get_triangulation());
-    Assert(
-      tria != nullptr,
-      ExcMessage(
-        "The function exchange_cell_data_to_ghosts() only works with parallel triangulations."));
 
     // map neighbor_id -> data_buffer where we accumulate the data to send
     using DestinationToBufferMap =
@@ -3919,7 +3914,11 @@ namespace GridTools
       if (cell->is_locally_owned())
         {
           std::set<dealii::types::subdomain_id> send_to;
-          for (const unsigned int v : GeometryInfo<dim>::vertex_indices())
+
+          // TODO[peterrum]: should be part of the triangulation
+          for (unsigned int v = 0;
+               v < mesh.get_fe().get_geometry_info().vertices_per_cell;
+               v++)
             {
               const std::map<unsigned int,
                              std::set<dealii::types::subdomain_id>>::
@@ -4052,6 +4051,48 @@ namespace GridTools
           MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
         AssertThrowMPI(ierr);
       }
+#    endif // DEAL_II_WITH_MPI
+  }
+
+
+
+  template <typename DataType, typename MeshType>
+  void
+  exchange_cell_data_to_ghosts(
+    const MeshType &                                     mesh,
+    const std::function<std_cxx17::optional<DataType>(
+      const typename MeshType::active_cell_iterator &)> &pack,
+    const std::function<void(const typename MeshType::active_cell_iterator &,
+                             const DataType &)> &        unpack)
+  {
+#    ifndef DEAL_II_WITH_MPI
+    (void)mesh;
+    (void)pack;
+    (void)unpack;
+    Assert(false,
+           ExcMessage(
+             "GridTools::exchange_cell_data_to_ghosts() requires MPI."));
+#    else
+    constexpr int dim      = MeshType::dimension;
+    constexpr int spacedim = MeshType::space_dimension;
+    if (auto tria =
+          dynamic_cast<const parallel::TriangulationBase<dim, spacedim> *>(
+            &mesh.get_triangulation()))
+      {
+        internal_exchange_cell_data_to_ghosts(mesh, tria, pack, unpack);
+      }
+    else if (auto tria =
+               dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+                 &mesh.get_triangulation()))
+      {
+        internal_exchange_cell_data_to_ghosts(mesh, tria, pack, unpack);
+      }
+    else
+      {
+        Assert(false, ExcInternalError());
+      }
+
+
 #    endif // DEAL_II_WITH_MPI
   }
 } // namespace GridTools
