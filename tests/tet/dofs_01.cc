@@ -35,28 +35,9 @@ template <int dim>
 void
 test(const unsigned int degree)
 {
-  // 1) Create triangulation (TODO: this should be general mesh - not only for
-  // TET)
-  std::vector<Point<dim>>         vertices;
-  std::vector<Tet::CellData<dim>> cells;
-
-  vertices.push_back(Point<dim>(1, 0));
-  vertices.push_back(Point<dim>(0, 1));
-  vertices.push_back(Point<dim>(0, 0));
-  vertices.push_back(Point<dim>(1, 1));
-
-  Tet::CellData<dim> cell_1;
-  cell_1.type     = Tet::CellTypeEnum::tet;
-  cell_1.vertices = {0, 1, 2};
-  cells.push_back(cell_1);
-
-  Tet::CellData<dim> cell_2;
-  cell_2.type     = Tet::CellTypeEnum::tet;
-  cell_2.vertices = {1, 0, 3};
-  cells.push_back(cell_2);
-
+  // 1) Create mesh
   Tet::Triangulation<dim> tria;
-  tria.create_triangulation_tet(vertices, cells); // TODO: load mesh
+  create_mesh_1(tria);
 
   // 2) Create finite element (for TET)
   Tet::FE_Q<dim> fe(degree);

@@ -33,7 +33,7 @@ test(const unsigned int degree = 1)
 
   FEValues_<dim> fe_values(fe, quad); // TODO: use actual FEValues
 
-  const unsigned int dofs_per_cell = 3; // TODO: fe.dofs_per_cell
+  const unsigned int dofs_per_cell = fe.dofs_per_cell;
   const unsigned int n_q_points    = quad.size();
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
 

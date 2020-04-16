@@ -34,7 +34,7 @@ test(const unsigned int degree = 1)
   for (const auto &point : quad.get_points())
     {
       deallog << point << " : ";
-      for (unsigned int i = 0; i < 3 /*TODO: fe.dofs_per_cell*/; i++)
+      for (unsigned int i = 0; i < fe.dofs_per_cell; i++)
         deallog << fe.shape_value(i, point) << " ";
       deallog << std::endl;
     }
