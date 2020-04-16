@@ -3237,6 +3237,28 @@ GridOut::write_vtk(const Triangulation<dim, spacedim> &tria,
             }
           out << '\n';
         }
+
+      out << "\n\nCELL_DATA " << n_cells << '\n'
+          << "SCALARS SubdomainID int 1\n"
+          << "LOOKUP_TABLE default\n";
+
+      // Now material id and boundary id
+      if (vtk_flags.output_cells)
+        {
+          for (const auto &cell : tria.cell_iterators())
+            {
+              out << static_cast<std::make_signed<types::subdomain_id>::type>(
+                       cell->subdomain_id())
+                  << ' ';
+            }
+          out << '\n';
+        }
+
+      out.flush();
+
+      AssertThrow(out, ExcIO());
+
+
       return;
     }
 

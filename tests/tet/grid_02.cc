@@ -29,14 +29,14 @@ using namespace dealii;
 
 template <int dim, int spacedim = dim>
 void
-test(const std::string file_name)
+test(const std::string file_name_in, const std::string file_name_out)
 {
   Tet::Triangulation<dim> tria;
 
   GridIn<dim, spacedim> grid_in;
   grid_in.attach_triangulation(tria);
 
-  std::ifstream input_file(file_name);
+  std::ifstream input_file(file_name_in);
 
   grid_in.read_ucd(input_file);
 
@@ -50,7 +50,7 @@ test(const std::string file_name)
     }
 
   GridOut       grid_out;
-  std::ofstream out("grid_tri.vtk");
+  std::ofstream out(file_name_out);
   grid_out.write_vtk(tria, out);
 }
 
@@ -61,8 +61,8 @@ main()
 
   {
     deallog.push("2d");
-    test<2>(SOURCE_DIR "/grid/tri_1element.inp");
-    test<2>(SOURCE_DIR "/grid/tri_2elements.inp");
+    test<2>(SOURCE_DIR "/grid/tri_1element.inp", "tri_1element.vtk");
+    test<2>(SOURCE_DIR "/grid/tri_2elements.inp", "tri_2elements.vtk");
     deallog.pop();
   }
 }
