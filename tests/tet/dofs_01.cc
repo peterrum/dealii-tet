@@ -42,11 +42,12 @@ test(const unsigned int degree)
   // 2) Create finite element (for TET)
   Tet::FE_Q<dim> fe(degree);
 
+  // 3) create DoFHandler
   DoFHandler<dim> dof_handler(tria);
   dof_handler.distribute_dofs(fe);
 
-  // 6) Loop over all cells of triangulation
-  for (auto &cell : dof_handler.cell_iterators())
+  // 4) Loop over all cells of triangulation and print dofs
+  for (const auto &cell : dof_handler.cell_iterators())
     {
       std::vector<types::global_dof_index> dof_indices(fe.dofs_per_cell);
       cell->get_dof_indices(dof_indices);
