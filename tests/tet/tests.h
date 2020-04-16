@@ -23,39 +23,30 @@ using namespace dealii;
 
 namespace
 {
-  template <int dim, int spacedim = dim>
-  class FEValues_
+  template <int dim, int spacedim>
+  void
+  create_mesh_0(Tet::Triangulation<dim, spacedim> &tria)
   {
-  public:
-    FEValues_(const FiniteElement<dim, spacedim> &fe,
-              const Quadrature<dim> &             quad)
-      : fe(fe)
-      , quad(quad)
-    {}
+    std::vector<Point<spacedim>>    vertices;
+    std::vector<Tet::CellData<dim>> cells;
 
-    double
-    JxW(const unsigned int quadrature_point) const
-    {
-      return quad.weight(quadrature_point);
-    }
+    vertices.push_back(Point<dim>(1, 0));
+    vertices.push_back(Point<dim>(0, 1));
+    vertices.push_back(Point<dim>(0, 0));
 
-    Tensor<1, spacedim>
-    shape_grad(const unsigned int function_no,
-               const unsigned int quadrature_point) const
-    {
-      return fe.shape_grad(function_no, quad.point(quadrature_point));
-    }
+    Tet::CellData<dim> cell_1;
+    cell_1.type     = Tet::CellTypeEnum::tet;
+    cell_1.vertices = {0, 1, 2};
+    cells.push_back(cell_1);
 
-  private:
-    const FiniteElement<dim, spacedim> &fe;
-    const Quadrature<dim> &             quad;
-  };
+    tria.create_triangulation_tet(vertices, cells);
+  }
 
   template <int dim, int spacedim>
   void
   create_mesh_1(Tet::Triangulation<dim, spacedim> &tria)
   {
-    std::vector<Point<dim>>         vertices;
+    std::vector<Point<spacedim>>    vertices;
     std::vector<Tet::CellData<dim>> cells;
 
     vertices.push_back(Point<dim>(1, 0));
@@ -80,7 +71,7 @@ namespace
   void
   create_mesh_2(Tet::Triangulation<dim, spacedim> &tria)
   {
-    std::vector<Point<dim>>         vertices;
+    std::vector<Point<spacedim>>    vertices;
     std::vector<Tet::CellData<dim>> cells;
 
     vertices.push_back(Point<dim>(1, 0));

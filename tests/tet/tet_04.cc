@@ -17,10 +17,13 @@
 // Compute element stiffness matrix with system of FE_QTet, QGaussTet, and
 // FEValues.
 
-
 #include <deal.II/fe/fe_system.h>
+#include <deal.II/fe/fe_values.h>
+
+#include <deal.II/grid/tria.h>
 
 #include <deal.II/tet/fe_q.h>
+#include <deal.II/tet/mapping_q.h>
 #include <deal.II/tet/quadrature_lib.h>
 
 #include "./tests.h"
@@ -31,10 +34,28 @@ template <int dim>
 void
 test(const unsigned int degree = 1)
 {
-  FESystem<dim>    fe(Tet::FE_Q<dim>(degree), dim);
+  // 1) Create mesh
+  Tet::Triangulation<dim> tria;
+  create_mesh_0(tria);
+
+  // 2) Create finite element (for TET)
+  FESystem<dim> fe(Tet::FE_Q<dim>(degree), dim);
+
+  // 3) Create quadrature rule (for TET)
   Tet::QGauss<dim> quad(3);
 
-  FEValues_<dim> fe_values(fe, quad); // TODO: use actual FEValues
+  // 4) Create mapping (for TET)
+  Tet::MappingQ<dim> mapping(1);
+
+  // 5) Create FEValues (for a single set of FiniteElement, Quadrature, Mapping)
+  FEValues<dim> fe_values(mapping,
+                          fe,
+                          quad,
+                          update_quadrature_points | update_JxW_values |
+                            update_contravariant_transformation |
+                            update_covariant_transformation | update_gradients);
+
+  fe_values.reinit(tria.begin());
 
   const unsigned int dofs_per_cell = fe.dofs_per_cell;
   const unsigned int n_q_points    = quad.size();
