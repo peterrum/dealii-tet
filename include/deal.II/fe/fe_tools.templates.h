@@ -68,6 +68,7 @@
 #include <cctype>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 
 DEAL_II_NAMESPACE_OPEN
@@ -159,6 +160,7 @@ namespace FETools
           block_indices.push_back(fes[base]->dofs_per_cell);
 
       return FiniteElementData<dim>(dpo,
+                                    fes.front()->get_geometry_info(),
                                     (do_tensor_product ?
                                        multiplied_n_components :
                                        n_components),
@@ -227,8 +229,9 @@ namespace FETools
       // for each shape function, copy the flags from the base element to this
       // one, taking into account multiplicities, and other complications
       unsigned int total_index = 0;
-      for (const unsigned int vertex_number :
-           GeometryInfo<dim>::vertex_indices())
+      for (unsigned int vertex_number = 0;
+           vertex_number < fes.front()->get_geometry_info().vertices_per_cell;
+           ++vertex_number)
         {
           for (unsigned int base = 0; base < fes.size(); ++base)
             for (unsigned int m = 0; m < multiplicities[base]; ++m)
@@ -247,9 +250,9 @@ namespace FETools
         }
 
       // 2. Lines
-      if (GeometryInfo<dim>::lines_per_cell > 0)
+      if (fes.front()->get_geometry_info().lines_per_cell > 0)
         for (unsigned int line_number = 0;
-             line_number != GeometryInfo<dim>::lines_per_cell;
+             line_number != fes.front()->get_geometry_info().lines_per_cell;
              ++line_number)
           {
             for (unsigned int base = 0; base < fes.size(); ++base)
@@ -270,9 +273,9 @@ namespace FETools
           }
 
       // 3. Quads
-      if (GeometryInfo<dim>::quads_per_cell > 0)
+      if (fes.front()->get_geometry_info().quads_per_cell > 0)
         for (unsigned int quad_number = 0;
-             quad_number != GeometryInfo<dim>::quads_per_cell;
+             quad_number != fes.front()->get_geometry_info().quads_per_cell;
              ++quad_number)
           {
             for (unsigned int base = 0; base < fes.size(); ++base)
@@ -293,9 +296,9 @@ namespace FETools
           }
 
       // 4. Hexes
-      if (GeometryInfo<dim>::hexes_per_cell > 0)
+      if (fes.front()->get_geometry_info().hexes_per_cell > 0)
         for (unsigned int hex_number = 0;
-             hex_number != GeometryInfo<dim>::hexes_per_cell;
+             hex_number != fes.front()->get_geometry_info().hexes_per_cell;
              ++hex_number)
           {
             for (unsigned int base = 0; base < fes.size(); ++base)
@@ -418,8 +421,9 @@ namespace FETools
       // to this one, taking into account multiplicities, multiple components in
       // base elements, and other complications
       unsigned int total_index = 0;
-      for (const unsigned int vertex_number :
-           GeometryInfo<dim>::vertex_indices())
+      for (unsigned int vertex_number = 0;
+           vertex_number < fes.front()->get_geometry_info().vertices_per_cell;
+           ++vertex_number)
         {
           unsigned int comp_start = 0;
           for (unsigned int base = 0; base < fes.size(); ++base)
@@ -450,9 +454,9 @@ namespace FETools
         }
 
       // 2. Lines
-      if (GeometryInfo<dim>::lines_per_cell > 0)
+      if (fes.front()->get_geometry_info().lines_per_cell > 0)
         for (unsigned int line_number = 0;
-             line_number != GeometryInfo<dim>::lines_per_cell;
+             line_number != fes.front()->get_geometry_info().lines_per_cell;
              ++line_number)
           {
             unsigned int comp_start = 0;
@@ -485,9 +489,9 @@ namespace FETools
           }
 
       // 3. Quads
-      if (GeometryInfo<dim>::quads_per_cell > 0)
+      if (fes.front()->get_geometry_info().quads_per_cell > 0)
         for (unsigned int quad_number = 0;
-             quad_number != GeometryInfo<dim>::quads_per_cell;
+             quad_number != fes.front()->get_geometry_info().quads_per_cell;
              ++quad_number)
           {
             unsigned int comp_start = 0;
@@ -520,9 +524,9 @@ namespace FETools
           }
 
       // 4. Hexes
-      if (GeometryInfo<dim>::hexes_per_cell > 0)
+      if (fes.front()->get_geometry_info().hexes_per_cell > 0)
         for (unsigned int hex_number = 0;
-             hex_number != GeometryInfo<dim>::hexes_per_cell;
+             hex_number != fes.front()->get_geometry_info().hexes_per_cell;
              ++hex_number)
           {
             unsigned int comp_start = 0;
@@ -661,8 +665,9 @@ namespace FETools
       // the first vertex in the order of the base elements, then of the second
       // vertex, etc
       total_index = 0;
-      for (const unsigned int vertex_number :
-           GeometryInfo<dim>::vertex_indices())
+      for (unsigned int vertex_number = 0;
+           vertex_number < fe.get_geometry_info().vertices_per_cell;
+           ++vertex_number)
         {
           unsigned int comp_start = 0;
           for (unsigned int base = 0; base < fe.n_base_elements(); ++base)
@@ -703,9 +708,9 @@ namespace FETools
         }
 
       // 2. Lines
-      if (GeometryInfo<dim>::lines_per_cell > 0)
+      if (fe.get_geometry_info().lines_per_cell > 0)
         for (unsigned int line_number = 0;
-             line_number != GeometryInfo<dim>::lines_per_cell;
+             line_number != fe.get_geometry_info().lines_per_cell;
              ++line_number)
           {
             unsigned int comp_start = 0;
@@ -747,9 +752,9 @@ namespace FETools
           }
 
       // 3. Quads
-      if (GeometryInfo<dim>::quads_per_cell > 0)
+      if (fe.get_geometry_info().quads_per_cell > 0)
         for (unsigned int quad_number = 0;
-             quad_number != GeometryInfo<dim>::quads_per_cell;
+             quad_number != fe.get_geometry_info().quads_per_cell;
              ++quad_number)
           {
             unsigned int comp_start = 0;
@@ -791,9 +796,9 @@ namespace FETools
           }
 
       // 4. Hexes
-      if (GeometryInfo<dim>::hexes_per_cell > 0)
+      if (fe.get_geometry_info().hexes_per_cell > 0)
         for (unsigned int hex_number = 0;
-             hex_number != GeometryInfo<dim>::hexes_per_cell;
+             hex_number != fe.get_geometry_info().hexes_per_cell;
              ++hex_number)
           {
             unsigned int comp_start = 0;
@@ -857,7 +862,7 @@ namespace FETools
       // 1. Vertices
       unsigned int total_index = 0;
       for (unsigned int vertex_number = 0;
-           vertex_number < GeometryInfo<dim>::vertices_per_face;
+           vertex_number < fe.get_geometry_info().vertices_per_face;
            ++vertex_number)
         {
           unsigned int comp_start = 0;
@@ -911,9 +916,9 @@ namespace FETools
         }
 
       // 2. Lines
-      if (GeometryInfo<dim>::lines_per_face > 0)
+      if (fe.get_geometry_info().lines_per_face > 0)
         for (unsigned int line_number = 0;
-             line_number != GeometryInfo<dim>::lines_per_face;
+             line_number != fe.get_geometry_info().lines_per_face;
              ++line_number)
           {
             unsigned int comp_start = 0;
@@ -962,9 +967,9 @@ namespace FETools
           }
 
       // 3. Quads
-      if (GeometryInfo<dim>::quads_per_face > 0)
+      if (fe.get_geometry_info().quads_per_face > 0)
         for (unsigned int quad_number = 0;
-             quad_number != GeometryInfo<dim>::quads_per_face;
+             quad_number != fe.get_geometry_info().quads_per_face;
              ++quad_number)
           {
             unsigned int comp_start = 0;
@@ -1954,7 +1959,8 @@ namespace FETools
     std::vector<unsigned int> face_f_dofs(n);
     {
       unsigned int face_dof = 0;
-      for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_face; ++i)
+      for (unsigned int i = 0; i < fe.get_geometry_info().vertices_per_face;
+           ++i)
         {
           const unsigned int offset_c =
             GeometryInfo<dim>::face_to_cell_vertices(face_coarse, i) *
@@ -1969,7 +1975,7 @@ namespace FETools
               ++face_dof;
             }
         }
-      for (unsigned int i = 1; i <= GeometryInfo<dim>::lines_per_face; ++i)
+      for (unsigned int i = 1; i <= fe.get_geometry_info().lines_per_face; ++i)
         {
           const unsigned int offset_c =
             fe.first_line_index +
@@ -1986,7 +1992,7 @@ namespace FETools
               ++face_dof;
             }
         }
-      for (unsigned int i = 1; i <= GeometryInfo<dim>::quads_per_face; ++i)
+      for (unsigned int i = 1; i <= fe.get_geometry_info().quads_per_face; ++i)
         {
           const unsigned int offset_c =
             fe.first_quad_index + face_coarse * fe.dofs_per_quad;

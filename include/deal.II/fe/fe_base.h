@@ -478,6 +478,9 @@ public:
   bool
   operator==(const FiniteElementData &) const;
 
+  const GeometryInfoWrapper<dim> &
+  get_geometry_info() const;
+
 private:
   const GeometryInfoWrapper<dim> geometry_info;
 };

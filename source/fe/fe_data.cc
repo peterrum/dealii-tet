@@ -123,6 +123,14 @@ FiniteElementData<dim>::operator==(const FiniteElementData<dim> &f) const
 }
 
 
+template <int dim>
+const GeometryInfoWrapper<dim> &
+FiniteElementData<dim>::get_geometry_info() const
+{
+  return this->geometry_info;
+}
+
+
 template class GeometryInfoWrapper<1>;
 template class GeometryInfoWrapper<2>;
 template class GeometryInfoWrapper<3>;
