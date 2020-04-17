@@ -36,7 +36,7 @@ test(const MPI_Comm &   comm,
      const std::string  file_name_in,
      const unsigned int degree)
 {
-  Tet::Triangulation<dim> tria;
+  Tet::Triangulation<dim> tria(MPI_COMM_WORLD);
 
   GridIn<dim, spacedim> grid_in;
   grid_in.attach_triangulation(tria);

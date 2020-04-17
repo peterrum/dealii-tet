@@ -1698,8 +1698,6 @@ namespace internal
               if ((subdomain_id == numbers::invalid_subdomain_id) ||
                   (cell->subdomain_id() == subdomain_id))
                 {
-                  std::cout << "aaa " << cell->get_fe().dofs_per_cell
-                            << std::endl;
                   std::vector<types::global_dof_index> dof_indices(
                     cell->get_fe().dofs_per_cell);
 

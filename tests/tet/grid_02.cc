@@ -31,7 +31,7 @@ template <int dim, int spacedim = dim>
 void
 test(const std::string file_name_in, const std::string file_name_out)
 {
-  Tet::Triangulation<dim> tria;
+  Tet::Triangulation<dim> tria(MPI_COMM_WORLD);
 
   GridIn<dim, spacedim> grid_in;
   grid_in.attach_triangulation(tria);

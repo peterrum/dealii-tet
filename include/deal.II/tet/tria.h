@@ -85,7 +85,11 @@ namespace Tet
 
     std::set<types::subdomain_id> ghost_owners_set;
 
-    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Comm comm;
+
+    Triangulation(MPI_Comm comm)
+      : comm(comm)
+    {}
 
     void
     create_triangulation_tet(const std::vector<Point<spacedim>> &vertices,

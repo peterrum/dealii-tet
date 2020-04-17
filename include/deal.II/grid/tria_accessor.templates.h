@@ -241,7 +241,6 @@ template <int structdim, int dim, int spacedim>
 inline void
 TriaAccessorBase<structdim, dim, spacedim>::operator--()
 {
-  Assert(false, ExcNotImplemented());
   // same as operator++
   --this->present_index;
 

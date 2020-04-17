@@ -34,7 +34,7 @@ void
 test()
 {
   // 1) Create mesh
-  Tet::Triangulation<dim> tria;
+  Tet::Triangulation<dim> tria(MPI_COMM_WORLD);
   create_mesh_2(tria);
 
   // 2) Create finite element (for TET)

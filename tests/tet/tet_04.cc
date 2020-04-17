@@ -35,7 +35,7 @@ void
 test(const unsigned int degree = 1)
 {
   // 1) Create mesh
-  Tet::Triangulation<dim> tria;
+  Tet::Triangulation<dim> tria(MPI_COMM_WORLD);
   create_mesh_0(tria);
 
   // 2) Create finite element (for TET)
