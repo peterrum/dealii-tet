@@ -177,9 +177,15 @@ namespace Tet
       const ArrayView<Tensor<1, spacedim>> &output) const
     {
       AssertDimension(input.size(), output.size());
+      Assert(mapping_covariant == type, ExcNotImplemented());
+
+      const typename dealii::Tet::MappingQ<dim, spacedim>::InternalData &data =
+        static_cast<
+          const typename dealii::Tet::MappingQ<dim, spacedim>::InternalData &>(
+          internal);
 
       for (unsigned int i = 0; i < output.size(); ++i)
-        output[i] = input[i];
+        output[i] = apply_transformation(data.covariant[i], input[i]);
     }
 
     virtual void
