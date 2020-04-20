@@ -68,7 +68,7 @@ namespace Tet
             {
               CellData<dim> tri1;
               tri1.type     = Tet::CellTypeEnum::tet;
-              tri1.vertices = {quad[0], quad[1], quad[2]};
+              tri1.vertices = {quad[1], quad[2], quad[0]};
 
               cells.push_back(tri1);
             }
@@ -76,7 +76,7 @@ namespace Tet
             {
               CellData<dim> tri1;
               tri1.type     = Tet::CellTypeEnum::tet;
-              tri1.vertices = {quad[1], quad[3], quad[2]};
+              tri1.vertices = {quad[2], quad[1], quad[3]};
 
               cells.push_back(tri1);
             }
