@@ -147,6 +147,8 @@ struct GeometryInfoWrapper
   const unsigned int vertices_per_face;
   const unsigned int lines_per_face;
   const unsigned int quads_per_face;
+
+  const unsigned int faces_per_cell;
 };
 
 /**

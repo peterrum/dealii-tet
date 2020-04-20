@@ -48,6 +48,8 @@ test(const unsigned int degree)
   AffineConstraints constraint_matrix;
   DoFTools::make_zero_boundary_constraints(dof_handler, constraint_matrix);
   constraint_matrix.close();
+
+  constraint_matrix.print(deallog.get_file_stream());
 }
 
 int

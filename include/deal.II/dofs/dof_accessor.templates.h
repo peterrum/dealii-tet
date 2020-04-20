@@ -1303,6 +1303,28 @@ DoFAccessor<structdim, DoFHandlerType, level_dof_access>::get_dof_indices(
 {
   Assert(this->dof_handler != nullptr, ExcInvalidObject());
 
+  if (auto tria =
+        dynamic_cast<const Tet::Triangulation<DoFHandlerType::dimension> *>(
+          this->tria))
+    {
+      const unsigned int dim = structdim;
+
+      auto ptr = dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          {
+            this->dof_handler->get_entity_dofs(d, index, ptr);
+          }
+
+      // ... and finally cell
+      this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
+
   const unsigned int fe_index =
     (this->dof_handler->is_hp_dof_handler == false &&
      fe_index_ == DoFHandlerType::default_fe_index) ?

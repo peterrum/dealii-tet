@@ -34,6 +34,8 @@ GeometryInfoWrapper<dim>::GeometryInfoWrapper(unsigned int vertices_per_cell,
   , vertices_per_face(vertices_per_face)
   , lines_per_face(lines_per_face)
   , quads_per_face(quads_per_face)
+  , faces_per_cell(dim == 1 ? vertices_per_cell :
+                              (dim == 2 ? vertices_per_cell : quads_per_cell))
 {}
 
 
@@ -47,6 +49,7 @@ GeometryInfoWrapper<dim>::GeometryInfoWrapper()
   , vertices_per_face(GeometryInfo<dim>::vertices_per_face)
   , lines_per_face(GeometryInfo<dim>::lines_per_face)
   , quads_per_face(GeometryInfo<dim>::quads_per_face)
+  , faces_per_cell(GeometryInfo<dim>::faces_per_cell)
 {}
 
 

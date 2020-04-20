@@ -628,6 +628,16 @@ namespace internal
       line_index(const TriaAccessor<2, dim, spacedim> &accessor,
                  const unsigned int                    i)
       {
+        if (auto tria_tet =
+              dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+                &accessor.get_triangulation()))
+          {
+            const auto &table = tria_tet->connectivity.table[2][1];
+
+            // AssertIndexRange(corner, this->n_vertices());
+            return table.col[table.ptr[accessor.present_index] + i];
+          }
+
         return accessor.objects().cells[accessor.present_index].face(i);
       }
 
@@ -1166,6 +1176,12 @@ template <int structdim, int dim, int spacedim>
 inline bool
 TriaAccessor<structdim, dim, spacedim>::used() const
 {
+  if (dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria) !=
+      nullptr)
+    {
+      return true; // TODO: peterrum
+    }
+
   Assert(this->state() == IteratorState::valid,
          TriaAccessorExceptions::ExcDereferenceInvalidObject<TriaAccessor>(
            *this));
@@ -1922,6 +1938,23 @@ types::boundary_id
 TriaAccessor<structdim, dim, spacedim>::boundary_id() const
 {
   Assert(structdim < dim, ExcImpossibleInDim(dim));
+
+  if (auto tria_tet = dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+        &this->get_triangulation()))
+    {
+      const auto &table = tria_tet->connectivity.table[dim - 1][dim];
+
+      AssertIndexRange(this->present_index + 1, table.ptr.size());
+
+      if ((table.ptr[this->present_index + 1] -
+           table.ptr[this->present_index]) == 1)
+        return 0;
+      else
+        return numbers::internal_face_boundary_id;
+    }
+
+
+
   Assert(this->used(), TriaAccessorExceptions::ExcCellNotUsed());
 
   return this->objects()
