@@ -2516,33 +2516,20 @@ DoFHandler<dim, spacedim>::distribute_dofs(
 
           // 2) get number of dofs per entity of a single FE
           //    (TODO: should be part of Finite Element)
-          const auto dofs_per_entity =
-            [&](const FiniteElement<dim, spacedim> &fe) {
-              AssertThrow(dynamic_cast<const Tet::FE_Q<dim> *>(&ff[0]) !=
-                            nullptr,
-                          ExcNotImplemented());
-              AssertDimension(dim, 2);
+          const auto n_dofs_per_object =
+            [](const FiniteElement<dim, spacedim> &fe) {
+              std::array<unsigned int, dim + 1> n_dofs_per_object;
 
-              std::array<unsigned int, dim + 1> dofs_per_d;
+              if (dim >= 0)
+                n_dofs_per_object[0] = fe.template n_dofs_per_object<0>();
+              if (dim >= 1)
+                n_dofs_per_object[1] = fe.template n_dofs_per_object<1>();
+              if (dim >= 2)
+                n_dofs_per_object[2] = fe.template n_dofs_per_object<2>();
+              if (dim >= 3)
+                n_dofs_per_object[3] = fe.template n_dofs_per_object<3>();
 
-              if (fe.degree == 1)
-                {
-                  dofs_per_d[0] = 1;
-                  dofs_per_d[1] = 0;
-                  dofs_per_d[2] = 0;
-                }
-              else if (fe.degree == 2)
-                {
-                  dofs_per_d[0] = 1;
-                  dofs_per_d[1] = 1;
-                  dofs_per_d[2] = 0;
-                }
-              else
-                {
-                  AssertThrow(false, ExcNotImplemented());
-                }
-
-              return dofs_per_d;
+              return n_dofs_per_object;
             }(ff[0]);
 
           // 3) reserve space for each entity of triangulation
@@ -2558,7 +2545,7 @@ DoFHandler<dim, spacedim>::distribute_dofs(
                    i < entity_table[d][std::max(1, d)].ptr.size() - 1;
                    i++)
                 {
-                  for (unsigned int j = 0; j < dofs_per_entity[d]; j++)
+                  for (unsigned int j = 0; j < n_dofs_per_object[d]; j++)
                     new_dofs[0][d].push_back(numbers::invalid_dof_index);
                   new_dofs_ptr[0][d].push_back(new_dofs[0][d].size());
                 }

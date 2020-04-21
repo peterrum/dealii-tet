@@ -107,8 +107,6 @@ namespace Tet
   ScalarPolynomial<dim>::compute_grad(const unsigned int i,
                                       const Point<dim> & p) const
   {
-    (void)p;
-
     Tensor<1, dim> grad;
 
     if (dim == 2)
