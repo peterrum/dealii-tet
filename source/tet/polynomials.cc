@@ -30,7 +30,7 @@ namespace Tet
           if (degree == 1) // TRI3
             return 3;
           if (degree == 2) // TRI3
-            return 7;
+            return 6;
         }
       else if (dim == 3)
         {
@@ -53,7 +53,7 @@ namespace Tet
   {
     if (dim == 2)
       {
-        if (this->degree() == 1) // TRI3
+        if (this->degree() == 1) // DRT::Element::tri3 (TODO: change order)
           {
             if (i == 0)
               return p[0];
@@ -61,6 +61,25 @@ namespace Tet
               return p[1];
             else if (i == 2)
               return 1.0 - p[0] - p[1];
+          }
+        else if (this->degree() == 2) // DRT::Element::tri6
+          {
+            const double t1 = 1.0 - p[0] - p[1];
+            const double t2 = p[0];
+            const double t3 = p[1];
+
+            if (i == 0)
+              return t1 * (2.0 * t1 - 1.0);
+            else if (i == 1)
+              return t2 * (2.0 * t2 - 1.0);
+            else if (i == 2)
+              return t3 * (2.0 * t3 - 1.0);
+            else if (i == 3)
+              return 4.0 * t2 * t1;
+            else if (i == 4)
+              return 4.0 * t2 * t3;
+            else if (i == 5)
+              return 4.0 * t3 * t1;
           }
       }
     else if (dim == 3)
@@ -94,7 +113,7 @@ namespace Tet
 
     if (dim == 2)
       {
-        if (this->degree() == 1) // TRI3
+        if (this->degree() == 1) // DRT::Element::tri3 (TODO: change order)
           {
             if (i == 0)
               {
@@ -110,6 +129,39 @@ namespace Tet
               {
                 grad[0] = -1.0;
                 grad[1] = -1.0;
+              }
+          }
+        else if (this->degree() == 2) // DRT::Element::tri6
+          {
+            if (i == 0)
+              {
+                grad[0] = -3.0 + 4.0 * (p[0] + p[1]);
+                grad[1] = -3.0 + 4.0 * (p[0] + p[1]);
+              }
+            else if (i == 1)
+              {
+                grad[0] = 4.0 * p[0] - 1.0;
+                grad[1] = 0.0;
+              }
+            else if (i == 2)
+              {
+                grad[0] = 0.0;
+                grad[1] = 4.0 * p[1] - 1.0;
+              }
+            else if (i == 3)
+              {
+                grad[0] = 4.0 * (1.0 - 2.0 * p[0] - p[1]);
+                grad[1] = -4.0 * p[0];
+              }
+            else if (i == 4)
+              {
+                grad[0] = 4.0 * p[1];
+                grad[1] = 4.0 * p[0];
+              }
+            else if (i == 5)
+              {
+                grad[0] = -4.0 * p[1];
+                grad[1] = 4.0 * (1.0 - p[0] - 2.0 * p[1]);
               }
           }
       }
@@ -142,6 +194,10 @@ namespace Tet
                 grad[2] = +1.0;
               }
           }
+      }
+    else
+      {
+        Assert(false, ExcNotImplemented());
       }
 
     return grad;

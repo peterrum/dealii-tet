@@ -37,13 +37,13 @@ namespace Tet
 
     if (dim == 2)
       {
-        if (n_points == 1)
+        if (n_points == 1) // intrule_tri_1point
           {
             const double p = 1.0 / 3.0;
             this->quadrature_points.emplace_back(p, p);
             this->weights.emplace_back(1.0);
           }
-        else if (n_points == 3)
+        else if (n_points == 3) // intrule_tri_3point
           {
             const double Q23 = 2.0 / 3.0;
             const double Q16 = 1.0 / 6.0;
@@ -54,6 +54,28 @@ namespace Tet
             this->weights.emplace_back(Q16);
             this->weights.emplace_back(Q16);
             this->weights.emplace_back(Q16);
+          }
+        else if (n_points == 7) // intrule_tri_7point
+          {
+            const double q12 = 0.5;
+
+            // clang-format off
+            this->quadrature_points.emplace_back(0.3333333333330, 0.3333333333330);
+            this->quadrature_points.emplace_back(0.7974269853530, 0.1012865073230);
+            this->quadrature_points.emplace_back(0.1012865073230, 0.7974269853530);
+            this->quadrature_points.emplace_back(0.1012865073230, 0.1012865073230);
+            this->quadrature_points.emplace_back(0.0597158717898, 0.4701420641050);
+            this->quadrature_points.emplace_back(0.4701420641050, 0.0597158717898);
+            this->quadrature_points.emplace_back(0.4701420641050, 0.4701420641050);
+            // clang-format on
+
+            this->weights.emplace_back(q12 * 0.225);
+            this->weights.emplace_back(q12 * 0.125939180545);
+            this->weights.emplace_back(q12 * 0.125939180545);
+            this->weights.emplace_back(q12 * 0.125939180545);
+            this->weights.emplace_back(q12 * 0.132394152789);
+            this->weights.emplace_back(q12 * 0.132394152789);
+            this->weights.emplace_back(q12 * 0.132394152789);
           }
       }
     else if (dim == 3)

@@ -2535,7 +2535,7 @@ DoFHandler<dim, spacedim>::distribute_dofs(
                 {
                   dofs_per_d[0] = 1;
                   dofs_per_d[1] = 1;
-                  dofs_per_d[2] = 1;
+                  dofs_per_d[2] = 0;
                 }
               else
                 {

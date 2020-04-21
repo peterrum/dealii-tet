@@ -55,7 +55,7 @@ namespace Tet
         {
           dpo[0] = 1;
           dpo[1] = 1;
-          dpo[2] = 1;
+          dpo[2] = 0;
         }
 
       return dpo;
@@ -80,7 +80,7 @@ namespace Tet
       data.update_each = update_flags;
 
       const unsigned int n_q_points    = quadrature.size();
-      const unsigned int dofs_per_cell = dim == 2 ? 3 : 4; // TODO
+      const unsigned int dofs_per_cell = this->dofs_per_cell;
 
       // initialize some scratch arrays. we need them for the underlying
       // polynomial to put the values and derivatives of shape functions
@@ -202,7 +202,7 @@ namespace Tet
         static_cast<const InternalData &>(fe_internal); // NOLINT
 
 
-      const unsigned int dofs_per_cell = dim == 2 ? 3 : 4; // TODO
+      const unsigned int dofs_per_cell = this->dofs_per_cell;
 
       // transform gradients and higher derivatives. there is nothing to do
       // for values since we already emplaced them into output_data when
