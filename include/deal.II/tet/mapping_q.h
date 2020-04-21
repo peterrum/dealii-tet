@@ -229,9 +229,56 @@ namespace Tet
     }
 
     virtual UpdateFlags
-    requires_update_flags(const UpdateFlags update_flags) const
+    requires_update_flags(const UpdateFlags in) const
     {
-      return update_flags;
+      // add flags if the respective quantities are necessary to compute
+      // what we need. note that some flags appear in both the conditions
+      // and in subsequent set operations. this leads to some circular
+      // logic. the only way to treat this is to iterate. since there are
+      // 5 if-clauses in the loop, it will take at most 5 iterations to
+      // converge. do them:
+      UpdateFlags out = in;
+      for (unsigned int i = 0; i < 5; ++i)
+        {
+          // The following is a little incorrect:
+          // If not applied on a face,
+          // update_boundary_forms does not
+          // make sense. On the other hand,
+          // it is necessary on a
+          // face. Currently,
+          // update_boundary_forms is simply
+          // ignored for the interior of a
+          // cell.
+          if (out & (update_JxW_values | update_normal_vectors))
+            out |= update_boundary_forms;
+
+          if (out & (update_covariant_transformation | update_JxW_values |
+                     update_jacobians | update_jacobian_grads |
+                     update_boundary_forms | update_normal_vectors))
+            out |= update_contravariant_transformation;
+
+          if (out &
+              (update_inverse_jacobians | update_jacobian_pushed_forward_grads |
+               update_jacobian_pushed_forward_2nd_derivatives |
+               update_jacobian_pushed_forward_3rd_derivatives))
+            out |= update_covariant_transformation;
+
+          // The contravariant transformation is used in the Piola
+          // transformation, which requires the determinant of the Jacobi
+          // matrix of the transformation.  Because we have no way of
+          // knowing here whether the finite element wants to use the
+          // contravariant or the Piola transforms, we add the JxW values
+          // to the list of flags to be updated for each cell.
+          if (out & update_contravariant_transformation)
+            out |= update_volume_elements;
+
+          // the same is true when computing normal vectors: they require
+          // the determinant of the Jacobian
+          if (out & update_normal_vectors)
+            out |= update_volume_elements;
+        }
+
+      return out;
     }
 
     virtual std::unique_ptr<
