@@ -47,7 +47,40 @@ namespace Tet
                                  degree)
             .dofs_per_cell,
           std::vector<bool>(1, true)))
-  {}
+  {
+    this->unit_support_points.clear();
+
+    if (dim == 2)
+      {
+        if (degree == 1) // DRT::Element::tri3 (TODO: change order)
+          {
+            this->unit_support_points.emplace_back(1.0, 0.0);
+            this->unit_support_points.emplace_back(0.0, 1.0);
+            this->unit_support_points.emplace_back(0.0, 0.0);
+          }
+        else if (degree == 2) // DRT::Element::tri6
+          {
+            this->unit_support_points.emplace_back(1.0, 0.0);
+            this->unit_support_points.emplace_back(0.0, 1.0);
+            this->unit_support_points.emplace_back(0.0, 0.0);
+            this->unit_support_points.emplace_back(0.5, 0.5);
+            this->unit_support_points.emplace_back(0.0, 0.5);
+            this->unit_support_points.emplace_back(0.5, 0.0);
+          }
+        else
+          {
+            Assert(false, ExcNotImplemented());
+          }
+      }
+    else if (dim == 3)
+      {
+        Assert(false, ExcNotImplemented());
+      }
+    else
+      {
+        Assert(false, ExcNotImplemented());
+      }
+  }
 
   template <int dim, int spacedim>
   std::unique_ptr<FiniteElement<dim, dim>>

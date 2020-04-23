@@ -27,9 +27,9 @@ namespace Tet
     {
       if (dim == 2)
         {
-          if (degree == 1) // TRI3
+          if (degree == 1) // DRT::Element::tri3
             return 3;
-          if (degree == 2) // TRI3
+          if (degree == 2) // DRT::Element::tri6
             return 6;
         }
       else if (dim == 3)
@@ -64,9 +64,9 @@ namespace Tet
           }
         else if (this->degree() == 2) // DRT::Element::tri6
           {
-            const double t1 = 1.0 - p[0] - p[1];
-            const double t2 = p[0];
-            const double t3 = p[1];
+            const double t1 = p[0];
+            const double t2 = p[1];
+            const double t3 = 1.0 - p[0] - p[1];
 
             if (i == 0)
               return t1 * (2.0 * t1 - 1.0);
@@ -128,6 +128,10 @@ namespace Tet
                 grad[0] = -1.0;
                 grad[1] = -1.0;
               }
+            else
+              {
+                Assert(false, ExcNotImplemented());
+              }
           }
         else if (this->degree() == 2) // DRT::Element::tri6
           {
@@ -161,6 +165,14 @@ namespace Tet
                 grad[0] = -4.0 * p[1];
                 grad[1] = 4.0 * (1.0 - p[0] - 2.0 * p[1]);
               }
+            else
+              {
+                Assert(false, ExcNotImplemented());
+              }
+          }
+        else
+          {
+            Assert(false, ExcNotImplemented());
           }
       }
     else if (dim == 3)
@@ -191,6 +203,10 @@ namespace Tet
                 grad[1] = +0.0;
                 grad[2] = +1.0;
               }
+          }
+        else
+          {
+            Assert(false, ExcNotImplemented());
           }
       }
     else

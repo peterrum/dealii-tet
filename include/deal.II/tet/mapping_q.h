@@ -49,11 +49,11 @@ namespace Tet
         (void)update_flags;
         (void)quadrature;
         (void)n_original_q_points;
-        n_shape_functions = 3;
 
         this->update_each = update_flags;
 
         Tet::FE_Q<dim> fe(polynomial_degree);
+        n_shape_functions = fe.dofs_per_cell;
 
         quadrature_points.resize(quadrature.size());
 
@@ -114,7 +114,8 @@ namespace Tet
     virtual std::unique_ptr<dealii::Mapping<dim, spacedim>>
     clone() const
     {
-      Assert(false, ExcNotImplemented());
+      return std_cxx14::make_unique<MappingQ<dim, spacedim>>(
+        this->polynomial_degree);
     }
 
     virtual std::array<Point<spacedim>, GeometryInfo<dim>::vertices_per_cell>

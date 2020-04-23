@@ -67,16 +67,22 @@ namespace Tet
 
             {
               CellData<dim> tri1;
-              tri1.type     = Tet::CellTypeEnum::tet;
-              tri1.vertices = {quad[1], quad[2], quad[0]};
+              tri1.type = Tet::CellTypeEnum::tet;
+              if (true || (i % 2 == 0) == (j % 2 == 0))
+                tri1.vertices = {quad[1], quad[2], quad[0]};
+              else
+                tri1.vertices = {quad[0], quad[3], quad[2]};
 
               cells.push_back(tri1);
             }
 
             {
               CellData<dim> tri1;
-              tri1.type     = Tet::CellTypeEnum::tet;
-              tri1.vertices = {quad[2], quad[1], quad[3]};
+              tri1.type = Tet::CellTypeEnum::tet;
+              if (true || (i % 2 == 0) == (j % 2 == 0))
+                tri1.vertices = {quad[2], quad[1], quad[3]};
+              else
+                tri1.vertices = {quad[3], quad[0], quad[1]};
 
               cells.push_back(tri1);
             }
