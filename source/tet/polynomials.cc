@@ -135,32 +135,32 @@ namespace Tet
           }
         else if (this->degree() == 2) // DRT::Element::tri6
           {
-            if (i == 0)
+            if (i == 2)
               {
                 grad[0] = -3.0 + 4.0 * (p[0] + p[1]);
                 grad[1] = -3.0 + 4.0 * (p[0] + p[1]);
               }
-            else if (i == 1)
+            else if (i == 0)
               {
                 grad[0] = 4.0 * p[0] - 1.0;
                 grad[1] = 0.0;
               }
-            else if (i == 2)
+            else if (i == 1)
               {
                 grad[0] = 0.0;
                 grad[1] = 4.0 * p[1] - 1.0;
               }
-            else if (i == 3)
+            else if (i == 5)
               {
                 grad[0] = 4.0 * (1.0 - 2.0 * p[0] - p[1]);
                 grad[1] = -4.0 * p[0];
               }
-            else if (i == 4)
+            else if (i == 3)
               {
                 grad[0] = 4.0 * p[1];
                 grad[1] = 4.0 * p[0];
               }
-            else if (i == 5)
+            else if (i == 4)
               {
                 grad[0] = -4.0 * p[1];
                 grad[1] = 4.0 * (1.0 - p[0] - 2.0 * p[1]);
