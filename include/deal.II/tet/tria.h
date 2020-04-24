@@ -87,9 +87,18 @@ namespace Tet
 
     MPI_Comm comm;
 
-    Triangulation(MPI_Comm comm)
+    const bool is_distributed_;
+
+    Triangulation(MPI_Comm comm, const bool is_distributed = true)
       : comm(comm)
+      , is_distributed_(is_distributed)
     {}
+
+    bool
+    is_distributed() const
+    {
+      return is_distributed_;
+    }
 
     void
     create_triangulation_tet(const std::vector<Point<spacedim>> &vertices,

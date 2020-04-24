@@ -2676,8 +2676,11 @@ DoFHandler<dim, spacedim>::setup_policy()
   // decide whether we need a sequential or a parallel distributed policy
   if (dynamic_cast<const dealii::parallel::shared::Triangulation<dim, spacedim>
                      *>(&this->get_triangulation()) != nullptr ||
-      dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
-        &this->get_triangulation()) != nullptr)
+      (dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+         &this->get_triangulation()) != nullptr &&
+       dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+         &this->get_triangulation())
+           ->is_distributed() == false))
     this->policy =
       std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
                                ParallelShared<DoFHandler<dim, spacedim>>>(
