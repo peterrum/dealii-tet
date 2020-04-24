@@ -162,6 +162,9 @@ namespace Tet
            i++)
         this->levels[0]->cells.children[i] = -1;
 
+      for (unsigned int i = 0; i < n_cell; i++)
+        this->levels[0]->active_cell_indices[i] = i;
+
       // faces [TODO]
       this->faces = std::make_unique<
         internal::TriangulationImplementation::TriaFaces<dim>>();
@@ -918,8 +921,7 @@ namespace Tet
     virtual unsigned int
     n_active_cells() const override
     {
-      Assert(false, ExcNotImplemented());
-      return 0;
+      return std::distance(this->begin(), this->end()); // TODO
     }
 
     virtual types::global_dof_index
@@ -1027,7 +1029,6 @@ namespace Tet
     virtual const Triangulation<dim, spacedim> &
     get_triangulation() const override
     {
-      Assert(false, ExcNotImplemented());
       return *this;
     }
 
@@ -1199,6 +1200,27 @@ namespace Tet
       return compute_ghost_neighbors();
       // return ghost_owners_set;
     }
+
+    const std::vector<types::subdomain_id> &
+    get_true_subdomain_ids_of_cells() const;
+
+    const std::vector<types::subdomain_id> &
+    get_true_level_subdomain_ids_of_cells(const unsigned int level) const
+    {
+      Assert(false, ExcNotImplemented());
+      return true_level_subdomain_ids_of_cells[level];
+    }
+
+    bool
+    with_artificial_cells() const
+    {
+      return true;
+    }
+
+    mutable std::vector<types::subdomain_id> true_subdomain_ids_of_cells;
+
+    mutable std::vector<std::vector<types::subdomain_id>>
+      true_level_subdomain_ids_of_cells;
   };
 } // namespace Tet
 

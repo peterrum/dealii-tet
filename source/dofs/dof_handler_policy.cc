@@ -3236,19 +3236,11 @@ namespace internal
 
 
 
-      template <class DoFHandlerType>
+      template <class DoFHandlerType, typename TriangulationType>
       NumberCache
-      ParallelShared<DoFHandlerType>::distribute_dofs() const
+      distribute_dofs_shared(const DoFHandlerType &   dof_handler,
+                             const TriangulationType *tr)
       {
-        const unsigned int dim      = DoFHandlerType::dimension;
-        const unsigned int spacedim = DoFHandlerType::space_dimension;
-
-        const dealii::parallel::shared::Triangulation<dim, spacedim> *tr =
-          (dynamic_cast<
-            const dealii::parallel::shared::Triangulation<dim, spacedim> *>(
-            &this->dof_handler->get_triangulation()));
-        Assert(tr != nullptr, ExcInternalError());
-
         const unsigned int n_procs =
           Utilities::MPI::n_mpi_processes(tr->get_communicator());
 
@@ -3276,10 +3268,10 @@ namespace internal
         // enumerate DoFs on all cells, regardless of owner
         const types::global_dof_index n_initial_dofs =
           Implementation::distribute_dofs(numbers::invalid_subdomain_id,
-                                          *this->dof_handler);
+                                          dof_handler);
 
         const types::global_dof_index n_dofs =
-          Implementation::unify_dof_indices(*this->dof_handler,
+          Implementation::unify_dof_indices(dof_handler,
                                             n_initial_dofs,
                                             /*check_validity=*/true);
 
@@ -3298,7 +3290,7 @@ namespace internal
           // first get the association of each dof with a subdomain and
           // determine the total number of subdomain ids used
           const std::vector<types::subdomain_id> subdomain_association =
-            get_dof_subdomain_association(*this->dof_handler, n_dofs, n_procs);
+            get_dof_subdomain_association(dof_handler, n_dofs, n_procs);
 
           // then renumber the subdomains by first looking at those belonging
           // to subdomain 0, then those of subdomain 1, etc. note that the
@@ -3330,7 +3322,7 @@ namespace internal
         // correctly set
         Implementation::renumber_dofs(new_dof_indices,
                                       IndexSet(0),
-                                      *this->dof_handler,
+                                      dof_handler,
                                       /*check_validity=*/true);
 
         // update the number cache. for this, we first have to find the
@@ -3343,7 +3335,7 @@ namespace internal
         // the IndexSets cheap. an assertion at the top verifies that this
         // assumption is true
         const std::vector<types::subdomain_id> subdomain_association =
-          get_dof_subdomain_association(*this->dof_handler, n_dofs, n_procs);
+          get_dof_subdomain_association(dof_handler, n_dofs, n_procs);
 
         for (unsigned int i = 1; i < n_dofs; ++i)
           Assert(subdomain_association[i] >= subdomain_association[i - 1],
@@ -3394,7 +3386,29 @@ namespace internal
         // owned DoFs
         return NumberCache(
           locally_owned_dofs_per_processor,
-          this->dof_handler->get_triangulation().locally_owned_subdomain());
+          dof_handler.get_triangulation().locally_owned_subdomain());
+      }
+
+
+
+      template <class DoFHandlerType>
+      NumberCache
+      ParallelShared<DoFHandlerType>::distribute_dofs() const
+      {
+        const unsigned int dim      = DoFHandlerType::dimension;
+        const unsigned int spacedim = DoFHandlerType::space_dimension;
+
+        if (auto tr = dynamic_cast<
+              const dealii::parallel::shared::Triangulation<dim, spacedim> *>(
+              &this->dof_handler->get_triangulation()))
+          return distribute_dofs_shared(*this->dof_handler, tr);
+
+        if (auto tr =
+              dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+                &this->dof_handler->get_triangulation()))
+          return distribute_dofs_shared(*this->dof_handler, tr);
+
+        Assert(false, ExcInternalError());
       }
 
 

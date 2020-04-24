@@ -142,7 +142,6 @@ inline bool
 TriaAccessorBase<structdim, dim, spacedim>::
 operator<(const TriaAccessorBase<structdim, dim, spacedim> &other) const
 {
-  Assert(false, ExcNotImplemented());
   Assert(tria == other.tria, TriaAccessorExceptions::ExcCantCompareIterators());
 
   if (present_level != other.present_level)

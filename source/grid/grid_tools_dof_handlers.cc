@@ -746,10 +746,18 @@ namespace GridTools
     // Find the cells for which the predicate is true
     // These are the cells around which we wish to construct
     // the halo layer
+
+    // TODO
+    const unsigned int n_vertices =
+      (dynamic_cast<
+         const Triangulation<MeshType::dimension, MeshType::space_dimension> *>(
+         &mesh.get_triangulation()) != nullptr) ?
+        3 :
+        GeometryInfo<MeshType::dimension>::vertices_per_cell;
+
     for (const auto &cell : mesh.active_cell_iterators())
       if (predicate(cell)) // True predicate --> Part of subdomain
-        for (const unsigned int v :
-             GeometryInfo<MeshType::dimension>::vertex_indices())
+        for (unsigned int v = 0; v < n_vertices; v++)
           locally_active_vertices_on_subdomain[cell->vertex_index(v)] = true;
 
     // Find the cells that do not conform to the predicate
@@ -757,8 +765,7 @@ namespace GridTools
     // These comprise the halo layer
     for (const auto &cell : mesh.active_cell_iterators())
       if (!predicate(cell)) // False predicate --> Potential halo cell
-        for (const unsigned int v :
-             GeometryInfo<MeshType::dimension>::vertex_indices())
+        for (unsigned int v = 0; v < n_vertices; v++)
           if (locally_active_vertices_on_subdomain[cell->vertex_index(v)] ==
               true)
             {

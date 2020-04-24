@@ -20,6 +20,7 @@ SET(_unity_include_src
   fe_poly.cc
   quadrature_lib.cc
   polynomials.cc
+  tria.cc
   tria_cell_type.cc
   tria_connectivity.cc
   )
@@ -39,6 +40,7 @@ SETUP_SOURCE_LIST("${_unity_include_src}"
 SET(_inst
   fe_q.inst.in
   fe_poly.inst.in
+  tria.inst.in
 )
 
 FILE(GLOB _header
