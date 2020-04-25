@@ -344,56 +344,6 @@ namespace parallel
 
     private:
       /**
-       * Override the function to update the number cache so we can fill data
-       * like @p level_ghost_owners.
-       */
-      virtual void
-      update_number_cache() override;
-
-      /**
-       * This function calls GridTools::partition_triangulation () and if
-       * requested in the constructor of the class marks artificial cells.
-       */
-      void
-      partition();
-
-      /**
-       * Settings
-       */
-      const Settings settings;
-
-      /**
-       * A flag to decide whether or not artificial cells are allowed.
-       */
-      const bool allow_artificial_cells;
-
-      /**
-       * A vector containing subdomain IDs of cells obtained by partitioning
-       * using either zorder, METIS, or a user-defined partitioning scheme.
-       * In case allow_artificial_cells is false, this vector is
-       * consistent with IDs stored in cell->subdomain_id() of the
-       * triangulation class. When allow_artificial_cells is true, cells which
-       * are artificial will have cell->subdomain_id() == numbers::artificial;
-       *
-       * The original partition information is stored to allow using sequential
-       * DoF distribution and partitioning functions with semi-artificial
-       * cells.
-       */
-      std::vector<types::subdomain_id> true_subdomain_ids_of_cells;
-
-      /**
-       * A vector containing level subdomain IDs of cells obtained by
-       * partitioning each level.
-       *
-       * The original partition information is stored to allow using sequential
-       * DoF distribution and partitioning functions with semi-artificial
-       * cells.
-       */
-      std::vector<std::vector<types::subdomain_id>>
-        true_level_subdomain_ids_of_cells;
-
-    private:
-      /**
        * A shared triangulation policy. [TODO] move up
        */
       Policy<dim, spacedim> policy;
@@ -410,6 +360,100 @@ namespace parallel
              const typename Triangulation<dim, spacedim>::Settings settings =
                Triangulation<dim, spacedim>::Settings::partition_auto);
 
+      /**
+       * Return a vector of length Triangulation::n_active_cells() where each
+       * element stores the subdomain id of the owner of this cell. The
+       * elements of the vector are obviously the same as the subdomain ids
+       * for locally owned and ghost cells, but are also correct for
+       * artificial cells that do not store who the owner of the cell is in
+       * their subdomain_id field.
+       */
+      const std::vector<types::subdomain_id> &
+      get_true_subdomain_ids_of_cells() const;
+
+      /**
+       * Return a vector of length Triangulation::n_cells(level) where each
+       * element stores the level subdomain id of the owner of this cell. The
+       * elements of the vector are obviously the same as the level subdomain
+       * ids for locally owned and ghost cells, but are also correct for
+       * artificial cells that do not store who the owner of the cell is in
+       * their level_subdomain_id field.
+       */
+      const std::vector<types::subdomain_id> &
+      get_true_level_subdomain_ids_of_cells(const unsigned int level) const;
+
+      /**
+       * Return allow_artificial_cells , namely true if artificial cells are
+       * allowed.
+       */
+      bool
+      with_artificial_cells() const;
+
+      /**
+       * Return if multilevel hierarchy is supported and has been constructed.
+       */
+      virtual bool
+      is_multilevel_hierarchy_constructed() const;
+
+      /**
+       * Coarsen and refine the mesh according to refinement and coarsening
+       * flags set.
+       *
+       * This step is equivalent to the dealii::Triangulation class with an
+       * addition of calling dealii::GridTools::partition_triangulation() at
+       * the end.
+       */
+      virtual void
+      execute_coarsening_and_refinement();
+
+      /**
+       * Create a triangulation.
+       *
+       * This function also partitions triangulation based on the MPI
+       * communicator provided to the constructor.
+       */
+      virtual void
+      create_triangulation(const std::vector<Point<spacedim>> &vertices,
+                           const std::vector<CellData<dim>> &  cells,
+                           const SubCellData &                 subcelldata);
+
+      /*
+       * @copydoc Triangulation::create_triangulation()
+       *
+       * @note Not inmplemented yet.
+       */
+      virtual void
+      create_triangulation(
+        const TriangulationDescription::Description<dim, spacedim>
+          &construction_data);
+
+      /**
+       * Copy @p other_tria to this triangulation.
+       *
+       * This function also partitions triangulation based on the MPI
+       * communicator provided to the constructor.
+       *
+       * @note This function can not be used with parallel::distributed::Triangulation,
+       * since it only stores those cells that it owns, one layer of ghost cells
+       * around the ones it locally owns, and a number of artificial cells.
+       */
+      virtual void
+      copy_triangulation(
+        const dealii::Triangulation<dim, spacedim> &other_tria);
+
+      /**
+       * Read the data of this object from a stream for the purpose of
+       * serialization. Throw away the previous content.
+       *
+       * This function first does the same work as in
+       * dealii::Triangulation::load, then partitions the triangulation based on
+       * the MPI communicator provided to the constructor.
+       */
+      template <class Archive>
+      void
+      load(Archive &ar, const unsigned int version);
+
+    private:
       /**
        * Reference to the underlying triangulation.
        */
@@ -453,6 +497,20 @@ namespace parallel
        */
       std::vector<std::vector<types::subdomain_id>>
         true_level_subdomain_ids_of_cells;
+
+      /**
+       * Override the function to update the number cache so we can fill data
+       * like @p level_ghost_owners.
+       */
+      virtual void
+      update_number_cache();
+
+      /**
+       * This function calls GridTools::partition_triangulation () and if
+       * requested in the constructor of the class marks artificial cells.
+       */
+      void
+      partition();
     };
 
     template <int dim, int spacedim>
@@ -460,9 +518,17 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int version)
     {
-      dealii::Triangulation<dim, spacedim>::load(ar, version);
+      policy.load(ar, version);
+    }
+
+    template <int dim, int spacedim>
+    template <class Archive>
+    void
+    Policy<dim, spacedim>::load(Archive &ar, const unsigned int version)
+    {
+      tria.dealii::Triangulation<dim, spacedim>::load(ar, version);
       partition();
-      this->update_number_cache();
+      update_number_cache();
     }
   } // namespace shared
 } // namespace parallel
