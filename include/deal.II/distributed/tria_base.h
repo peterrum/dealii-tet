@@ -308,7 +308,6 @@ namespace parallel
     virtual void
     update_number_cache();
 
-  protected:
     /**
      * Store MPI ranks of level ghost owners of this processor on all levels.
      */

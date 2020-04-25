@@ -47,13 +47,6 @@ namespace parallel
           mpi_communicator)
       , tria(tria)
       , tria_parallel(tria)
-    {}
-
-
-
-    template <int dim, int spacedim>
-    Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
-      : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
       , settings(TriangulationDescription::Settings::default_setting)
       , partitioner([](dealii::Triangulation<dim, spacedim> &tria,
                        const unsigned int                    n_partitions) {
@@ -62,6 +55,13 @@ namespace parallel
       , currently_processing_create_triangulation_for_internal_usage(false)
       , currently_processing_prepare_coarsening_and_refinement_for_internal_usage(
           false)
+    {}
+
+
+
+    template <int dim, int spacedim>
+    Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
+      : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
       , policy(*this, mpi_communicator)
     {}
 
@@ -197,7 +197,7 @@ namespace parallel
             }
         }
 
-      tria_parallel.update_number_cache();
+      this->update_number_cache();
     }
 
 
@@ -209,14 +209,25 @@ namespace parallel
       const std::vector<dealii::CellData<dim>> &cells,
       const SubCellData &                       subcelldata)
     {
+      this->policy.create_triangulation(vertices, cells, subcelldata);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Policy<dim, spacedim>::create_triangulation(
+      const std::vector<Point<spacedim>> &      vertices,
+      const std::vector<dealii::CellData<dim>> &cells,
+      const SubCellData &                       subcelldata)
+    {
       AssertThrow(
         currently_processing_create_triangulation_for_internal_usage,
         ExcMessage(
           "Use the other create_triangulation() function to create triangulations of type parallel::fullydistributed::Triangulation.!"));
 
-      dealii::Triangulation<dim, spacedim>::create_triangulation(vertices,
-                                                                 cells,
-                                                                 subcelldata);
+      tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
+        vertices, cells, subcelldata);
     }
 
 
@@ -224,6 +235,16 @@ namespace parallel
     template <int dim, int spacedim>
     void
     Triangulation<dim, spacedim>::copy_triangulation(
+      const dealii::Triangulation<dim, spacedim> &other_tria)
+    {
+      this->policy.copy_triangulation(other_tria);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Policy<dim, spacedim>::copy_triangulation(
       const dealii::Triangulation<dim, spacedim> &other_tria)
     {
       // pointer to the triangulation for which the construction data
@@ -256,7 +277,7 @@ namespace parallel
                               this->mpi_communicator));
 
           // partition multigrid levels
-          if (this->is_multilevel_hierarchy_constructed())
+          if (tria_parallel.is_multilevel_hierarchy_constructed())
             GridTools::partition_multigrid_levels(*serial_tria);
 
           // use the new serial triangulation to create the construction data
@@ -268,7 +289,7 @@ namespace parallel
         create_description_from_triangulation(
           *other_tria_ptr,
           this->mpi_communicator,
-          this->is_multilevel_hierarchy_constructed());
+          tria_parallel.is_multilevel_hierarchy_constructed());
 
       // finally create triangulation
       this->create_triangulation(construction_data);
@@ -283,6 +304,18 @@ namespace parallel
                                const unsigned int)> &partitioner,
       const TriangulationDescription::Settings &     settings)
     {
+      policy.set_partitioner(partitioner, settings);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Policy<dim, spacedim>::set_partitioner(
+      const std::function<void(dealii::Triangulation<dim, spacedim> &,
+                               const unsigned int)> &partitioner,
+      const TriangulationDescription::Settings &     settings)
+    {
       this->partitioner = partitioner;
       this->settings    = settings;
     }
@@ -291,13 +324,13 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::update_number_cache()
+    Policy<dim, spacedim>::update_number_cache()
     {
-      parallel::Triangulation<dim, spacedim>::update_number_cache();
+      tria_parallel.update_number_cache();
 
       if (settings &
           TriangulationDescription::Settings::construct_multigrid_hierarchy)
-        parallel::Triangulation<dim, spacedim>::fill_level_ghost_owners();
+        tria_parallel.fill_level_ghost_owners();
     }
 
 
@@ -305,6 +338,15 @@ namespace parallel
     template <int dim, int spacedim>
     void
     Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
+    {
+      policy.execute_coarsening_and_refinement();
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Policy<dim, spacedim>::execute_coarsening_and_refinement()
     {
       Assert(false, ExcNotImplemented());
     }
@@ -315,12 +357,22 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
     {
+      return policy.prepare_coarsening_and_refinement();
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Policy<dim, spacedim>::prepare_coarsening_and_refinement()
+    {
       Assert(
         currently_processing_prepare_coarsening_and_refinement_for_internal_usage,
         ExcMessage("No coarsening and refinement is supported!"));
 
-      return dealii::Triangulation<dim, spacedim>::
-        prepare_coarsening_and_refinement();
+      return tria
+        .dealii::Triangulation<dim,
+                               spacedim>::prepare_coarsening_and_refinement();
     }
 
 
@@ -329,7 +381,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::has_hanging_nodes() const
     {
-      Assert(false, ExcNotImplemented());
+      Assert(false, ExcNotImplemented()); // [TODO]
       return false;
     }
 
@@ -339,14 +391,8 @@ namespace parallel
     std::size_t
     Triangulation<dim, spacedim>::memory_consumption() const
     {
-      const std::size_t mem =
-        this->dealii::parallel::TriangulationBase<dim, spacedim>::
-          memory_consumption() +
-        MemoryConsumption::memory_consumption(
-          coarse_cell_id_to_coarse_cell_index_vector) +
-        MemoryConsumption::memory_consumption(
-          coarse_cell_index_to_coarse_cell_id_vector);
-      return mem;
+      Assert(false, ExcNotImplemented()); // [TODO]
+      return 0;
     }
 
 
@@ -354,6 +400,15 @@ namespace parallel
     template <int dim, int spacedim>
     bool
     Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
+    {
+      return policy.is_multilevel_hierarchy_constructed();
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
       return (
         settings &
@@ -365,6 +420,16 @@ namespace parallel
     template <int dim, int spacedim>
     unsigned int
     Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
+      const types::coarse_cell_id coarse_cell_id) const
+    {
+      return policy.coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
+    }
+
+
+
+    template <int dim, int spacedim>
+    unsigned int
+    Policy<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const
     {
       const auto coarse_cell_index = std::lower_bound(
@@ -384,6 +449,16 @@ namespace parallel
     template <int dim, int spacedim>
     types::coarse_cell_id
     Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
+      const unsigned int coarse_cell_index) const
+    {
+      return policy.coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
+    }
+
+
+
+    template <int dim, int spacedim>
+    types::coarse_cell_id
+    Policy<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
       const unsigned int coarse_cell_index) const
     {
       AssertIndexRange(coarse_cell_index,
