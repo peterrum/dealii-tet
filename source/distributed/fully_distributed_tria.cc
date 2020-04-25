@@ -60,25 +60,6 @@ namespace parallel
 
 
     template <int dim, int spacedim>
-    Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
-      : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
-      , policy(*this, mpi_communicator)
-    {}
-
-
-
-    template <int dim, int spacedim>
-    void
-    Triangulation<dim, spacedim>::create_triangulation(
-      const TriangulationDescription::Description<dim, spacedim>
-        &construction_data)
-    {
-      this->policy.create_triangulation(construction_data);
-    }
-
-
-
-    template <int dim, int spacedim>
     void
     Policy<dim, spacedim>::create_triangulation(
       const TriangulationDescription::Description<dim, spacedim>
@@ -204,18 +185,6 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::create_triangulation(
-      const std::vector<Point<spacedim>> &      vertices,
-      const std::vector<dealii::CellData<dim>> &cells,
-      const SubCellData &                       subcelldata)
-    {
-      this->policy.create_triangulation(vertices, cells, subcelldata);
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
     Policy<dim, spacedim>::create_triangulation(
       const std::vector<Point<spacedim>> &      vertices,
       const std::vector<dealii::CellData<dim>> &cells,
@@ -228,16 +197,6 @@ namespace parallel
 
       tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
         vertices, cells, subcelldata);
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
-    Triangulation<dim, spacedim>::copy_triangulation(
-      const dealii::Triangulation<dim, spacedim> &other_tria)
-    {
-      this->policy.copy_triangulation(other_tria);
     }
 
 
@@ -299,18 +258,6 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::set_partitioner(
-      const std::function<void(dealii::Triangulation<dim, spacedim> &,
-                               const unsigned int)> &partitioner,
-      const TriangulationDescription::Settings &     settings)
-    {
-      policy.set_partitioner(partitioner, settings);
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
     Policy<dim, spacedim>::set_partitioner(
       const std::function<void(dealii::Triangulation<dim, spacedim> &,
                                const unsigned int)> &partitioner,
@@ -337,27 +284,9 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
-    {
-      policy.execute_coarsening_and_refinement();
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
     Policy<dim, spacedim>::execute_coarsening_and_refinement()
     {
       Assert(false, ExcNotImplemented());
-    }
-
-
-
-    template <int dim, int spacedim>
-    bool
-    Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
-    {
-      return policy.prepare_coarsening_and_refinement();
     }
 
 
@@ -373,6 +302,124 @@ namespace parallel
       return tria
         .dealii::Triangulation<dim,
                                spacedim>::prepare_coarsening_and_refinement();
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
+    {
+      return (
+        settings &
+        TriangulationDescription::Settings::construct_multigrid_hierarchy);
+    }
+
+
+
+    template <int dim, int spacedim>
+    unsigned int
+    Policy<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
+      const types::coarse_cell_id coarse_cell_id) const
+    {
+      const auto coarse_cell_index = std::lower_bound(
+        coarse_cell_id_to_coarse_cell_index_vector.begin(),
+        coarse_cell_id_to_coarse_cell_index_vector.end(),
+        coarse_cell_id,
+        [](const std::pair<types::coarse_cell_id, unsigned int> &pair,
+           const types::coarse_cell_id &val) { return pair.first < val; });
+      Assert(coarse_cell_index !=
+               coarse_cell_id_to_coarse_cell_index_vector.cend(),
+             ExcMessage("Coarse cell index not found!"));
+      return coarse_cell_index->second;
+    }
+
+
+
+    template <int dim, int spacedim>
+    types::coarse_cell_id
+    Policy<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
+      const unsigned int coarse_cell_index) const
+    {
+      AssertIndexRange(coarse_cell_index,
+                       coarse_cell_index_to_coarse_cell_id_vector.size());
+
+      const auto coarse_cell_id =
+        coarse_cell_index_to_coarse_cell_id_vector[coarse_cell_index];
+      AssertThrow(coarse_cell_id != numbers::invalid_coarse_cell_id,
+                  ExcMessage("You are trying to access a dummy cell!"));
+      return coarse_cell_id;
+    }
+
+
+
+    template <int dim, int spacedim>
+    Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
+      : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
+      , policy(*this, mpi_communicator)
+    {}
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::create_triangulation(
+      const TriangulationDescription::Description<dim, spacedim>
+        &construction_data)
+    {
+      this->policy.create_triangulation(construction_data);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::create_triangulation(
+      const std::vector<Point<spacedim>> &      vertices,
+      const std::vector<dealii::CellData<dim>> &cells,
+      const SubCellData &                       subcelldata)
+    {
+      this->policy.create_triangulation(vertices, cells, subcelldata);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::copy_triangulation(
+      const dealii::Triangulation<dim, spacedim> &other_tria)
+    {
+      this->policy.copy_triangulation(other_tria);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::set_partitioner(
+      const std::function<void(dealii::Triangulation<dim, spacedim> &,
+                               const unsigned int)> &partitioner,
+      const TriangulationDescription::Settings &     settings)
+    {
+      policy.set_partitioner(partitioner, settings);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
+    {
+      policy.execute_coarsening_and_refinement();
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
+    {
+      return policy.prepare_coarsening_and_refinement();
     }
 
 
@@ -407,17 +454,6 @@ namespace parallel
 
 
     template <int dim, int spacedim>
-    bool
-    Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
-    {
-      return (
-        settings &
-        TriangulationDescription::Settings::construct_multigrid_hierarchy);
-    }
-
-
-
-    template <int dim, int spacedim>
     unsigned int
     Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const
@@ -428,47 +464,11 @@ namespace parallel
 
 
     template <int dim, int spacedim>
-    unsigned int
-    Policy<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
-      const types::coarse_cell_id coarse_cell_id) const
-    {
-      const auto coarse_cell_index = std::lower_bound(
-        coarse_cell_id_to_coarse_cell_index_vector.begin(),
-        coarse_cell_id_to_coarse_cell_index_vector.end(),
-        coarse_cell_id,
-        [](const std::pair<types::coarse_cell_id, unsigned int> &pair,
-           const types::coarse_cell_id &val) { return pair.first < val; });
-      Assert(coarse_cell_index !=
-               coarse_cell_id_to_coarse_cell_index_vector.cend(),
-             ExcMessage("Coarse cell index not found!"));
-      return coarse_cell_index->second;
-    }
-
-
-
-    template <int dim, int spacedim>
     types::coarse_cell_id
     Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
       const unsigned int coarse_cell_index) const
     {
       return policy.coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
-    }
-
-
-
-    template <int dim, int spacedim>
-    types::coarse_cell_id
-    Policy<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
-      const unsigned int coarse_cell_index) const
-    {
-      AssertIndexRange(coarse_cell_index,
-                       coarse_cell_index_to_coarse_cell_id_vector.size());
-
-      const auto coarse_cell_id =
-        coarse_cell_index_to_coarse_cell_id_vector[coarse_cell_index];
-      AssertThrow(coarse_cell_id != numbers::invalid_coarse_cell_id,
-                  ExcMessage("You are trying to access a dummy cell!"));
-      return coarse_cell_id;
     }
 
 

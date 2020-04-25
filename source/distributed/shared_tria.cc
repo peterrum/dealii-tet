@@ -30,11 +30,51 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-#ifdef DEAL_II_WITH_MPI
 namespace parallel
 {
   namespace shared
   {
+    template <int dim, int spacedim>
+    Policy<dim, spacedim>::Policy(
+      dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+      MPI_Comm                                            mpi_communicator,
+      const bool allow_artificial_cells,
+      const typename Triangulation<dim, spacedim>::Settings settings)
+      : dealii::parallel::TriangulationPolicy::Base<dim, spacedim>(
+          mpi_communicator)
+      , tria(tria)
+      , tria_parallel(tria)
+      , settings(settings)
+      , allow_artificial_cells(allow_artificial_cells)
+    {
+      const auto partition_settings =
+        (Triangulation<dim, spacedim>::Settings::partition_zoltan |
+         Triangulation<dim, spacedim>::Settings::partition_metis |
+         Triangulation<dim, spacedim>::Settings::partition_zorder |
+         Triangulation<dim, spacedim>::Settings::partition_custom_signal) &
+        settings;
+      (void)partition_settings;
+      Assert(
+        (partition_settings ==
+         Triangulation<dim, spacedim>::Settings::partition_auto) ||
+          (partition_settings ==
+           Triangulation<dim, spacedim>::Settings::partition_metis) ||
+          (partition_settings ==
+           Triangulation<dim, spacedim>::Settings::partition_zoltan) ||
+          (partition_settings ==
+           Triangulation<dim, spacedim>::Settings::partition_zorder) ||
+          (partition_settings ==
+           Triangulation<dim, spacedim>::Settings::partition_custom_signal),
+        ExcMessage("Settings must contain exactly one type of the active "
+                   "cell partitioning scheme."));
+
+      if (settings &
+          Triangulation<dim, spacedim>::Settings::construct_multigrid_hierarchy)
+        Assert(allow_artificial_cells,
+               ExcMessage("construct_multigrid_hierarchy requires "
+                          "allow_artificial_cells to be set to true."));
+    }
+
     template <int dim, int spacedim>
     Triangulation<dim, spacedim>::Triangulation(
       MPI_Comm mpi_communicator,
@@ -47,25 +87,8 @@ namespace parallel
                                                            false)
       , settings(settings)
       , allow_artificial_cells(allow_artificial_cells)
-    {
-      const auto partition_settings =
-        (partition_zoltan | partition_metis | partition_zorder |
-         partition_custom_signal) &
-        settings;
-      (void)partition_settings;
-      Assert(partition_settings == partition_auto ||
-               partition_settings == partition_metis ||
-               partition_settings == partition_zoltan ||
-               partition_settings == partition_zorder ||
-               partition_settings == partition_custom_signal,
-             ExcMessage("Settings must contain exactly one type of the active "
-                        "cell partitioning scheme."));
-
-      if (settings & construct_multigrid_hierarchy)
-        Assert(allow_artificial_cells,
-               ExcMessage("construct_multigrid_hierarchy requires "
-                          "allow_artificial_cells to be set to true."));
-    }
+      , policy(*this, mpi_communicator, allow_artificial_cells, settings)
+    {}
 
 
 
@@ -82,7 +105,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::partition()
     {
-#  ifdef DEBUG
+#ifdef DEBUG
       // Check that all meshes are the same (or at least have the same
       // total number of active cells):
       const unsigned int max_active_cells =
@@ -93,23 +116,23 @@ namespace parallel
           "A parallel::shared::Triangulation needs to be refined in the same "
           "way on all processors, but the participating processors don't "
           "agree on the number of active cells."));
-#  endif
+#endif
 
       auto partition_settings = (partition_zoltan | partition_metis |
                                  partition_zorder | partition_custom_signal) &
                                 settings;
       if (partition_settings == partition_auto)
-#  ifdef DEAL_II_TRILINOS_WITH_ZOLTAN
+#ifdef DEAL_II_TRILINOS_WITH_ZOLTAN
         partition_settings = partition_zoltan;
-#  elif defined DEAL_II_WITH_METIS
+#elif defined DEAL_II_WITH_METIS
         partition_settings = partition_metis;
-#  else
+#else
         partition_settings = partition_zorder;
-#  endif
+#endif
 
       if (partition_settings == partition_zoltan)
         {
-#  ifndef DEAL_II_TRILINOS_WITH_ZOLTAN
+#ifndef DEAL_II_TRILINOS_WITH_ZOLTAN
           AssertThrow(false,
                       ExcMessage(
                         "Choosing 'partition_zoltan' requires the library "
@@ -117,14 +140,14 @@ namespace parallel
                         "Instead, you might use 'partition_auto' to select "
                         "a partitioning algorithm that is supported "
                         "by your current configuration."));
-#  else
+#else
           GridTools::partition_triangulation(
             this->n_subdomains, *this, SparsityTools::Partitioner::zoltan);
-#  endif
+#endif
         }
       else if (partition_settings == partition_metis)
         {
-#  ifndef DEAL_II_WITH_METIS
+#ifndef DEAL_II_WITH_METIS
           AssertThrow(false,
                       ExcMessage(
                         "Choosing 'partition_metis' requires the library "
@@ -132,11 +155,11 @@ namespace parallel
                         "Instead, you might use 'partition_auto' to select "
                         "a partitioning algorithm that is supported "
                         "by your current configuration."));
-#  else
+#else
           GridTools::partition_triangulation(this->n_subdomains,
                                              *this,
                                              SparsityTools::Partitioner::metis);
-#  endif
+#endif
         }
       else if (partition_settings == partition_zorder)
         {
@@ -279,7 +302,7 @@ namespace parallel
             true_subdomain_ids_of_cells[index] = cell->subdomain_id();
         }
 
-#  ifdef DEBUG
+#ifdef DEBUG
       {
         // Assert that each cell is owned by a processor
         unsigned int n_my_cells = 0;
@@ -314,7 +337,7 @@ namespace parallel
           Assert(total_cells == this->n_cells(),
                  ExcMessage("Not all cells are assigned to a processor."));
         }
-#  endif
+#endif
     }
 
 
@@ -431,53 +454,10 @@ namespace parallel
       if (settings & construct_multigrid_hierarchy)
         parallel::TriangulationBase<dim, spacedim>::fill_level_ghost_owners();
     }
+
   } // namespace shared
 } // namespace parallel
 
-#else
-
-namespace parallel
-{
-  namespace shared
-  {
-    template <int dim, int spacedim>
-    bool
-    Triangulation<dim, spacedim>::with_artificial_cells() const
-    {
-      Assert(false, ExcNotImplemented());
-      return true;
-    }
-
-    template <int dim, int spacedim>
-    bool
-    Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
-    {
-      return false;
-    }
-
-    template <int dim, int spacedim>
-    const std::vector<unsigned int> &
-    Triangulation<dim, spacedim>::get_true_subdomain_ids_of_cells() const
-    {
-      Assert(false, ExcNotImplemented());
-      return true_subdomain_ids_of_cells;
-    }
-
-
-
-    template <int dim, int spacedim>
-    const std::vector<unsigned int> &
-    Triangulation<dim, spacedim>::get_true_level_subdomain_ids_of_cells(
-      const unsigned int) const
-    {
-      Assert(false, ExcNotImplemented());
-      return true_level_subdomain_ids_of_cells;
-    }
-  } // namespace shared
-} // namespace parallel
-
-
-#endif
 
 
 /*-------------- Explicit Instantiations -------------------------------*/
