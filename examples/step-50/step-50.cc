@@ -232,7 +232,7 @@ namespace Step50
     , triangulation(mpi_communicator,
                     Triangulation<dim>::limit_level_difference_at_vertices,
                     parallel::distributed::Triangulation<
-                      dim>::construct_multigrid_hierarchy)
+                      dim>::Settings::construct_multigrid_hierarchy)
     , fe(degree)
     , dof_handler(triangulation)
     , degree(degree)

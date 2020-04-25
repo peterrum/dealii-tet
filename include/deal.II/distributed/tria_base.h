@@ -38,6 +38,15 @@ DEAL_II_NAMESPACE_OPEN
 
 namespace parallel
 {
+  namespace TriangulationPolicy
+  {
+    template <int dim, int spacedim>
+    class Base;
+  }
+} // namespace parallel
+
+namespace parallel
+{
   /**
    * This class describes the interface for all triangulation classes that
    * work in parallel, namely parallel::distributed::Triangulation,
@@ -81,6 +90,7 @@ namespace parallel
      */
     TriangulationBase(
       MPI_Comm mpi_communicator,
+      std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy,
       const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                  smooth_grid = (dealii::Triangulation<dim, spacedim>::none),
       const bool check_for_distorted_cells = false);
@@ -240,7 +250,7 @@ namespace parallel
     virtual std::vector<types::manifold_id>
     get_manifold_ids() const override;
 
-  protected:
+  public:
     /**
      * MPI communicator to be used for the triangulation. We create a unique
      * communicator for this class, which is a duplicate of the one passed to
@@ -296,11 +306,19 @@ namespace parallel
 
     NumberCache number_cache;
 
+  public:
     /**
      * Update the number_cache variable after mesh creation or refinement.
+     * [TODO] make protected again
      */
     virtual void
     update_number_cache();
+
+  public:
+    friend class dealii::parallel::TriangulationPolicy::Base<dim, spacedim>;
+
+    // should be private
+    std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy;
   };
 
   /**
@@ -363,6 +381,7 @@ namespace parallel
      */
     DistributedTriangulationBase(
       MPI_Comm mpi_communicator,
+      std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy,
       const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                  smooth_grid = (dealii::Triangulation<dim, spacedim>::none),
       const bool check_for_distorted_cells = false);

@@ -41,7 +41,8 @@ namespace parallel
 {
   template <int dim, int spacedim>
   TriangulationBase<dim, spacedim>::TriangulationBase(
-    MPI_Comm mpi_communicator,
+    MPI_Comm                                                  mpi_communicator,
+    std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy,
     const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                smooth_grid,
     const bool check_for_distorted_cells)
@@ -50,6 +51,7 @@ namespace parallel
     , mpi_communicator(mpi_communicator)
     , my_subdomain(Utilities::MPI::this_mpi_process(this->mpi_communicator))
     , n_subdomains(Utilities::MPI::n_mpi_processes(this->mpi_communicator))
+    , policy(policy)
   {
 #ifndef DEAL_II_WITH_MPI
     Assert(false, ExcNeedsMPI());
@@ -373,12 +375,14 @@ namespace parallel
 
   template <int dim, int spacedim>
   DistributedTriangulationBase<dim, spacedim>::DistributedTriangulationBase(
-    MPI_Comm mpi_communicator,
+    MPI_Comm                                                  mpi_communicator,
+    std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy,
     const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                smooth_grid,
     const bool check_for_distorted_cells)
     : dealii::parallel::TriangulationBase<dim, spacedim>(
         mpi_communicator,
+        policy,
         smooth_grid,
         check_for_distorted_cells)
   {}
