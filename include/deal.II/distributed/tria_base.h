@@ -38,6 +38,15 @@ DEAL_II_NAMESPACE_OPEN
 
 namespace parallel
 {
+  namespace TriangulationPolicy
+  {
+    template <int dim, int spacedim>
+    class Base;
+  }
+} // namespace parallel
+
+namespace parallel
+{
   /**
    * This class describes the interface for all triangulation classes that
    * work in parallel, namely parallel::distributed::Triangulation,
@@ -291,17 +300,23 @@ namespace parallel
 
     NumberCache number_cache;
 
+  public:
     /**
      * Update the number_cache variable after mesh creation or refinement.
+     * [TODO] make protected again
      */
     virtual void
     update_number_cache();
 
+  protected:
     /**
      * Store MPI ranks of level ghost owners of this processor on all levels.
      */
     void
     fill_level_ghost_owners();
+
+  private:
+    friend class dealii::parallel::TriangulationPolicy::Base<dim, spacedim>;
   };
 
   /**

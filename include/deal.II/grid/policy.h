@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (C) 2010 - 2018 by the deal.II authors
+// Copyright (C) 1998 - 2019 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -13,19 +13,25 @@
 //
 // ---------------------------------------------------------------------
 
+#ifndef dealii_tria_policy_h
+#define dealii_tria_policy_h
 
 
-for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension : DIMENSIONS)
-  {
-    namespace parallel
-    \{
-      namespace fullydistributed
-      \{
-#if deal_II_dimension <= deal_II_space_dimension
-        template class Policy<deal_II_dimension, deal_II_space_dimension>;
-        template class Triangulation<deal_II_dimension,
-                                     deal_II_space_dimension>;
+#include <deal.II/base/config.h>
+
+
+DEAL_II_NAMESPACE_OPEN
+
+
+namespace TriangulationPolicy
+{
+  template <int dim, int spacedim>
+  class Base
+  {};
+} // namespace TriangulationPolicy
+
+
+DEAL_II_NAMESPACE_CLOSE
+
+
 #endif
-      \}
-    \}
-  }

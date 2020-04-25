@@ -19,6 +19,7 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/distributed/policy.h>
 #include <deal.II/distributed/tria_base.h>
 
 #include <deal.II/grid/grid_tools.h>
@@ -50,6 +51,68 @@ namespace parallel
    */
   namespace fullydistributed
   {
+    template <int dim, int spacedim>
+    class Policy
+      : public dealii::parallel::TriangulationPolicy::Base<dim, spacedim>
+    {
+    public:
+      Policy(dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+             MPI_Comm mpi_communicator);
+
+      void
+      create_triangulation(
+        const TriangulationDescription::Description<dim, spacedim>
+          &construction_data);
+
+    private:
+      /**
+       * Reference to the underlying triangulation.
+       */
+      dealii::Triangulation<dim, spacedim> &tria;
+      /**
+       * Reference to the underlying parallel triangulation [TODO] remove.
+       */
+      dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
+
+      /**
+       * store the Settings.
+       */
+      TriangulationDescription::Settings settings;
+
+      /**
+       * Partitioner used in copy_triangulation().
+       */
+      std::function<void(dealii::Triangulation<dim, spacedim> &,
+                         const unsigned int)>
+        partitioner;
+
+      /**
+       * Sorted list of pairs of coarse-cell ids and their indices.
+       */
+      std::vector<std::pair<types::coarse_cell_id, unsigned int>>
+        coarse_cell_id_to_coarse_cell_index_vector;
+
+      /**
+       * List of the coarse-cell id for each coarse cell (stored at
+       * cell->index()).
+       */
+      std::vector<types::coarse_cell_id>
+        coarse_cell_index_to_coarse_cell_id_vector;
+
+      /**
+       * Boolean indicating that the function create_triangulation() was called
+       * for internal usage.
+       */
+      bool currently_processing_create_triangulation_for_internal_usage;
+
+      /**
+       * Boolean indicating that the function
+       * prepare_coarsening_and_refinement() was called for internal usage.
+       */
+      bool
+        currently_processing_prepare_coarsening_and_refinement_for_internal_usage;
+    };
+
     /**
      * A distributed triangulation with a distributed coarse grid.
      *
@@ -286,6 +349,11 @@ namespace parallel
        */
       bool
         currently_processing_prepare_coarsening_and_refinement_for_internal_usage;
+
+      /**
+       * A fully-distributed triangulation policy. [TODO] move up
+       */
+      Policy<dim, spacedim> policy;
     };
 
   } // namespace fullydistributed

@@ -40,6 +40,18 @@ namespace parallel
   namespace fullydistributed
   {
     template <int dim, int spacedim>
+    Policy<dim, spacedim>::Policy(
+      dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+      MPI_Comm                                            mpi_communicator)
+      : dealii::parallel::TriangulationPolicy::Base<dim, spacedim>(
+          mpi_communicator)
+      , tria(tria)
+      , tria_parallel(tria)
+    {}
+
+
+
+    template <int dim, int spacedim>
     Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
       : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
       , settings(TriangulationDescription::Settings::default_setting)
@@ -50,6 +62,7 @@ namespace parallel
       , currently_processing_create_triangulation_for_internal_usage(false)
       , currently_processing_prepare_coarsening_and_refinement_for_internal_usage(
           false)
+      , policy(*this, mpi_communicator)
     {}
 
 
@@ -57,6 +70,17 @@ namespace parallel
     template <int dim, int spacedim>
     void
     Triangulation<dim, spacedim>::create_triangulation(
+      const TriangulationDescription::Description<dim, spacedim>
+        &construction_data)
+    {
+      this->policy.create_triangulation(construction_data);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Policy<dim, spacedim>::create_triangulation(
       const TriangulationDescription::Description<dim, spacedim>
         &construction_data)
     {
@@ -71,13 +95,13 @@ namespace parallel
       // set the smoothing properties
       if (settings &
           TriangulationDescription::Settings::construct_multigrid_hierarchy)
-        this->set_mesh_smoothing(
+        tria.set_mesh_smoothing(
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             dealii::Triangulation<dim>::none |
             Triangulation<dim, spacedim>::limit_level_difference_at_vertices));
       else
-        this->set_mesh_smoothing(
+        tria.set_mesh_smoothing(
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             dealii::Triangulation<dim>::none));
@@ -91,11 +115,11 @@ namespace parallel
         {
           // 1) create a dummy hypercube
           currently_processing_create_triangulation_for_internal_usage = true;
-          GridGenerator::hyper_cube(*this, 0, 1, false);
+          GridGenerator::hyper_cube(tria, 0, 1, false);
           currently_processing_create_triangulation_for_internal_usage = false;
 
           // 2) mark cell as artificial
-          auto cell = this->begin();
+          auto cell = tria.begin();
           cell->set_subdomain_id(dealii::numbers::artificial_subdomain_id);
           cell->set_level_subdomain_id(
             dealii::numbers::artificial_subdomain_id);
@@ -129,7 +153,7 @@ namespace parallel
           currently_processing_prepare_coarsening_and_refinement_for_internal_usage =
             true;
           currently_processing_create_triangulation_for_internal_usage = true;
-          dealii::Triangulation<dim, spacedim>::create_triangulation(
+          tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
             construction_data);
           currently_processing_prepare_coarsening_and_refinement_for_internal_usage =
             false;
@@ -140,7 +164,7 @@ namespace parallel
 
           // 4a) set all cells artificial (and set the actual
           //     (level_)subdomain_ids in the next step)
-          for (auto cell = this->begin(); cell != this->end(); ++cell)
+          for (auto cell = tria.begin(); cell != tria.end(); ++cell)
             {
               if (cell->is_active())
                 cell->set_subdomain_id(
@@ -153,7 +177,7 @@ namespace parallel
           // 4b) set actual (level_)subdomain_ids
           for (unsigned int level = 0; level < cell_infos.size(); ++level)
             {
-              auto cell      = this->begin(level);
+              auto cell      = tria.begin(level);
               auto cell_info = cell_infos[level].begin();
               for (; cell_info != cell_infos[level].end(); ++cell_info)
                 {
@@ -173,7 +197,7 @@ namespace parallel
             }
         }
 
-      update_number_cache();
+      tria_parallel.update_number_cache();
     }
 
 
