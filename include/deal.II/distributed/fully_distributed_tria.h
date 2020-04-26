@@ -97,6 +97,38 @@ namespace parallel
         const dealii::Triangulation<dim, spacedim> &other_tria);
 
       /**
+       * Override the implementation of prepare_coarsening_and_refinement from
+       * the base class.
+       *
+       * @note Not implemented yet.
+       */
+      virtual bool
+      prepare_coarsening_and_refinement();
+
+      /**
+       * Coarsen and refine the mesh according to refinement and coarsening
+       * flags set.
+       *
+       * @note Not implemented yet.
+       */
+      virtual void
+      execute_coarsening_and_refinement();
+
+      /**
+       * Return if multilevel hierarchy is supported and has been constructed.
+       */
+      virtual bool
+      is_multilevel_hierarchy_constructed() const;
+
+      virtual unsigned int
+      coarse_cell_id_to_coarse_cell_index(
+        const types::coarse_cell_id coarse_cell_id) const;
+
+      virtual types::coarse_cell_id
+      coarse_cell_index_to_coarse_cell_id(
+        const unsigned int coarse_cell_index) const;
+
+      /**
        * Register a partitioner, which is used within the method
        * copy_triangulation.
        *
@@ -119,41 +151,12 @@ namespace parallel
                                  const unsigned int)> &partitioner,
         const TriangulationDescription::Settings &     settings);
 
-      /**
-       * Coarsen and refine the mesh according to refinement and coarsening
-       * flags set.
-       *
-       * @note Not implemented yet.
-       */
-      virtual void
-      execute_coarsening_and_refinement();
-
-      /**
-       * Override the implementation of prepare_coarsening_and_refinement from
-       * the base class.
-       *
-       * @note Not implemented yet.
-       */
-      virtual bool
-      prepare_coarsening_and_refinement();
-
-      virtual bool
-      is_multilevel_hierarchy_constructed() const;
-
-      virtual unsigned int
-      coarse_cell_id_to_coarse_cell_index(
-        const types::coarse_cell_id coarse_cell_id) const;
-
-      virtual types::coarse_cell_id
-      coarse_cell_index_to_coarse_cell_id(
-        const unsigned int coarse_cell_index) const;
-
     private:
       /**
        * Override the function to update the number cache so we can fill data
        * like @p level_ghost_owners.
        */
-      virtual void
+      void
       update_number_cache();
 
       /**

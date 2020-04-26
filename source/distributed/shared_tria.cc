@@ -38,8 +38,8 @@ namespace parallel
     Policy<dim, spacedim>::Policy(
       dealii::parallel::TriangulationBase<dim, spacedim> &tria,
       MPI_Comm                                            mpi_communicator,
-      const bool allow_artificial_cells,
-      const typename Triangulation<dim, spacedim>::Settings settings)
+      const bool     allow_artificial_cells,
+      const Settings settings)
       : dealii::parallel::TriangulationPolicy::Base<dim, spacedim>(
           mpi_communicator)
       , tria(tria)
@@ -48,28 +48,19 @@ namespace parallel
       , allow_artificial_cells(allow_artificial_cells)
     {
       const auto partition_settings =
-        (Triangulation<dim, spacedim>::Settings::partition_zoltan |
-         Triangulation<dim, spacedim>::Settings::partition_metis |
-         Triangulation<dim, spacedim>::Settings::partition_zorder |
-         Triangulation<dim, spacedim>::Settings::partition_custom_signal) &
+        (Settings::partition_zoltan | Settings::partition_metis |
+         Settings::partition_zorder | Settings::partition_custom_signal) &
         settings;
       (void)partition_settings;
-      Assert(
-        (partition_settings ==
-         Triangulation<dim, spacedim>::Settings::partition_auto) ||
-          (partition_settings ==
-           Triangulation<dim, spacedim>::Settings::partition_metis) ||
-          (partition_settings ==
-           Triangulation<dim, spacedim>::Settings::partition_zoltan) ||
-          (partition_settings ==
-           Triangulation<dim, spacedim>::Settings::partition_zorder) ||
-          (partition_settings ==
-           Triangulation<dim, spacedim>::Settings::partition_custom_signal),
-        ExcMessage("Settings must contain exactly one type of the active "
-                   "cell partitioning scheme."));
+      Assert((partition_settings == Settings::partition_auto) ||
+               (partition_settings == Settings::partition_metis) ||
+               (partition_settings == Settings::partition_zoltan) ||
+               (partition_settings == Settings::partition_zorder) ||
+               (partition_settings == Settings::partition_custom_signal),
+             ExcMessage("Settings must contain exactly one type of the active "
+                        "cell partitioning scheme."));
 
-      if (settings &
-          Triangulation<dim, spacedim>::Settings::construct_multigrid_hierarchy)
+      if (settings & Settings::construct_multigrid_hierarchy)
         Assert(allow_artificial_cells,
                ExcMessage("construct_multigrid_hierarchy requires "
                           "allow_artificial_cells to be set to true."));
@@ -81,9 +72,7 @@ namespace parallel
     bool
     Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
-      return (
-        settings &
-        Triangulation<dim, spacedim>::Settings::construct_multigrid_hierarchy);
+      return (settings & Settings::construct_multigrid_hierarchy);
     }
 
 
@@ -111,26 +100,19 @@ namespace parallel
 #endif
 
       auto partition_settings =
-        (Triangulation<dim, spacedim>::Settings::partition_zoltan |
-         Triangulation<dim, spacedim>::Settings::partition_metis |
-         Triangulation<dim, spacedim>::Settings::partition_zorder |
-         Triangulation<dim, spacedim>::Settings::partition_custom_signal) &
+        (Settings::partition_zoltan | Settings::partition_metis |
+         Settings::partition_zorder | Settings::partition_custom_signal) &
         settings;
-      if (partition_settings ==
-          Triangulation<dim, spacedim>::Settings::partition_auto)
+      if (partition_settings == Settings::partition_auto)
 #ifdef DEAL_II_TRILINOS_WITH_ZOLTAN
-        partition_settings =
-          Triangulation<dim, spacedim>::Settings::partition_zoltan;
+        partition_settings = Settings::partition_zoltan;
 #elif defined DEAL_II_WITH_METIS
-        partition_settings =
-          Triangulation<dim, spacedim>::Settings::partition_metis;
+        partition_settings = Settings::partition_metis;
 #else
-        partition_settings =
-          Triangulation<dim, spacedim>::Settings::partition_zorder;
+        partition_settings = Settings::partition_zorder;
 #endif
 
-      if (partition_settings ==
-          Triangulation<dim, spacedim>::Settings::partition_zoltan)
+      if (partition_settings == Settings::partition_zoltan)
         {
 #ifndef DEAL_II_TRILINOS_WITH_ZOLTAN
           AssertThrow(false,
@@ -145,8 +127,7 @@ namespace parallel
             n_subdomains, tria, SparsityTools::Partitioner::zoltan);
 #endif
         }
-      else if (partition_settings ==
-               Triangulation<dim, spacedim>::Settings::partition_metis)
+      else if (partition_settings == Settings::partition_metis)
         {
 #ifndef DEAL_II_WITH_METIS
           AssertThrow(false,
@@ -162,13 +143,11 @@ namespace parallel
                                              SparsityTools::Partitioner::metis);
 #endif
         }
-      else if (partition_settings ==
-               Triangulation<dim, spacedim>::Settings::partition_zorder)
+      else if (partition_settings == Settings::partition_zorder)
         {
           GridTools::partition_triangulation_zorder(n_subdomains, tria);
         }
-      else if (partition_settings ==
-               Triangulation<dim, spacedim>::Settings::partition_custom_signal)
+      else if (partition_settings == Settings::partition_custom_signal)
         {
           // User partitions mesh manually
         }
@@ -182,8 +161,7 @@ namespace parallel
       if ((settings &
            Triangulation<dim,
                          spacedim>::Settings::construct_multigrid_hierarchy) &&
-          !(settings &
-            Triangulation<dim, spacedim>::Settings::partition_custom_signal))
+          !(settings & Settings::partition_custom_signal))
         dealii::GridTools::partition_multigrid_levels(tria);
 
       true_subdomain_ids_of_cells.resize(tria.n_active_cells());
@@ -310,8 +288,7 @@ namespace parallel
 
       // If running with multigrid, assert that each level
       // cell is owned by a processor
-      if (settings &
-          Triangulation<dim, spacedim>::Settings::construct_multigrid_hierarchy)
+      if (settings & Settings::construct_multigrid_hierarchy)
         {
           unsigned int n_my_cells = 0;
           auto         cell       = tria.begin();
@@ -442,8 +419,7 @@ namespace parallel
       tria_parallel
         .parallel::TriangulationBase<dim, spacedim>::update_number_cache();
 
-      if (settings &
-          Triangulation<dim, spacedim>::Settings::construct_multigrid_hierarchy)
+      if (settings & Settings::construct_multigrid_hierarchy)
         tria_parallel
           .parallel::TriangulationBase<dim,
                                        spacedim>::fill_level_ghost_owners();
