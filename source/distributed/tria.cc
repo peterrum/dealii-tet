@@ -2168,7 +2168,7 @@ namespace parallel
       // for clarity be explicit on which function is called
       try
         {
-          tria.dealii::Triangulation<dim, spacedim>::clear();
+          this->clear();
         }
       catch (...)
         {}
@@ -3147,7 +3147,7 @@ namespace parallel
         /* use uniform upfront refinement */ 1,
         /* user_data_size = */ 0,
         /* user_data_constructor = */ nullptr,
-        /* user_pointer */ this);
+        /* user_pointer */ &tria);
     }
 
 
@@ -3222,7 +3222,7 @@ namespace parallel
         /* use uniform upfront refinement */ 1,
         /* user_data_size = */ 0,
         /* user_data_constructor = */ nullptr,
-        /* user_pointer */ this);
+        /* user_pointer */ &tria);
     }
 
 
@@ -3375,7 +3375,7 @@ namespace parallel
         /* use uniform upfront refinement */ 1,
         /* user_data_size = */ 0,
         /* user_data_constructor = */ nullptr,
-        /* user_pointer */ this);
+        /* user_pointer */ &tria);
     }
 
 
