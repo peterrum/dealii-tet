@@ -873,31 +873,32 @@ namespace parallel
       /**
        * store the Settings.
        */
-      Settings settings;
+      // Settings settings;
 
       /**
        * A flag that indicates whether the triangulation has actual content.
        */
-      bool triangulation_has_content;
+      // bool triangulation_has_content;
 
       /**
        * A data structure that holds the connectivity between trees. Since
        * each tree is rooted in a coarse grid cell, this data structure holds
        * the connectivity between the cells of the coarse grid.
        */
-      typename dealii::internal::p4est::types<dim>::connectivity *connectivity;
+      // typename dealii::internal::p4est::types<dim>::connectivity
+      // *connectivity;
 
       /**
        * A data structure that holds the local part of the global
        * triangulation.
        */
-      typename dealii::internal::p4est::types<dim>::forest *parallel_forest;
+      // typename dealii::internal::p4est::types<dim>::forest *parallel_forest;
 
       /**
        * A data structure that holds some information about the ghost cells of
        * the triangulation.
        */
-      typename dealii::internal::p4est::types<dim>::ghost *parallel_ghost;
+      // typename dealii::internal::p4est::types<dim>::ghost *parallel_ghost;
 
       /**
        * A structure that stores information about the data that has been, or
@@ -930,7 +931,7 @@ namespace parallel
         std::vector<pack_callback_t> pack_callbacks_variable;
       };
 
-      CellAttachedData cell_attached_data;
+      // CellAttachedData cell_attached_data;
 
       /**
        * This auxiliary data structure stores the relation between a p4est
@@ -951,7 +952,7 @@ namespace parallel
        * The size of this vector is assumed to be equal to the number of locally
        * owned quadrants in the parallel_forest object.
        */
-      std::vector<quadrant_cell_relation_t> local_quadrant_cell_relations;
+      // std::vector<quadrant_cell_relation_t> local_quadrant_cell_relations;
 
       /**
        * Go through all p4est trees and store the relations between locally
@@ -1139,7 +1140,7 @@ namespace parallel
         std::vector<char> dest_data_variable;
       };
 
-      DataTransfer data_transfer;
+      //      DataTransfer data_transfer;
 
       /**
        * Two arrays that store which p4est tree corresponds to which coarse
@@ -1154,10 +1155,10 @@ namespace parallel
        * forest stored by p4est is located on geometrically close coarse grid
        * cells.
        */
-      std::vector<types::global_dof_index>
-        coarse_cell_to_p4est_tree_permutation;
-      std::vector<types::global_dof_index>
-        p4est_tree_to_coarse_cell_permutation;
+      //      std::vector<types::global_dof_index>
+      //        coarse_cell_to_p4est_tree_permutation;
+      //      std::vector<types::global_dof_index>
+      //        p4est_tree_to_coarse_cell_permutation;
 
       /**
        * Return a pointer to the p4est tree that belongs to the given
@@ -1230,7 +1231,7 @@ namespace parallel
       template <int, int, class>
       friend class dealii::FETools::internal::ExtrapolateImplementation;
 
-    private:
+    public:
       std::shared_ptr<Policy<dim, spacedim>> policy;
     };
 
@@ -1260,6 +1261,8 @@ namespace parallel
       Policy(dealii::parallel::TriangulationBase<dim, spacedim> &tria,
              MPI_Comm       mpi_communicator,
              const Settings settings);
+
+      virtual ~Policy();
 
       std::vector<unsigned int>
       get_cell_weights() const;
@@ -1359,8 +1362,6 @@ namespace parallel
       virtual bool
       has_hanging_nodes() const;
 
-
-      //////////////////////////////////////////////////////////////////////////
       void
       save(const std::string &filename) const;
 
@@ -1467,6 +1468,10 @@ namespace parallel
         coarse_cell_to_p4est_tree_permutation;
       std::vector<types::global_dof_index>
         p4est_tree_to_coarse_cell_permutation;
+
+
+      template <int, int, class>
+      friend class dealii::FETools::internal::ExtrapolateImplementation;
     };
 
 

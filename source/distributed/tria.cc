@@ -2122,6 +2122,7 @@ namespace parallel
       , triangulation_has_content(false)
       , connectivity(nullptr)
       , parallel_forest(nullptr)
+      , parallel_ghost(nullptr)
       , cell_attached_data({0, 0, {}, {}})
       , data_transfer(mpi_communicator)
     {}
@@ -2146,28 +2147,28 @@ namespace parallel
             Triangulation<dim, spacedim>::limit_level_difference_at_vertices) :
           smooth_grid,
         false)
-      , settings(settings)
-      , triangulation_has_content(false)
-      , connectivity(nullptr)
-      , parallel_forest(nullptr)
-      , cell_attached_data({0, 0, {}, {}})
-      , data_transfer(mpi_communicator)
       , policy(new Policy(*this, mpi_communicator, settings))
-    {
-      parallel_ghost = nullptr;
-    }
+    {}
 
 
 
     template <int dim, int spacedim>
     Triangulation<dim, spacedim>::~Triangulation()
     {
+      // nothing to do: the policy does the work
+    }
+
+
+
+    template <int dim, int spacedim>
+    Policy<dim, spacedim>::~Policy()
+    {
       // virtual functions called in constructors and destructors never use the
       // override in a derived class
       // for clarity be explicit on which function is called
       try
         {
-          Triangulation<dim, spacedim>::clear();
+          tria.dealii::Triangulation<dim, spacedim>::clear();
         }
       catch (...)
         {}
@@ -5149,13 +5150,13 @@ namespace parallel
                              Triangulation<dim, spacedim> *>(&other_tria))
         {
           coarse_cell_to_p4est_tree_permutation =
-            other_tria_x->coarse_cell_to_p4est_tree_permutation;
+            other_tria_x->policy->coarse_cell_to_p4est_tree_permutation;
           p4est_tree_to_coarse_cell_permutation =
-            other_tria_x->p4est_tree_to_coarse_cell_permutation;
-          cell_attached_data = other_tria_x->cell_attached_data;
-          data_transfer      = other_tria_x->data_transfer;
+            other_tria_x->policy->p4est_tree_to_coarse_cell_permutation;
+          cell_attached_data = other_tria_x->policy->cell_attached_data;
+          data_transfer      = other_tria_x->policy->data_transfer;
 
-          settings = other_tria_x->settings;
+          settings = other_tria_x->policy->settings;
         }
       else
         {
