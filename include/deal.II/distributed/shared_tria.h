@@ -268,15 +268,6 @@ namespace parallel
 
     private:
       /**
-       * Reference to the underlying triangulation.
-       */
-      dealii::Triangulation<dim, spacedim> &tria;
-      /**
-       * Reference to the underlying parallel triangulation [TODO] remove.
-       */
-      dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
-
-      /**
        * Settings
        */
       const Settings settings;
@@ -526,7 +517,7 @@ namespace parallel
     void
     Policy<dim, spacedim>::load(Archive &ar, const unsigned int version)
     {
-      tria.dealii::Triangulation<dim, spacedim>::load(ar, version);
+      this->tria.dealii::Triangulation<dim, spacedim>::load(ar, version);
       partition();
       update_number_cache();
     }

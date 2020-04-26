@@ -19,6 +19,8 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/distributed/tria_base.h>
+
 #include <deal.II/grid/policy.h>
 
 
@@ -32,12 +34,15 @@ namespace parallel
     class Base : public dealii::TriangulationPolicy::Base<dim, spacedim>
     {
     public:
-      Base(MPI_Comm mpi_communicator)
-        : dealii::TriangulationPolicy::Base<dim, spacedim>()
+      Base(dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel,
+           MPI_Comm                                            mpi_communicator)
+        : dealii::TriangulationPolicy::Base<dim, spacedim>(tria_parallel)
+        , tria_parallel(tria_parallel)
         , mpi_communicator(mpi_communicator){};
 
     protected:
-      MPI_Comm mpi_communicator;
+      dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
+      MPI_Comm                                            mpi_communicator;
     };
   } // namespace TriangulationPolicy
 } // namespace parallel

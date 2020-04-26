@@ -44,9 +44,8 @@ namespace parallel
       dealii::parallel::TriangulationBase<dim, spacedim> &tria,
       MPI_Comm                                            mpi_communicator)
       : dealii::parallel::TriangulationPolicy::Base<dim, spacedim>(
+          tria,
           mpi_communicator)
-      , tria(tria)
-      , tria_parallel(tria)
       , settings(TriangulationDescription::Settings::default_setting)
       , partitioner([](dealii::Triangulation<dim, spacedim> &tria,
                        const unsigned int                    n_partitions) {
@@ -76,13 +75,13 @@ namespace parallel
       // set the smoothing properties
       if (settings &
           TriangulationDescription::Settings::construct_multigrid_hierarchy)
-        tria.set_mesh_smoothing(
+        this->tria.set_mesh_smoothing(
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             dealii::Triangulation<dim>::none |
             Triangulation<dim, spacedim>::limit_level_difference_at_vertices));
       else
-        tria.set_mesh_smoothing(
+        this->tria.set_mesh_smoothing(
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             dealii::Triangulation<dim>::none));
@@ -96,11 +95,11 @@ namespace parallel
         {
           // 1) create a dummy hypercube
           currently_processing_create_triangulation_for_internal_usage = true;
-          GridGenerator::hyper_cube(tria, 0, 1, false);
+          GridGenerator::hyper_cube(this->tria, 0, 1, false);
           currently_processing_create_triangulation_for_internal_usage = false;
 
           // 2) mark cell as artificial
-          auto cell = tria.begin();
+          auto cell = this->tria.begin();
           cell->set_subdomain_id(dealii::numbers::artificial_subdomain_id);
           cell->set_level_subdomain_id(
             dealii::numbers::artificial_subdomain_id);
@@ -134,7 +133,7 @@ namespace parallel
           currently_processing_prepare_coarsening_and_refinement_for_internal_usage =
             true;
           currently_processing_create_triangulation_for_internal_usage = true;
-          tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
+          this->tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
             construction_data);
           currently_processing_prepare_coarsening_and_refinement_for_internal_usage =
             false;
@@ -145,7 +144,7 @@ namespace parallel
 
           // 4a) set all cells artificial (and set the actual
           //     (level_)subdomain_ids in the next step)
-          for (auto cell = tria.begin(); cell != tria.end(); ++cell)
+          for (auto cell = this->tria.begin(); cell != this->tria.end(); ++cell)
             {
               if (cell->is_active())
                 cell->set_subdomain_id(
@@ -158,7 +157,7 @@ namespace parallel
           // 4b) set actual (level_)subdomain_ids
           for (unsigned int level = 0; level < cell_infos.size(); ++level)
             {
-              auto cell      = tria.begin(level);
+              auto cell      = this->tria.begin(level);
               auto cell_info = cell_infos[level].begin();
               for (; cell_info != cell_infos[level].end(); ++cell_info)
                 {
@@ -195,7 +194,7 @@ namespace parallel
         ExcMessage(
           "Use the other create_triangulation() function to create triangulations of type parallel::fullydistributed::Triangulation.!"));
 
-      tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
+      this->tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
         vertices, cells, subcelldata);
     }
 
@@ -236,7 +235,7 @@ namespace parallel
                               this->mpi_communicator));
 
           // partition multigrid levels
-          if (tria_parallel.is_multilevel_hierarchy_constructed())
+          if (this->tria_parallel.is_multilevel_hierarchy_constructed())
             GridTools::partition_multigrid_levels(*serial_tria);
 
           // use the new serial triangulation to create the construction data
@@ -248,7 +247,7 @@ namespace parallel
         create_description_from_triangulation(
           *other_tria_ptr,
           this->mpi_communicator,
-          tria_parallel.is_multilevel_hierarchy_constructed());
+          this->tria_parallel.is_multilevel_hierarchy_constructed());
 
       // finally create triangulation
       this->create_triangulation(construction_data);
@@ -273,11 +272,11 @@ namespace parallel
     void
     Policy<dim, spacedim>::update_number_cache()
     {
-      tria_parallel.update_number_cache();
+      this->tria_parallel.update_number_cache();
 
       if (settings &
           TriangulationDescription::Settings::construct_multigrid_hierarchy)
-        tria_parallel.fill_level_ghost_owners();
+        this->tria_parallel.fill_level_ghost_owners();
     }
 
 
@@ -299,7 +298,7 @@ namespace parallel
         currently_processing_prepare_coarsening_and_refinement_for_internal_usage,
         ExcMessage("No coarsening and refinement is supported!"));
 
-      return tria
+      return this->tria
         .dealii::Triangulation<dim,
                                spacedim>::prepare_coarsening_and_refinement();
     }

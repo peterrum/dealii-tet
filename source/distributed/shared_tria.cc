@@ -41,9 +41,8 @@ namespace parallel
       const bool     allow_artificial_cells,
       const Settings settings)
       : dealii::parallel::TriangulationPolicy::Base<dim, spacedim>(
+          tria,
           mpi_communicator)
-      , tria(tria)
-      , tria_parallel(tria)
       , settings(settings)
       , allow_artificial_cells(allow_artificial_cells)
     {
@@ -90,9 +89,10 @@ namespace parallel
       // Check that all meshes are the same (or at least have the same
       // total number of active cells):
       const unsigned int max_active_cells =
-        Utilities::MPI::max(tria.n_active_cells(), this->mpi_communicator);
+        Utilities::MPI::max(this->tria.n_active_cells(),
+                            this->mpi_communicator);
       Assert(
-        max_active_cells == tria.n_active_cells(),
+        max_active_cells == this->tria.n_active_cells(),
         ExcMessage(
           "A parallel::shared::Triangulation needs to be refined in the same "
           "way on all processors, but the participating processors don't "
@@ -124,7 +124,7 @@ namespace parallel
                         "by your current configuration."));
 #else
           GridTools::partition_triangulation(
-            n_subdomains, tria, SparsityTools::Partitioner::zoltan);
+            n_subdomains, this->tria, SparsityTools::Partitioner::zoltan);
 #endif
         }
       else if (partition_settings == Settings::partition_metis)
@@ -139,13 +139,13 @@ namespace parallel
                         "by your current configuration."));
 #else
           GridTools::partition_triangulation(n_subdomains,
-                                             tria,
+                                             this->tria,
                                              SparsityTools::Partitioner::metis);
 #endif
         }
       else if (partition_settings == Settings::partition_zorder)
         {
-          GridTools::partition_triangulation_zorder(n_subdomains, tria);
+          GridTools::partition_triangulation_zorder(n_subdomains, this->tria);
         }
       else if (partition_settings == Settings::partition_custom_signal)
         {
@@ -162,13 +162,13 @@ namespace parallel
            Triangulation<dim,
                          spacedim>::Settings::construct_multigrid_hierarchy) &&
           !(settings & Settings::partition_custom_signal))
-        dealii::GridTools::partition_multigrid_levels(tria);
+        dealii::GridTools::partition_multigrid_levels(this->tria);
 
-      true_subdomain_ids_of_cells.resize(tria.n_active_cells());
+      true_subdomain_ids_of_cells.resize(this->tria.n_active_cells());
 
       // loop over all cells and mark artificial:
-      auto cell = tria.begin_active();
-      auto endc = tria.end();
+      auto cell = this->tria.begin_active();
+      auto endc = this->tria.end();
 
       if (allow_artificial_cells)
         {
@@ -177,7 +177,8 @@ namespace parallel
           auto predicate = IteratorFilters::SubdomainEqualTo(my_subdomain);
 
           auto active_halo_layer_vector =
-            dealii::GridTools::compute_active_cell_halo_layer(tria, predicate);
+            dealii::GridTools::compute_active_cell_halo_layer(this->tria,
+                                                              predicate);
           std::set<typename Triangulation<dim, spacedim>::active_cell_iterator>
             active_halo_layer(active_halo_layer_vector.begin(),
                               active_halo_layer_vector.end());
@@ -197,23 +198,23 @@ namespace parallel
               Triangulation<dim,
                             spacedim>::Settings::construct_multigrid_hierarchy)
             {
-              true_level_subdomain_ids_of_cells.resize(tria.n_levels());
+              true_level_subdomain_ids_of_cells.resize(this->tria.n_levels());
 
               auto predicate = IteratorFilters::LocallyOwnedLevelCell();
-              for (unsigned int lvl = 0; lvl < tria.n_levels(); ++lvl)
+              for (unsigned int lvl = 0; lvl < this->tria.n_levels(); ++lvl)
                 {
                   true_level_subdomain_ids_of_cells[lvl].resize(
-                    tria.n_cells(lvl));
+                    this->tria.n_cells(lvl));
 
                   const auto level_halo_layer_vector =
                     dealii::GridTools::compute_cell_halo_layer_on_level(
-                      tria, predicate, lvl);
+                      this->tria, predicate, lvl);
                   std::set<typename Triangulation<dim, spacedim>::cell_iterator>
                     level_halo_layer(level_halo_layer_vector.begin(),
                                      level_halo_layer_vector.end());
 
-                  auto cell = tria.begin(lvl);
-                  auto endc = tria.end(lvl);
+                  auto cell = this->tria.begin(lvl);
+                  auto endc = this->tria.end(lvl);
                   for (unsigned int index = 0; cell != endc; cell++, index++)
                     {
                       // Store true level subdomain IDs before setting
@@ -274,15 +275,15 @@ namespace parallel
       {
         // Assert that each cell is owned by a processor
         unsigned int n_my_cells = 0;
-        auto         cell       = tria.begin_active();
-        auto         endc       = tria.end();
+        auto         cell       = this->tria.begin_active();
+        auto         endc       = this->tria.end();
         for (; cell != endc; ++cell)
           if (cell->is_locally_owned())
             n_my_cells += 1;
 
         const unsigned int total_cells =
           Utilities::MPI::sum(n_my_cells, this->mpi_communicator);
-        Assert(total_cells == tria.n_active_cells(),
+        Assert(total_cells == this->tria.n_active_cells(),
                ExcMessage("Not all cells are assigned to a processor."));
       }
 
@@ -291,15 +292,15 @@ namespace parallel
       if (settings & Settings::construct_multigrid_hierarchy)
         {
           unsigned int n_my_cells = 0;
-          auto         cell       = tria.begin();
-          auto         endc       = tria.end();
+          auto         cell       = this->tria.begin();
+          auto         endc       = this->tria.end();
           for (; cell != endc; ++cell)
             if (cell->is_locally_owned_on_level())
               n_my_cells += 1;
 
           const unsigned int total_cells =
             Utilities::MPI::sum(n_my_cells, this->mpi_communicator);
-          Assert(total_cells == tria.n_cells(),
+          Assert(total_cells == this->tria.n_cells(),
                  ExcMessage("Not all cells are assigned to a processor."));
         }
 #endif
@@ -320,8 +321,9 @@ namespace parallel
     void
     Policy<dim, spacedim>::execute_coarsening_and_refinement()
     {
-      tria.dealii::Triangulation<dim,
-                                 spacedim>::execute_coarsening_and_refinement();
+      this->tria
+        .dealii::Triangulation<dim,
+                               spacedim>::execute_coarsening_and_refinement();
       this->partition();
       this->update_number_cache();
     }
@@ -336,7 +338,7 @@ namespace parallel
       Assert(level < true_level_subdomain_ids_of_cells.size(),
              ExcInternalError());
       Assert(true_level_subdomain_ids_of_cells[level].size() ==
-               tria.n_cells(level),
+               this->tria.n_cells(level),
              ExcInternalError());
       return true_level_subdomain_ids_of_cells[level];
     }
@@ -361,7 +363,7 @@ namespace parallel
     {
       try
         {
-          tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
+          this->tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
             vertices, cells, subcelldata);
         }
       catch (
@@ -403,7 +405,7 @@ namespace parallel
         ExcMessage(
           "Cannot use this function on parallel::distributed::Triangulation."));
 
-      tria_parallel
+      this->tria_parallel
         .dealii::parallel::TriangulationBase<dim, spacedim>::copy_triangulation(
           other_tria);
       this->partition();
@@ -416,11 +418,11 @@ namespace parallel
     void
     Policy<dim, spacedim>::update_number_cache()
     {
-      tria_parallel
+      this->tria_parallel
         .parallel::TriangulationBase<dim, spacedim>::update_number_cache();
 
       if (settings & Settings::construct_multigrid_hierarchy)
-        tria_parallel
+        this->tria_parallel
           .parallel::TriangulationBase<dim,
                                        spacedim>::fill_level_ghost_owners();
     }

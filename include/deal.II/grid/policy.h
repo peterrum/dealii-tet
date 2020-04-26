@@ -19,6 +19,8 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/grid/tria.h>
+
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -27,7 +29,15 @@ namespace TriangulationPolicy
 {
   template <int dim, int spacedim>
   class Base
-  {};
+  {
+  public:
+    Base(Triangulation<dim, spacedim> &tria)
+      : tria(tria)
+    {}
+
+  protected:
+    dealii::Triangulation<dim, spacedim> &tria;
+  };
 } // namespace TriangulationPolicy
 
 

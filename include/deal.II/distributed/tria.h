@@ -1383,15 +1383,6 @@ namespace parallel
 
     private:
       /**
-       * Reference to the underlying triangulation.
-       */
-      dealii::Triangulation<dim, spacedim> &tria;
-      /**
-       * Reference to the underlying parallel triangulation [TODO] remove.
-       */
-      dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
-
-      /**
        * store the Settings.
        */
       Settings settings;
