@@ -1122,8 +1122,7 @@ namespace parallel
 
 
     template <int dim, int spacedim>
-    Triangulation<dim, spacedim>::DataTransfer::DataTransfer(
-      MPI_Comm mpi_communicator)
+    Policy<dim, spacedim>::DataTransfer::DataTransfer(MPI_Comm mpi_communicator)
       : mpi_communicator(mpi_communicator)
       , variable_size_data_stored(false)
     {}
@@ -1132,7 +1131,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::pack_data(
+    Policy<dim, spacedim>::DataTransfer::pack_data(
       const std::vector<quadrant_cell_relation_t> &quad_cell_relations,
       const std::vector<typename CellAttachedData::pack_callback_t>
         &pack_callbacks_fixed,
@@ -1466,7 +1465,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::execute_transfer(
+    Policy<dim, spacedim>::DataTransfer::execute_transfer(
       const typename dealii::internal::p4est::types<dim>::forest
         *parallel_forest,
       const typename dealii::internal::p4est::types<dim>::gloidx
@@ -1559,7 +1558,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::unpack_cell_status(
+    Policy<dim, spacedim>::DataTransfer::unpack_cell_status(
       std::vector<quadrant_cell_relation_t> &quad_cell_relations) const
     {
       Assert(sizes_fixed_cumulative.size() > 0,
@@ -1595,7 +1594,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::unpack_data(
+    Policy<dim, spacedim>::DataTransfer::unpack_data(
       const std::vector<quadrant_cell_relation_t> &quad_cell_relations,
       const unsigned int                           handle,
       const std::function<void(
@@ -1762,7 +1761,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::save(
+    Policy<dim, spacedim>::DataTransfer::save(
       const typename dealii::internal::p4est::types<dim>::forest
         *                parallel_forest,
       const std::string &filename) const
@@ -1925,7 +1924,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::load(
+    Policy<dim, spacedim>::DataTransfer::load(
       const typename dealii::internal::p4est::types<dim>::forest
         *                parallel_forest,
       const std::string &filename,
@@ -2074,7 +2073,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::DataTransfer::clear()
+    Policy<dim, spacedim>::DataTransfer::clear()
     {
       variable_size_data_stored = false;
 
@@ -2139,7 +2138,7 @@ namespace parallel
         // to make sure the transfer operators only need to consider two levels.
       dealii::parallel::DistributedTriangulationBase<dim, spacedim>(
         mpi_communicator,
-        (settings & construct_multigrid_hierarchy) ?
+        (settings & Settings::construct_multigrid_hierarchy) ?
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             smooth_grid |
@@ -2664,8 +2663,7 @@ namespace parallel
     bool
     Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
-      return settings &
-             Triangulation<dim, spacedim>::construct_multigrid_hierarchy;
+      return settings & construct_multigrid_hierarchy;
     }
 
 

@@ -720,10 +720,10 @@ namespace Step37
   LaplaceProblem<dim>::LaplaceProblem()
     :
 #ifdef DEAL_II_WITH_P4EST
-    triangulation(
-      MPI_COMM_WORLD,
-      Triangulation<dim>::limit_level_difference_at_vertices,
-      parallel::distributed::Triangulation<dim>::construct_multigrid_hierarchy)
+    triangulation(MPI_COMM_WORLD,
+                  Triangulation<dim>::limit_level_difference_at_vertices,
+                  parallel::distributed::Triangulation<
+                    dim>::Settings::construct_multigrid_hierarchy)
     ,
 #else
     triangulation(Triangulation<dim>::limit_level_difference_at_vertices)
