@@ -393,7 +393,7 @@ namespace parallel
       /**
        * A fully-distributed triangulation policy. [TODO] move up
        */
-      Policy<dim, spacedim> policy;
+      std::shared_ptr<Policy<dim, spacedim>> policy;
     };
 
   } // namespace fullydistributed

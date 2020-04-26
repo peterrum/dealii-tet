@@ -355,7 +355,7 @@ namespace parallel
     template <int dim, int spacedim>
     Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
       : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
-      , policy(*this, mpi_communicator)
+      , policy(new Policy<dim, spacedim>(*this, mpi_communicator))
     {}
 
 
@@ -366,7 +366,7 @@ namespace parallel
       const TriangulationDescription::Description<dim, spacedim>
         &construction_data)
     {
-      this->policy.create_triangulation(construction_data);
+      this->policy->create_triangulation(construction_data);
     }
 
 
@@ -378,7 +378,7 @@ namespace parallel
       const std::vector<dealii::CellData<dim>> &cells,
       const SubCellData &                       subcelldata)
     {
-      this->policy.create_triangulation(vertices, cells, subcelldata);
+      this->policy->create_triangulation(vertices, cells, subcelldata);
     }
 
 
@@ -388,7 +388,7 @@ namespace parallel
     Triangulation<dim, spacedim>::copy_triangulation(
       const dealii::Triangulation<dim, spacedim> &other_tria)
     {
-      this->policy.copy_triangulation(other_tria);
+      this->policy->copy_triangulation(other_tria);
     }
 
 
@@ -400,7 +400,7 @@ namespace parallel
                                const unsigned int)> &partitioner,
       const TriangulationDescription::Settings &     settings)
     {
-      policy.set_partitioner(partitioner, settings);
+      policy->set_partitioner(partitioner, settings);
     }
 
 
@@ -409,7 +409,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
     {
-      policy.execute_coarsening_and_refinement();
+      policy->execute_coarsening_and_refinement();
     }
 
 
@@ -418,7 +418,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
     {
-      return policy.prepare_coarsening_and_refinement();
+      return policy->prepare_coarsening_and_refinement();
     }
 
 
@@ -447,7 +447,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
-      return policy.is_multilevel_hierarchy_constructed();
+      return policy->is_multilevel_hierarchy_constructed();
     }
 
 
@@ -457,7 +457,7 @@ namespace parallel
     Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const
     {
-      return policy.coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
+      return policy->coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
     }
 
 
@@ -467,7 +467,7 @@ namespace parallel
     Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
       const unsigned int coarse_cell_index) const
     {
-      return policy.coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
+      return policy->coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
     }
 
 

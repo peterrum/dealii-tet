@@ -501,7 +501,7 @@ namespace parallel
       /**
        * A shared triangulation policy. [TODO] move up
        */
-      Policy<dim, spacedim> policy;
+      std::shared_ptr<Policy<dim, spacedim>> policy;
     };
 
     template <int dim, int spacedim>
