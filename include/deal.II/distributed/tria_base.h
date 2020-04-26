@@ -244,7 +244,7 @@ namespace parallel
     virtual std::vector<types::manifold_id>
     get_manifold_ids() const override;
 
-  protected:
+  public:
     /**
      * MPI communicator to be used for the triangulation. We create a unique
      * communicator for this class, which is a duplicate of the one passed to

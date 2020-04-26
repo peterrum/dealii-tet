@@ -3437,7 +3437,7 @@ public:
    * @}
    */
 
-protected:
+public:
   /**
    * Do some smoothing in the process of refining the triangulation. See the
    * general doc of this class for more information about this.
