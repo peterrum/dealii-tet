@@ -90,6 +90,7 @@ namespace parallel
      */
     TriangulationBase(
       MPI_Comm mpi_communicator,
+      std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy,
       const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                  smooth_grid = (dealii::Triangulation<dim, spacedim>::none),
       const bool check_for_distorted_cells = false);
@@ -314,8 +315,11 @@ namespace parallel
     void
     fill_level_ghost_owners();
 
-  private:
+  public:
     friend class dealii::parallel::TriangulationPolicy::Base<dim, spacedim>;
+
+    // should be private
+    std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy;
   };
 
   /**
@@ -378,6 +382,7 @@ namespace parallel
      */
     DistributedTriangulationBase(
       MPI_Comm mpi_communicator,
+      std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>> policy,
       const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                  smooth_grid = (dealii::Triangulation<dim, spacedim>::none),
       const bool check_for_distorted_cells = false);

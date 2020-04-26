@@ -2138,6 +2138,8 @@ namespace parallel
         // to make sure the transfer operators only need to consider two levels.
       dealii::parallel::DistributedTriangulationBase<dim, spacedim>(
         mpi_communicator,
+        std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>>(
+          new Policy(*this, mpi_communicator, settings)),
         (settings & Settings::construct_multigrid_hierarchy) ?
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
@@ -2145,7 +2147,6 @@ namespace parallel
             Triangulation<dim, spacedim>::limit_level_difference_at_vertices) :
           smooth_grid,
         false)
-      , policy(new Policy(*this, mpi_communicator, settings))
     {}
 
 
@@ -2185,7 +2186,7 @@ namespace parallel
       const std::vector<CellData<dim>> &  cells,
       const SubCellData &                 subcelldata)
     {
-      policy->create_triangulation(vertices, cells, subcelldata);
+      this->policy->create_triangulation(vertices, cells, subcelldata);
     }
 
 
@@ -2243,7 +2244,7 @@ namespace parallel
       const TriangulationDescription::Description<dim, spacedim>
         &construction_data)
     {
-      policy->create_triangulation(construction_data);
+      this->policy->create_triangulation(construction_data);
     }
 
 
@@ -2606,7 +2607,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::clear()
     {
-      policy->clear();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())->clear();
     }
 
 
@@ -2654,7 +2655,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
-      return policy->is_multilevel_hierarchy_constructed();
+      return this->policy->is_multilevel_hierarchy_constructed();
     }
 
 
@@ -2663,7 +2664,7 @@ namespace parallel
     bool
     Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
-      return settings & construct_multigrid_hierarchy;
+      return settings & Settings::construct_multigrid_hierarchy;
     }
 
 
@@ -2672,7 +2673,8 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::has_hanging_nodes() const
     {
-      return policy->has_hanging_nodes();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->has_hanging_nodes();
     }
 
 
@@ -2712,7 +2714,8 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::setup_coarse_cell_to_p4est_tree_permutation()
     {
-      policy->setup_coarse_cell_to_p4est_tree_permutation();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->setup_coarse_cell_to_p4est_tree_permutation();
     }
 
 
@@ -2738,7 +2741,8 @@ namespace parallel
     Triangulation<dim, spacedim>::write_mesh_vtk(
       const std::string &file_basename) const
     {
-      policy->write_mesh_vtk(file_basename);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->write_mesh_vtk(file_basename);
     }
 
 
@@ -2760,7 +2764,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::save(const std::string &filename) const
     {
-      policy->save(filename);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())->save(filename);
     }
 
 
@@ -2845,7 +2849,8 @@ namespace parallel
     Triangulation<dim, spacedim>::load(const std::string &filename,
                                        const bool         autopartition)
     {
-      policy->load(filename, autopartition);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->load(filename, autopartition);
     }
 
 
@@ -3000,7 +3005,8 @@ namespace parallel
     unsigned int
     Triangulation<dim, spacedim>::get_checksum() const
     {
-      return policy->get_checksum();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_checksum();
     }
 
 
@@ -3021,7 +3027,8 @@ namespace parallel
     const typename dealii::internal::p4est::types<dim>::forest *
     Triangulation<dim, spacedim>::get_p4est() const
     {
-      return policy->get_p4est();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_p4est();
     }
 
 
@@ -3041,7 +3048,8 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::update_number_cache()
     {
-      policy->update_number_cache();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->update_number_cache();
     }
 
 
@@ -3066,7 +3074,8 @@ namespace parallel
     Triangulation<dim, spacedim>::init_tree(
       const int dealii_coarse_cell_index) const
     {
-      return policy->init_tree(dealii_coarse_cell_index);
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->init_tree(dealii_coarse_cell_index);
     }
 
 
@@ -3154,7 +3163,8 @@ namespace parallel
     Triangulation<2, 2>::copy_new_triangulation_to_p4est(
       std::integral_constant<int, 2> i)
     {
-      policy->copy_new_triangulation_to_p4est(i);
+      static_cast<Policy<2, 2> *>(this->policy.get())
+        ->copy_new_triangulation_to_p4est(i);
     }
 
 
@@ -3231,7 +3241,8 @@ namespace parallel
     Triangulation<2, 3>::copy_new_triangulation_to_p4est(
       std::integral_constant<int, 2> i)
     {
-      policy->copy_new_triangulation_to_p4est(i);
+      static_cast<Policy<2, 3> *>(this->policy.get())
+        ->copy_new_triangulation_to_p4est(i);
     }
 
 
@@ -3382,7 +3393,8 @@ namespace parallel
     Triangulation<3, 3>::copy_new_triangulation_to_p4est(
       std::integral_constant<int, 3> i)
     {
-      policy->copy_new_triangulation_to_p4est(i);
+      static_cast<Policy<3, 3> *>(this->policy.get())
+        ->copy_new_triangulation_to_p4est(i);
     }
 
 
@@ -3613,7 +3625,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
     {
-      return policy->prepare_coarsening_and_refinement();
+      return this->policy->prepare_coarsening_and_refinement();
     }
 
 
@@ -3653,7 +3665,8 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::copy_local_forest_to_triangulation()
     {
-      policy->copy_local_forest_to_triangulation();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->copy_local_forest_to_triangulation();
     }
 
 
@@ -4010,7 +4023,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
     {
-      policy->execute_coarsening_and_refinement();
+      this->policy->execute_coarsening_and_refinement();
     }
 
 
@@ -4274,7 +4287,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::repartition()
     {
-      policy->repartition();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())->repartition();
     }
 
 
@@ -4384,7 +4397,8 @@ namespace parallel
     Triangulation<dim, spacedim>::communicate_locally_moved_vertices(
       const std::vector<bool> &vertex_locally_moved)
     {
-      policy->communicate_locally_moved_vertices(vertex_locally_moved);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->communicate_locally_moved_vertices(vertex_locally_moved);
     }
 
 
@@ -4577,8 +4591,8 @@ namespace parallel
                                             const CellStatus)> &pack_callback,
       const bool returns_variable_size_data)
     {
-      return policy->register_data_attach(pack_callback,
-                                          returns_variable_size_data);
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->register_data_attach(pack_callback, returns_variable_size_data);
     }
 
 
@@ -4623,7 +4637,8 @@ namespace parallel
              const boost::iterator_range<std::vector<char>::const_iterator> &)>
         &unpack_callback)
     {
-      policy->notify_ready_to_unpack(handle, unpack_callback);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->notify_ready_to_unpack(handle, unpack_callback);
     }
 
 
@@ -4715,7 +4730,8 @@ namespace parallel
     Triangulation<dim, spacedim>::get_p4est_tree_to_coarse_cell_permutation()
       const
     {
-      return policy->get_p4est_tree_to_coarse_cell_permutation();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_p4est_tree_to_coarse_cell_permutation();
     }
 
 
@@ -4734,7 +4750,8 @@ namespace parallel
     Triangulation<dim, spacedim>::get_coarse_cell_to_p4est_tree_permutation()
       const
     {
-      return policy->get_coarse_cell_to_p4est_tree_permutation();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_coarse_cell_to_p4est_tree_permutation();
     }
 
 
@@ -4753,7 +4770,8 @@ namespace parallel
     Triangulation<dim, spacedim>::mark_locally_active_vertices_on_level(
       const int level) const
     {
-      return policy->mark_locally_active_vertices_on_level(level);
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->mark_locally_active_vertices_on_level(level);
     }
 
 
@@ -4840,7 +4858,7 @@ namespace parallel
     Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const
     {
-      return policy->coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
+      return this->policy->coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
     }
 
 
@@ -4860,7 +4878,8 @@ namespace parallel
     Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
       const unsigned int coarse_cell_index) const
     {
-      return policy->coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
+      return this->policy->coarse_cell_index_to_coarse_cell_id(
+        coarse_cell_index);
     }
 
 
@@ -4881,7 +4900,8 @@ namespace parallel
       const std::vector<dealii::GridTools::PeriodicFacePair<cell_iterator>>
         &periodicity_vector)
     {
-      policy->add_periodicity(periodicity_vector);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->add_periodicity(periodicity_vector);
     }
 
 
@@ -5053,7 +5073,7 @@ namespace parallel
     std::size_t
     Triangulation<dim, spacedim>::memory_consumption() const
     {
-      return policy->memory_consumption();
+      return this->policy->memory_consumption();
     }
 
 
@@ -5091,7 +5111,8 @@ namespace parallel
     std::size_t
     Triangulation<dim, spacedim>::memory_consumption_p4est() const
     {
-      return policy->memory_consumption_p4est();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->memory_consumption_p4est();
     }
 
 
@@ -5113,7 +5134,7 @@ namespace parallel
     Triangulation<dim, spacedim>::copy_triangulation(
       const dealii::Triangulation<dim, spacedim> &other_tria)
     {
-      policy->copy_triangulation(other_tria);
+      this->policy->copy_triangulation(other_tria);
     }
 
 
@@ -5152,13 +5173,21 @@ namespace parallel
                              Triangulation<dim, spacedim> *>(&other_tria))
         {
           coarse_cell_to_p4est_tree_permutation =
-            other_tria_x->policy->coarse_cell_to_p4est_tree_permutation;
+            static_cast<Policy<dim, spacedim> *>(other_tria_x->policy.get())
+              ->coarse_cell_to_p4est_tree_permutation;
           p4est_tree_to_coarse_cell_permutation =
-            other_tria_x->policy->p4est_tree_to_coarse_cell_permutation;
-          cell_attached_data = other_tria_x->policy->cell_attached_data;
-          data_transfer      = other_tria_x->policy->data_transfer;
+            static_cast<Policy<dim, spacedim> *>(other_tria_x->policy.get())
+              ->p4est_tree_to_coarse_cell_permutation;
+          cell_attached_data =
+            static_cast<Policy<dim, spacedim> *>(other_tria_x->policy.get())
+              ->cell_attached_data;
+          data_transfer =
+            static_cast<Policy<dim, spacedim> *>(other_tria_x->policy.get())
+              ->data_transfer;
 
-          settings = other_tria_x->policy->settings;
+          settings =
+            static_cast<Policy<dim, spacedim> *>(other_tria_x->policy.get())
+              ->settings;
         }
       else
         {
@@ -5188,7 +5217,8 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::update_quadrant_cell_relations()
     {
-      policy->update_quadrant_cell_relations();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->update_quadrant_cell_relations();
     }
 
 
@@ -5234,7 +5264,8 @@ namespace parallel
     std::vector<unsigned int>
     Triangulation<dim, spacedim>::get_cell_weights() const
     {
-      return policy->get_cell_weights();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_cell_weights();
     }
 
 
@@ -5324,6 +5355,7 @@ namespace parallel
       const Settings /*settings*/)
       : dealii::parallel::DistributedTriangulationBase<1, spacedim>(
           mpi_communicator,
+          std::shared_ptr<TriangulationPolicy::Base<1, spacedim>>(),
           smooth_grid,
           false)
     {

@@ -436,13 +436,15 @@ namespace parallel
                      smooth_grid,
       const bool     allow_artificial_cells,
       const Settings settings)
-      : dealii::parallel::TriangulationBase<dim, spacedim>(mpi_communicator,
-                                                           smooth_grid,
-                                                           false)
-      , policy(new Policy<dim, spacedim>(*this,
-                                         mpi_communicator,
-                                         allow_artificial_cells,
-                                         settings))
+      : dealii::parallel::TriangulationBase<dim, spacedim>(
+          mpi_communicator,
+          std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>>(
+            new Policy<dim, spacedim>(*this,
+                                      mpi_communicator,
+                                      allow_artificial_cells,
+                                      settings)),
+          smooth_grid,
+          false)
     {}
 
 
@@ -460,7 +462,8 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::with_artificial_cells() const
     {
-      return policy->with_artificial_cells();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->with_artificial_cells();
     }
 
 
@@ -469,7 +472,8 @@ namespace parallel
     const std::vector<types::subdomain_id> &
     Triangulation<dim, spacedim>::get_true_subdomain_ids_of_cells() const
     {
-      return policy->get_true_subdomain_ids_of_cells();
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_true_subdomain_ids_of_cells();
     }
 
 
@@ -479,7 +483,8 @@ namespace parallel
     Triangulation<dim, spacedim>::get_true_level_subdomain_ids_of_cells(
       const unsigned int level) const
     {
-      return policy->get_true_level_subdomain_ids_of_cells(level);
+      return static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->get_true_level_subdomain_ids_of_cells(level);
     }
 
 
@@ -488,7 +493,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
     {
-      policy->execute_coarsening_and_refinement();
+      this->policy->execute_coarsening_and_refinement();
     }
 
 
@@ -500,7 +505,7 @@ namespace parallel
       const std::vector<CellData<dim>> &  cells,
       const SubCellData &                 subcelldata)
     {
-      policy->create_triangulation(vertices, cells, subcelldata);
+      this->policy->create_triangulation(vertices, cells, subcelldata);
     }
 
 
@@ -511,7 +516,7 @@ namespace parallel
       const TriangulationDescription::Description<dim, spacedim>
         &construction_data)
     {
-      policy->create_triangulation(construction_data);
+      this->policy->create_triangulation(construction_data);
     }
 
 
@@ -521,7 +526,7 @@ namespace parallel
     Triangulation<dim, spacedim>::copy_triangulation(
       const dealii::Triangulation<dim, spacedim> &other_tria)
     {
-      policy->copy_triangulation(other_tria);
+      this->policy->copy_triangulation(other_tria);
     }
 
   } // namespace shared

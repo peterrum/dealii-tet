@@ -388,12 +388,6 @@ namespace parallel
       virtual types::coarse_cell_id
       coarse_cell_index_to_coarse_cell_id(
         const unsigned int coarse_cell_index) const override;
-
-    private:
-      /**
-       * A fully-distributed triangulation policy. [TODO] move up
-       */
-      std::shared_ptr<Policy<dim, spacedim>> policy;
     };
 
   } // namespace fullydistributed

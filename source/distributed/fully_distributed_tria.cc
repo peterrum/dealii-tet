@@ -354,8 +354,10 @@ namespace parallel
 
     template <int dim, int spacedim>
     Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
-      : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
-      , policy(new Policy<dim, spacedim>(*this, mpi_communicator))
+      : parallel::DistributedTriangulationBase<dim, spacedim>(
+          mpi_communicator,
+          std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>>(
+            new Policy<dim, spacedim>(*this, mpi_communicator)))
     {}
 
 
@@ -400,7 +402,8 @@ namespace parallel
                                const unsigned int)> &partitioner,
       const TriangulationDescription::Settings &     settings)
     {
-      policy->set_partitioner(partitioner, settings);
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->set_partitioner(partitioner, settings);
     }
 
 
@@ -409,7 +412,7 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
     {
-      policy->execute_coarsening_and_refinement();
+      this->policy->execute_coarsening_and_refinement();
     }
 
 
@@ -418,7 +421,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
     {
-      return policy->prepare_coarsening_and_refinement();
+      return this->policy->prepare_coarsening_and_refinement();
     }
 
 
@@ -447,7 +450,7 @@ namespace parallel
     bool
     Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
-      return policy->is_multilevel_hierarchy_constructed();
+      return this->policy->is_multilevel_hierarchy_constructed();
     }
 
 
@@ -457,7 +460,7 @@ namespace parallel
     Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const
     {
-      return policy->coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
+      return this->policy->coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
     }
 
 
@@ -467,7 +470,8 @@ namespace parallel
     Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
       const unsigned int coarse_cell_index) const
     {
-      return policy->coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
+      return this->policy->coarse_cell_index_to_coarse_cell_id(
+        coarse_cell_index);
     }
 
 

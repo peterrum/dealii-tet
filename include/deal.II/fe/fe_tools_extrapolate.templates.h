@@ -801,8 +801,11 @@ namespace FETools
       for (; cell != endc; ++cell)
         {
           if (dealii::internal::p4est::tree_exists_locally<dim>(
-                tr->policy->parallel_forest,
-                tr->policy
+                static_cast<dealii::parallel::distributed::Policy<dim, spacedim>
+                              *>(tr->policy.get())
+                  ->parallel_forest,
+                static_cast<dealii::parallel::distributed::Policy<dim, spacedim>
+                              *>(tr->policy.get())
                   ->coarse_cell_to_p4est_tree_permutation[cell->index()]) ==
               false)
             continue;
@@ -810,7 +813,9 @@ namespace FETools
           typename dealii::internal::p4est::types<dim>::quadrant
                              p4est_coarse_cell;
           const unsigned int tree_index =
-            tr->policy->coarse_cell_to_p4est_tree_permutation[cell->index()];
+            static_cast<dealii::parallel::distributed::Policy<dim, spacedim> *>(
+              tr->policy.get())
+              ->coarse_cell_to_p4est_tree_permutation[cell->index()];
           typename dealii::internal::p4est::types<dim>::tree *tree =
             tr->init_tree(cell->index());
 
@@ -830,12 +835,15 @@ namespace FETools
             AssertThrow(idx == -1, ExcGridNotRefinedAtLeastOnce());
           }
 
-          traverse_tree_recursively(*tr->policy->parallel_forest,
-                                    *tree,
-                                    tree_index,
-                                    cell,
-                                    p4est_coarse_cell,
-                                    new_needs);
+          traverse_tree_recursively(
+            *static_cast<dealii::parallel::distributed::Policy<dim, spacedim>
+                           *>(tr->policy.get())
+               ->parallel_forest,
+            *tree,
+            tree_index,
+            cell,
+            p4est_coarse_cell,
+            new_needs);
         }
     }
 
@@ -1016,11 +1024,17 @@ namespace FETools
           // check if this is a tree this process has to
           // work on and that this tree is in the p4est
           const unsigned int tree_index =
-            tr->policy->coarse_cell_to_p4est_tree_permutation[cell->index()];
+            static_cast<dealii::parallel::distributed::Policy<dim, spacedim> *>(
+              tr->policy.get())
+              ->coarse_cell_to_p4est_tree_permutation[cell->index()];
 
           if ((trees.find(tree_index) == trees.end()) ||
               (dealii::internal::p4est::tree_exists_locally<dim>(
-                 tr->policy->parallel_forest, tree_index) == false))
+                 static_cast<
+                   dealii::parallel::distributed::Policy<dim, spacedim> *>(
+                   tr->policy.get())
+                   ->parallel_forest,
+                 tree_index) == false))
             continue;
 
           typename dealii::internal::p4est::types<dim>::quadrant
@@ -1030,15 +1044,18 @@ namespace FETools
 
           dealii::internal::p4est::init_coarse_quadrant<dim>(p4est_coarse_cell);
 
-          compute_cells_in_tree_recursively(*tr->policy->parallel_forest,
-                                            *tree,
-                                            tree_index,
-                                            cell,
-                                            p4est_coarse_cell,
-                                            u,
-                                            cells_to_compute,
-                                            computed_cells,
-                                            new_needs);
+          compute_cells_in_tree_recursively(
+            *static_cast<dealii::parallel::distributed::Policy<dim, spacedim>
+                           *>(tr->policy.get())
+               ->parallel_forest,
+            *tree,
+            tree_index,
+            cell,
+            p4est_coarse_cell,
+            u,
+            cells_to_compute,
+            computed_cells,
+            new_needs);
         }
     }
 
@@ -1465,8 +1482,13 @@ namespace FETools
         for (; cell != endc; ++cell)
           {
             if (dealii::internal::p4est::tree_exists_locally<dim>(
-                  tr->policy->parallel_forest,
-                  tr->policy
+                  static_cast<
+                    dealii::parallel::distributed::Policy<dim, spacedim> *>(
+                    tr->policy.get())
+                    ->parallel_forest,
+                  static_cast<
+                    dealii::parallel::distributed::Policy<dim, spacedim> *>(
+                    tr->policy.get())
                     ->coarse_cell_to_p4est_tree_permutation[cell->index()]) ==
                 false)
               continue;
@@ -1474,18 +1496,24 @@ namespace FETools
             typename dealii::internal::p4est::types<dim>::quadrant
                                p4est_coarse_cell;
             const unsigned int tree_index =
-              tr->policy->coarse_cell_to_p4est_tree_permutation[cell->index()];
+              static_cast<
+                dealii::parallel::distributed::Policy<dim, spacedim> *>(
+                tr->policy.get())
+                ->coarse_cell_to_p4est_tree_permutation[cell->index()];
             typename dealii::internal::p4est::types<dim>::tree *tree =
               tr->init_tree(cell->index());
 
             dealii::internal::p4est::init_coarse_quadrant<dim>(
               p4est_coarse_cell);
 
-            const WorkPackage data(*tr->policy->parallel_forest,
-                                   *tree,
-                                   tree_index,
-                                   cell,
-                                   p4est_coarse_cell);
+            const WorkPackage data(
+              *static_cast<dealii::parallel::distributed::Policy<dim, spacedim>
+                             *>(tr->policy.get())
+                 ->parallel_forest,
+              *tree,
+              tree_index,
+              cell,
+              p4est_coarse_cell);
 
             queue.push(data);
           }
