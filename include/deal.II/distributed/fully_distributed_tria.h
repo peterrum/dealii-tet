@@ -69,7 +69,7 @@ namespace parallel
       void
       create_triangulation(
         const TriangulationDescription::Description<dim, spacedim>
-          &construction_data);
+          &construction_data) override;
 
       /**
        * @note This function is not implemented for this class  and throws
@@ -80,7 +80,7 @@ namespace parallel
       virtual void
       create_triangulation(const std::vector<Point<spacedim>> &      vertices,
                            const std::vector<dealii::CellData<dim>> &cells,
-                           const SubCellData &subcelldata);
+                           const SubCellData &subcelldata) override;
 
       /**
        * Implementation of the same function as in the base class.
@@ -94,7 +94,7 @@ namespace parallel
        */
       void
       copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria);
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
 
       /**
        * Override the implementation of prepare_coarsening_and_refinement from
@@ -103,7 +103,7 @@ namespace parallel
        * @note Not implemented yet.
        */
       virtual bool
-      prepare_coarsening_and_refinement();
+      prepare_coarsening_and_refinement() override;
 
       /**
        * Coarsen and refine the mesh according to refinement and coarsening
@@ -112,21 +112,21 @@ namespace parallel
        * @note Not implemented yet.
        */
       virtual void
-      execute_coarsening_and_refinement();
+      execute_coarsening_and_refinement() override;
+
+      virtual unsigned int
+      coarse_cell_id_to_coarse_cell_index(
+        const types::coarse_cell_id coarse_cell_id) const override;
+
+      virtual types::coarse_cell_id
+      coarse_cell_index_to_coarse_cell_id(
+        const unsigned int coarse_cell_index) const override;
 
       /**
        * Return if multilevel hierarchy is supported and has been constructed.
        */
       virtual bool
-      is_multilevel_hierarchy_constructed() const;
-
-      virtual unsigned int
-      coarse_cell_id_to_coarse_cell_index(
-        const types::coarse_cell_id coarse_cell_id) const;
-
-      virtual types::coarse_cell_id
-      coarse_cell_index_to_coarse_cell_id(
-        const unsigned int coarse_cell_index) const;
+      is_multilevel_hierarchy_constructed() const override;
 
       /**
        * Register a partitioner, which is used within the method

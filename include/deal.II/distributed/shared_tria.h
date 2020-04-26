@@ -182,7 +182,7 @@ namespace parallel
       virtual void
       create_triangulation(const std::vector<Point<spacedim>> &vertices,
                            const std::vector<CellData<dim>> &  cells,
-                           const SubCellData &                 subcelldata);
+                           const SubCellData &subcelldata) override;
 
       /*
        * @copydoc Triangulation::create_triangulation()
@@ -192,7 +192,7 @@ namespace parallel
       virtual void
       create_triangulation(
         const TriangulationDescription::Description<dim, spacedim>
-          &construction_data);
+          &construction_data) override;
 
       /**
        * Copy @p other_tria to this triangulation.
@@ -206,7 +206,7 @@ namespace parallel
        */
       virtual void
       copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria);
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
 
       /**
        * Coarsen and refine the mesh according to refinement and coarsening
@@ -217,13 +217,13 @@ namespace parallel
        * the end.
        */
       virtual void
-      execute_coarsening_and_refinement();
+      execute_coarsening_and_refinement() override;
 
       /**
        * Return if multilevel hierarchy is supported and has been constructed.
        */
       virtual bool
-      is_multilevel_hierarchy_constructed() const;
+      is_multilevel_hierarchy_constructed() const override;
 
       /**
        * Return a vector of length Triangulation::n_active_cells() where each

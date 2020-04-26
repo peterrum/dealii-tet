@@ -1264,6 +1264,55 @@ namespace parallel
 
       virtual ~Policy();
 
+      /**
+       * ***********************************************************************
+       * TriangulationPolicy::Base
+       * ***********************************************************************
+       */
+      virtual void
+      create_triangulation(const std::vector<Point<spacedim>> &vertices,
+                           const std::vector<CellData<dim>> &  cells,
+                           const SubCellData &subcelldata) override;
+
+      virtual void
+      create_triangulation(
+        const TriangulationDescription::Description<dim, spacedim>
+          &construction_data) override;
+
+      void
+      copy_triangulation(
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
+
+      virtual bool
+      prepare_coarsening_and_refinement() override;
+
+      virtual void
+      execute_coarsening_and_refinement() override;
+
+      virtual unsigned int
+      coarse_cell_id_to_coarse_cell_index(
+        const types::coarse_cell_id coarse_cell_id) const override;
+
+      virtual types::coarse_cell_id
+      coarse_cell_index_to_coarse_cell_id(
+        const unsigned int coarse_cell_index) const override;
+
+      virtual std::size_t
+      memory_consumption() const override;
+
+      /**
+       * ***********************************************************************
+       * parallel::TriangulationPolicy::Base
+       * ***********************************************************************
+       */
+      bool
+      is_multilevel_hierarchy_constructed() const override;
+
+      /**
+       * ***********************************************************************
+       * ???
+       * ***********************************************************************
+       */
       std::vector<unsigned int>
       get_cell_weights() const;
 
@@ -1271,18 +1320,7 @@ namespace parallel
       mark_locally_active_vertices_on_level(const int level) const;
 
       virtual std::size_t
-      memory_consumption() const;
-
-      virtual std::size_t
       memory_consumption_p4est() const;
-
-      virtual unsigned int
-      coarse_cell_id_to_coarse_cell_index(
-        const types::coarse_cell_id coarse_cell_id) const;
-
-      virtual types::coarse_cell_id
-      coarse_cell_index_to_coarse_cell_id(
-        const unsigned int coarse_cell_index) const;
 
       void
       update_quadrant_cell_relations();
@@ -1311,30 +1349,17 @@ namespace parallel
       void
       write_mesh_vtk(const std::string &file_basename) const;
 
-      bool
-      is_multilevel_hierarchy_constructed() const;
-
       unsigned int
       register_data_attach(
         const std::function<std::vector<char>(const cell_iterator &,
                                               const CellStatus)> &pack_callback,
         const bool returns_variable_size_data);
 
-      virtual void
-      execute_coarsening_and_refinement();
-
-      virtual bool
-      prepare_coarsening_and_refinement();
-
       void
       repartition();
 
       void
       copy_local_forest_to_triangulation();
-
-      void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria);
 
       void
       copy_new_triangulation_to_p4est(std::integral_constant<int, 2>);
@@ -1345,16 +1370,6 @@ namespace parallel
       add_periodicity(
         const std::vector<dealii::GridTools::PeriodicFacePair<cell_iterator>>
           &);
-
-      virtual void
-      create_triangulation(const std::vector<Point<spacedim>> &vertices,
-                           const std::vector<CellData<dim>> &  cells,
-                           const SubCellData &                 subcelldata);
-
-      virtual void
-      create_triangulation(
-        const TriangulationDescription::Description<dim, spacedim>
-          &construction_data);
 
       virtual void
       clear();

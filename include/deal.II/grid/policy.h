@@ -31,12 +31,80 @@ namespace TriangulationPolicy
   class Base
   {
   public:
+    using T = dealii::Triangulation<dim, spacedim>;
+
     Base(Triangulation<dim, spacedim> &tria)
       : tria(tria)
     {}
 
+    virtual void
+    create_triangulation(
+      const TriangulationDescription::Description<dim, spacedim>
+        &construction_data)
+    {
+      tria.T::create_triangulation(construction_data);
+    }
+
+    virtual void
+    create_triangulation(const std::vector<Point<spacedim>> &      vertices,
+                         const std::vector<dealii::CellData<dim>> &cells,
+                         const SubCellData &                       subcelldata)
+    {
+      tria.T::create_triangulation(vertices, cells, subcelldata);
+    }
+
+    virtual void
+    copy_triangulation(const dealii::Triangulation<dim, spacedim> &other_tria)
+    {
+      tria.T::copy_triangulation(other_tria);
+    }
+
+    virtual bool
+    prepare_coarsening_and_refinement()
+    {
+      return tria.T::prepare_coarsening_and_refinement();
+    }
+
+    virtual void
+    execute_coarsening_and_refinement()
+    {
+      tria.T::execute_coarsening_and_refinement();
+    }
+
+    virtual unsigned int
+    coarse_cell_id_to_coarse_cell_index(
+      const types::coarse_cell_id coarse_cell_id) const
+    {
+      return tria.T::coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
+    }
+
+    virtual types::coarse_cell_id
+    coarse_cell_index_to_coarse_cell_id(
+      const unsigned int coarse_cell_index) const
+    {
+      return tria.T::coarse_cell_index_to_coarse_cell_id(coarse_cell_index);
+    }
+
+    virtual std::size_t
+    memory_consumption() const
+    {
+      return 0;
+    }
+
+    T &
+    get_triangulation()
+    {
+      return tria;
+    }
+
+    const T &
+    get_triangulation() const
+    {
+      return tria;
+    }
+
   protected:
-    dealii::Triangulation<dim, spacedim> &tria;
+    T &tria;
   };
 } // namespace TriangulationPolicy
 

@@ -38,7 +38,12 @@ namespace parallel
            MPI_Comm                                            mpi_communicator)
         : dealii::TriangulationPolicy::Base<dim, spacedim>(tria_parallel)
         , tria_parallel(tria_parallel)
-        , mpi_communicator(mpi_communicator){};
+        , mpi_communicator(mpi_communicator)
+      {}
+
+
+      virtual bool
+      is_multilevel_hierarchy_constructed() const = 0;
 
     protected:
       dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
