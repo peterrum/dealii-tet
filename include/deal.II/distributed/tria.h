@@ -24,6 +24,7 @@
 #include <deal.II/base/template_constraints.h>
 
 #include <deal.II/distributed/p4est_wrappers.h>
+#include <deal.II/distributed/policy.h>
 #include <deal.II/distributed/tria_base.h>
 
 #include <deal.II/grid/tria.h>
@@ -54,10 +55,8 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-#ifdef DEAL_II_WITH_P4EST
-
 // Forward declarations
-#  ifndef DOXYGEN
+#ifndef DOXYGEN
 
 namespace FETools
 {
@@ -74,7 +73,7 @@ namespace GridTools
   template <typename CellIterator>
   struct PeriodicFacePair;
 }
-#  endif
+#endif
 
 namespace parallel
 {
@@ -320,8 +319,6 @@ namespace parallel
         no_automatic_repartitioning = 0x4
       };
 
-
-
       /**
        * Constructor.
        *
@@ -357,7 +354,7 @@ namespace parallel
         MPI_Comm mpi_communicator,
         const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing
                        smooth_grid = (dealii::Triangulation<dim, spacedim>::none),
-        const Settings settings    = default_setting);
+        const Settings settings    = Settings::default_setting);
 
       /**
        * Destructor.
@@ -378,19 +375,6 @@ namespace parallel
        */
       bool
       is_multilevel_hierarchy_constructed() const override;
-
-      /**
-       * Implementation of the same function as in the base class.
-       *
-       * @note This function cannot copy a triangulation that has been refined.
-       *
-       * @note This function can be used to copy a serial Triangulation to a
-       * parallel::distributed::Triangulation but only if the serial
-       * Triangulation has never been refined.
-       */
-      virtual void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria) override;
 
       /**
        * Create a triangulation as documented in the base class.
@@ -860,36 +844,318 @@ namespace parallel
         override;
 
 
-    private:
+    public:
       /**
        * store the Settings.
        */
-      Settings settings;
+      // Settings settings;
 
       /**
        * A flag that indicates whether the triangulation has actual content.
        */
-      bool triangulation_has_content;
+      // bool triangulation_has_content;
 
       /**
        * A data structure that holds the connectivity between trees. Since
        * each tree is rooted in a coarse grid cell, this data structure holds
        * the connectivity between the cells of the coarse grid.
        */
-      typename dealii::internal::p4est::types<dim>::connectivity *connectivity;
+      // typename dealii::internal::p4est::types<dim>::connectivity
+      // *connectivity;
 
       /**
        * A data structure that holds the local part of the global
        * triangulation.
        */
-      typename dealii::internal::p4est::types<dim>::forest *parallel_forest;
+      // typename dealii::internal::p4est::types<dim>::forest *parallel_forest;
 
       /**
        * A data structure that holds some information about the ghost cells of
        * the triangulation.
        */
-      typename dealii::internal::p4est::types<dim>::ghost *parallel_ghost;
+      // typename dealii::internal::p4est::types<dim>::ghost *parallel_ghost;
 
+      // CellAttachedData cell_attached_data;
+
+      /**
+       * This auxiliary data structure stores the relation between a p4est
+       * quadrant, a deal.II cell and its current CellStatus. For an extensive
+       * description of the latter, see the documentation for the member
+       * function register_data_attach().
+       */
+      using quadrant_cell_relation_t = typename std::tuple<
+        typename dealii::internal::p4est::types<dim>::quadrant *,
+        CellStatus,
+        cell_iterator>;
+
+      /**
+       * Vector of tuples, which each contain a p4est quadrant, a deal.II cell
+       * and their relation after refinement. To update its contents, use the
+       * compute_quadrant_cell_relations member function.
+       *
+       * The size of this vector is assumed to be equal to the number of locally
+       * owned quadrants in the parallel_forest object.
+       */
+      // std::vector<quadrant_cell_relation_t> local_quadrant_cell_relations;
+
+      /**
+       * Go through all p4est trees and store the relations between locally
+       * owned quadrants and cells in the private member
+       * local_quadrant_cell_relations.
+       *
+       * The stored vector will be ordered by the occurrence of quadrants in
+       * the corresponding local sc_array of the parallel_forest. p4est requires
+       * this specific ordering for its transfer functions.
+       */
+      void
+      update_quadrant_cell_relations();
+
+      //      DataTransfer data_transfer;
+
+      /**
+       * Two arrays that store which p4est tree corresponds to which coarse
+       * grid cell and vice versa. We need these arrays because p4est goes
+       * with the original order of coarse cells when it sets up its forest,
+       * and then applies the Morton ordering within each tree. But if coarse
+       * grid cells are badly ordered this may mean that individual parts of
+       * the forest stored on a local machine may be split across coarse grid
+       * cells that are not geometrically close. Consequently, we apply a
+       * hierarchical preordering according to
+       * SparsityTools::reorder_hierarchical() to ensure that the part of the
+       * forest stored by p4est is located on geometrically close coarse grid
+       * cells.
+       */
+      //      std::vector<types::global_dof_index>
+      //        coarse_cell_to_p4est_tree_permutation;
+      //      std::vector<types::global_dof_index>
+      //        p4est_tree_to_coarse_cell_permutation;
+
+      /**
+       * Return a pointer to the p4est tree that belongs to the given
+       * dealii_coarse_cell_index()
+       */
+      typename dealii::internal::p4est::types<dim>::tree *
+      init_tree(const int dealii_coarse_cell_index) const;
+
+      /**
+       * The function that computes the permutation between the two data
+       * storage schemes.
+       */
+      void
+      setup_coarse_cell_to_p4est_tree_permutation();
+
+      /**
+       * Take the contents of a newly created triangulation we are attached to
+       * and copy it to p4est data structures.
+       *
+       * This function exists in 2d and 3d variants.
+       */
+      void
+      copy_new_triangulation_to_p4est(std::integral_constant<int, 2>);
+      void
+      copy_new_triangulation_to_p4est(std::integral_constant<int, 3>);
+
+      /**
+       * Copy the local part of the refined forest from p4est into the
+       * attached triangulation.
+       */
+      void
+      copy_local_forest_to_triangulation();
+
+      /**
+       * Internal function notifying all registered slots to provide their
+       * weights before repartitioning occurs. Called from
+       * execute_coarsening_and_refinement() and repartition().
+       *
+       * @return A vector of unsigned integers representing the weight or
+       * computational load of every cell after the refinement/coarsening/
+       * repartition cycle. Note that the number of entries does not need to
+       * be equal to either n_active_cells() or n_locally_owned_active_cells(),
+       * because the triangulation is not updated yet. The weights are sorted
+       * in the order that p4est will encounter them while iterating over
+       * them.
+       */
+      std::vector<unsigned int>
+      get_cell_weights() const;
+
+      /**
+       * This method returns a bit vector of length tria.n_vertices()
+       * indicating the locally active vertices on a level, i.e., the vertices
+       * touched by the locally owned level cells for use in geometric
+       * multigrid (possibly including the vertices due to periodic boundary
+       * conditions) are marked by true.
+       *
+       * Used by DoFHandler::Policy::ParallelDistributed.
+       */
+      std::vector<bool>
+      mark_locally_active_vertices_on_level(const int level) const;
+
+      virtual unsigned int
+      coarse_cell_id_to_coarse_cell_index(
+        const types::coarse_cell_id coarse_cell_id) const override;
+
+      virtual types::coarse_cell_id
+      coarse_cell_index_to_coarse_cell_id(
+        const unsigned int coarse_cell_index) const override;
+
+      template <int, int, class>
+      friend class dealii::FETools::internal::ExtrapolateImplementation;
+    };
+
+
+
+    template <int dim, int spacedim>
+    class Policy
+      : public dealii::parallel::TriangulationPolicy::Base<dim, spacedim>
+    {
+    public:
+      using cell_iterator =
+        typename dealii::Triangulation<dim, spacedim>::cell_iterator;
+
+      using active_cell_iterator =
+        typename dealii::Triangulation<dim, spacedim>::active_cell_iterator;
+
+      using CellStatus =
+        typename dealii::Triangulation<dim, spacedim>::CellStatus;
+
+      using Settings = typename Triangulation<dim, spacedim>::Settings;
+
+      Policy(dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+             MPI_Comm       mpi_communicator,
+             const Settings settings);
+
+      virtual ~Policy();
+
+      /**
+       * ***********************************************************************
+       * TriangulationPolicy::Base
+       * ***********************************************************************
+       */
+      virtual void
+      create_triangulation(const std::vector<Point<spacedim>> &vertices,
+                           const std::vector<CellData<dim>> &  cells,
+                           const SubCellData &subcelldata) override;
+
+      virtual void
+      create_triangulation(
+        const TriangulationDescription::Description<dim, spacedim>
+          &construction_data) override;
+
+      void
+      copy_triangulation(
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
+
+      virtual bool
+      prepare_coarsening_and_refinement() override;
+
+      virtual void
+      execute_coarsening_and_refinement() override;
+
+      virtual unsigned int
+      coarse_cell_id_to_coarse_cell_index(
+        const types::coarse_cell_id coarse_cell_id) const override;
+
+      virtual types::coarse_cell_id
+      coarse_cell_index_to_coarse_cell_id(
+        const unsigned int coarse_cell_index) const override;
+
+      virtual std::size_t
+      memory_consumption() const override;
+
+      /**
+       * ***********************************************************************
+       * parallel::TriangulationPolicy::Base
+       * ***********************************************************************
+       */
+      bool
+      is_multilevel_hierarchy_constructed() const override;
+
+      /**
+       * ***********************************************************************
+       * ???
+       * ***********************************************************************
+       */
+      std::vector<unsigned int>
+      get_cell_weights() const;
+
+      std::vector<bool>
+      mark_locally_active_vertices_on_level(const int level) const;
+
+      virtual std::size_t
+      memory_consumption_p4est() const;
+
+      void
+      update_quadrant_cell_relations();
+
+      unsigned int
+      get_checksum() const;
+
+      const std::vector<types::global_dof_index> &
+      get_p4est_tree_to_coarse_cell_permutation() const;
+
+      const std::vector<types::global_dof_index> &
+      get_coarse_cell_to_p4est_tree_permutation() const;
+
+      const typename dealii::internal::p4est::types<dim>::forest *
+      get_p4est() const;
+
+      typename dealii::internal::p4est::types<dim>::tree *
+      init_tree(const int dealii_coarse_cell_index) const;
+
+      void
+      setup_coarse_cell_to_p4est_tree_permutation();
+
+      void
+      write_mesh_vtk(const std::string &file_basename) const;
+
+      unsigned int
+      register_data_attach(
+        const std::function<std::vector<char>(const cell_iterator &,
+                                              const CellStatus)> &pack_callback,
+        const bool returns_variable_size_data);
+
+      void
+      repartition();
+
+      void
+      copy_local_forest_to_triangulation();
+
+      void
+      copy_new_triangulation_to_p4est(std::integral_constant<int, 2>);
+      void
+      copy_new_triangulation_to_p4est(std::integral_constant<int, 3>);
+
+      virtual void
+      add_periodicity(
+        const std::vector<dealii::GridTools::PeriodicFacePair<cell_iterator>>
+          &);
+
+      virtual void
+      clear();
+
+      virtual bool
+      has_hanging_nodes() const;
+
+      void
+      save(const std::string &filename) const;
+
+      void
+      load(const std::string &filename, const bool autopartition = true);
+
+      void
+      communicate_locally_moved_vertices(
+        const std::vector<bool> &vertex_locally_moved);
+
+      void
+      notify_ready_to_unpack(
+        const unsigned int handle,
+        const std::function<void(
+          const cell_iterator &,
+          const CellStatus,
+          const boost::iterator_range<std::vector<char>::const_iterator> &)>
+          &unpack_callback);
+
+    private:
       /**
        * A structure that stores information about the data that has been, or
        * will be, attached to cells via the register_data_attach() function
@@ -921,8 +1187,6 @@ namespace parallel
         std::vector<pack_callback_t> pack_callbacks_variable;
       };
 
-      CellAttachedData cell_attached_data;
-
       /**
        * This auxiliary data structure stores the relation between a p4est
        * quadrant, a deal.II cell and its current CellStatus. For an extensive
@@ -933,28 +1197,6 @@ namespace parallel
         typename dealii::internal::p4est::types<dim>::quadrant *,
         CellStatus,
         cell_iterator>;
-
-      /**
-       * Vector of tuples, which each contain a p4est quadrant, a deal.II cell
-       * and their relation after refinement. To update its contents, use the
-       * compute_quadrant_cell_relations member function.
-       *
-       * The size of this vector is assumed to be equal to the number of locally
-       * owned quadrants in the parallel_forest object.
-       */
-      std::vector<quadrant_cell_relation_t> local_quadrant_cell_relations;
-
-      /**
-       * Go through all p4est trees and store the relations between locally
-       * owned quadrants and cells in the private member
-       * local_quadrant_cell_relations.
-       *
-       * The stored vector will be ordered by the occurrence of quadrants in
-       * the corresponding local sc_array of the parallel_forest. p4est requires
-       * this specific ordering for its transfer functions.
-       */
-      void
-      update_quadrant_cell_relations();
 
       /**
        * This class in the private scope of parallel::distributed::Triangulation
@@ -1093,7 +1335,7 @@ namespace parallel
         void
         clear();
 
-      private:
+      public:
         MPI_Comm mpi_communicator;
 
         /**
@@ -1130,6 +1372,54 @@ namespace parallel
         std::vector<char> dest_data_variable;
       };
 
+    private:
+      /**
+       * store the Settings.
+       */
+      Settings settings;
+
+      /**
+       * A flag that indicates whether the triangulation has actual content.
+       */
+      bool triangulation_has_content;
+
+      /**
+       * A data structure that holds the connectivity between trees. Since
+       * each tree is rooted in a coarse grid cell, this data structure holds
+       * the connectivity between the cells of the coarse grid.
+       */
+      typename dealii::internal::p4est::types<dim>::connectivity *connectivity;
+
+      /**
+       * A data structure that holds the local part of the global
+       * triangulation.
+       */
+      typename dealii::internal::p4est::types<dim>::forest *parallel_forest;
+
+      /**
+       * A data structure that holds some information about the ghost cells of
+       * the triangulation.
+       */
+      typename dealii::internal::p4est::types<dim>::ghost *parallel_ghost;
+
+
+      /**
+       * A structure that stores information about the data that has been, or
+       * will be, attached to cells via the register_data_attach() function
+       * and later retrieved via notify_ready_to_unpack().
+       */
+      CellAttachedData cell_attached_data;
+
+      /**
+       * Vector of tuples, which each contain a p4est quadrant, a deal.II cell
+       * and their relation after refinement. To update its contents, use the
+       * compute_quadrant_cell_relations member function.
+       *
+       * The size of this vector is assumed to be equal to the number of locally
+       * owned quadrants in the parallel_forest object.
+       */
+      std::vector<quadrant_cell_relation_t> local_quadrant_cell_relations;
+
       DataTransfer data_transfer;
 
       /**
@@ -1150,77 +1440,11 @@ namespace parallel
       std::vector<types::global_dof_index>
         p4est_tree_to_coarse_cell_permutation;
 
-      /**
-       * Return a pointer to the p4est tree that belongs to the given
-       * dealii_coarse_cell_index()
-       */
-      typename dealii::internal::p4est::types<dim>::tree *
-      init_tree(const int dealii_coarse_cell_index) const;
-
-      /**
-       * The function that computes the permutation between the two data
-       * storage schemes.
-       */
-      void
-      setup_coarse_cell_to_p4est_tree_permutation();
-
-      /**
-       * Take the contents of a newly created triangulation we are attached to
-       * and copy it to p4est data structures.
-       *
-       * This function exists in 2d and 3d variants.
-       */
-      void
-      copy_new_triangulation_to_p4est(std::integral_constant<int, 2>);
-      void
-      copy_new_triangulation_to_p4est(std::integral_constant<int, 3>);
-
-      /**
-       * Copy the local part of the refined forest from p4est into the
-       * attached triangulation.
-       */
-      void
-      copy_local_forest_to_triangulation();
-
-      /**
-       * Internal function notifying all registered slots to provide their
-       * weights before repartitioning occurs. Called from
-       * execute_coarsening_and_refinement() and repartition().
-       *
-       * @return A vector of unsigned integers representing the weight or
-       * computational load of every cell after the refinement/coarsening/
-       * repartition cycle. Note that the number of entries does not need to
-       * be equal to either n_active_cells() or n_locally_owned_active_cells(),
-       * because the triangulation is not updated yet. The weights are sorted
-       * in the order that p4est will encounter them while iterating over
-       * them.
-       */
-      std::vector<unsigned int>
-      get_cell_weights() const;
-
-      /**
-       * This method returns a bit vector of length tria.n_vertices()
-       * indicating the locally active vertices on a level, i.e., the vertices
-       * touched by the locally owned level cells for use in geometric
-       * multigrid (possibly including the vertices due to periodic boundary
-       * conditions) are marked by true.
-       *
-       * Used by DoFHandler::Policy::ParallelDistributed.
-       */
-      std::vector<bool>
-      mark_locally_active_vertices_on_level(const int level) const;
-
-      virtual unsigned int
-      coarse_cell_id_to_coarse_cell_index(
-        const types::coarse_cell_id coarse_cell_id) const override;
-
-      virtual types::coarse_cell_id
-      coarse_cell_index_to_coarse_cell_id(
-        const unsigned int coarse_cell_index) const override;
 
       template <int, int, class>
       friend class dealii::FETools::internal::ExtrapolateImplementation;
     };
+
 
 
     /**
@@ -1380,41 +1604,6 @@ namespace parallel
     };
   } // namespace distributed
 } // namespace parallel
-
-
-#else // DEAL_II_WITH_P4EST
-
-namespace parallel
-{
-  namespace distributed
-  {
-    /**
-     * Dummy class the compiler chooses for parallel distributed
-     * triangulations if we didn't actually configure deal.II with the p4est
-     * library. The existence of this class allows us to refer to
-     * parallel::distributed::Triangulation objects throughout the library
-     * even if it is disabled.
-     *
-     * Since the constructor of this class is deleted, no such objects
-     * can actually be created as this would be pointless given that
-     * p4est is not available.
-     */
-    template <int dim, int spacedim = dim>
-    class Triangulation
-      : public dealii::parallel::TriangulationBase<dim, spacedim>
-    {
-    public:
-      /**
-       * Constructor. Deleted to make sure that objects of this type cannot be
-       * constructed (see also the class documentation).
-       */
-      Triangulation() = delete;
-    };
-  } // namespace distributed
-} // namespace parallel
-
-
-#endif
 
 
 DEAL_II_NAMESPACE_CLOSE

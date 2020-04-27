@@ -19,6 +19,7 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/distributed/policy.h>
 #include <deal.II/distributed/tria_base.h>
 
 #include <deal.II/grid/grid_tools.h>
@@ -50,6 +51,146 @@ namespace parallel
    */
   namespace fullydistributed
   {
+    template <int dim, int spacedim>
+    class Policy
+      : public dealii::parallel::TriangulationPolicy::Base<dim, spacedim>
+    {
+    public:
+      Policy(dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+             MPI_Comm mpi_communicator);
+
+      /**
+       * @copydoc dealii::Triangulation::create_triangulation()
+       *
+       * @note This is the function to be used instead of
+       * Triangulation::create_triangulation() for some of the other
+       * triangulations of deal.II.
+       */
+      void
+      create_triangulation(
+        const TriangulationDescription::Description<dim, spacedim>
+          &construction_data) override;
+
+      /**
+       * @note This function is not implemented for this class  and throws
+       *       an assertion. Instead, use
+       *       the other create_triangulation() function to create the
+       *       triangulation.
+       */
+      virtual void
+      create_triangulation(const std::vector<Point<spacedim>> &      vertices,
+                           const std::vector<dealii::CellData<dim>> &cells,
+                           const SubCellData &subcelldata) override;
+
+      /**
+       * Implementation of the same function as in the base class.
+       *
+       * @param other_tria The triangulation to be copied. It can be a serial
+       *        Triangulation or a parallel::distributed::Triangulation. Both
+       *        can have been refined already.
+       *
+       * @note This function uses the partitioner registered with
+       *       set_partitioner().
+       */
+      void
+      copy_triangulation(
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
+
+      /**
+       * Override the implementation of prepare_coarsening_and_refinement from
+       * the base class.
+       *
+       * @note Not implemented yet.
+       */
+      virtual bool
+      prepare_coarsening_and_refinement() override;
+
+      /**
+       * Coarsen and refine the mesh according to refinement and coarsening
+       * flags set.
+       *
+       * @note Not implemented yet.
+       */
+      virtual void
+      execute_coarsening_and_refinement() override;
+
+      virtual unsigned int
+      coarse_cell_id_to_coarse_cell_index(
+        const types::coarse_cell_id coarse_cell_id) const override;
+
+      virtual types::coarse_cell_id
+      coarse_cell_index_to_coarse_cell_id(
+        const unsigned int coarse_cell_index) const override;
+
+      /**
+       * Return if multilevel hierarchy is supported and has been constructed.
+       */
+      virtual bool
+      is_multilevel_hierarchy_constructed() const override;
+
+      /**
+       * Register a partitioner, which is used within the method
+       * copy_triangulation.
+       *
+       * @param partitioner A partitioning function, which takes as input argument
+       *                    a reference to the triangulation to be partitioned
+       *                    and the number of partitions to be created.
+       *                    The function needs to set subdomain
+       *                    ids for each active cell of the given triangulation,
+       *                    with values between zero (inclusive)
+       *                    and the second argument to the function (exclusive).
+       * @param settings See the description of the Settings enumerator.
+       *
+       * @note As a default, GridTools::partition_triangulation_zorder() is used
+       *       as partitioner and data structures on multigrid levels are not
+       *       set up.
+       */
+      void
+      set_partitioner(
+        const std::function<void(dealii::Triangulation<dim, spacedim> &,
+                                 const unsigned int)> &partitioner,
+        const TriangulationDescription::Settings &     settings);
+
+    private:
+      /**
+       * store the Settings.
+       */
+      TriangulationDescription::Settings settings;
+
+      /**
+       * Partitioner used in copy_triangulation().
+       */
+      std::function<void(dealii::Triangulation<dim, spacedim> &,
+                         const unsigned int)>
+        partitioner;
+
+      /**
+       * Sorted list of pairs of coarse-cell ids and their indices.
+       */
+      std::vector<std::pair<types::coarse_cell_id, unsigned int>>
+        coarse_cell_id_to_coarse_cell_index_vector;
+
+      /**
+       * List of the coarse-cell id for each coarse cell (stored at
+       * cell->index()).
+       */
+      std::vector<types::coarse_cell_id>
+        coarse_cell_index_to_coarse_cell_id_vector;
+
+      /**
+       * Boolean indicating that the function create_triangulation() was called
+       * for internal usage.
+       */
+      bool currently_processing_create_triangulation_for_internal_usage;
+
+      /**
+       * Boolean indicating that the function
+       * prepare_coarsening_and_refinement() was called for internal usage.
+       */
+      bool
+        currently_processing_prepare_coarsening_and_refinement_for_internal_usage;
+    };
+
     /**
      * A distributed triangulation with a distributed coarse grid.
      *
@@ -162,20 +303,6 @@ namespace parallel
                            const SubCellData &subcelldata) override;
 
       /**
-       * Implementation of the same function as in the base class.
-       *
-       * @param other_tria The triangulation to be copied. It can be a serial
-       *        Triangulation or a parallel::distributed::Triangulation. Both
-       *        can have been refined already.
-       *
-       * @note This function uses the partitioner registered with
-       *       set_partitioner().
-       */
-      void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria) override;
-
-      /**
        * Register a partitioner, which is used within the method
        * copy_triangulation.
        *
@@ -240,45 +367,6 @@ namespace parallel
       virtual types::coarse_cell_id
       coarse_cell_index_to_coarse_cell_id(
         const unsigned int coarse_cell_index) const override;
-
-    private:
-      /**
-       * store the Settings.
-       */
-      TriangulationDescription::Settings settings;
-
-      /**
-       * Partitioner used in copy_triangulation().
-       */
-      std::function<void(dealii::Triangulation<dim, spacedim> &,
-                         const unsigned int)>
-        partitioner;
-
-      /**
-       * Sorted list of pairs of coarse-cell ids and their indices.
-       */
-      std::vector<std::pair<types::coarse_cell_id, unsigned int>>
-        coarse_cell_id_to_coarse_cell_index_vector;
-
-      /**
-       * List of the coarse-cell id for each coarse cell (stored at
-       * cell->index()).
-       */
-      std::vector<types::coarse_cell_id>
-        coarse_cell_index_to_coarse_cell_id_vector;
-
-      /**
-       * Boolean indicating that the function create_triangulation() was called
-       * for internal usage.
-       */
-      bool currently_processing_create_triangulation_for_internal_usage;
-
-      /**
-       * Boolean indicating that the function
-       * prepare_coarsening_and_refinement() was called for internal usage.
-       */
-      bool
-        currently_processing_prepare_coarsening_and_refinement_for_internal_usage;
     };
 
   } // namespace fullydistributed

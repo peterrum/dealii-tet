@@ -23,6 +23,7 @@
 #include <deal.II/base/subscriptor.h>
 #include <deal.II/base/template_constraints.h>
 
+#include <deal.II/distributed/policy.h>
 #include <deal.II/distributed/tria_base.h>
 
 #include <deal.II/grid/tria.h>
@@ -43,9 +44,6 @@ DEAL_II_NAMESPACE_OPEN
 
 namespace parallel
 {
-#ifdef DEAL_II_WITH_MPI
-
-
   namespace shared
   {
     /**
@@ -226,7 +224,6 @@ namespace parallel
         construct_multigrid_hierarchy = 0x8,
       };
 
-
       /**
        * Constructor.
        *
@@ -241,7 +238,7 @@ namespace parallel
         const typename dealii::Triangulation<dim, spacedim>::MeshSmoothing =
           (dealii::Triangulation<dim, spacedim>::none),
         const bool     allow_artificial_cells = false,
-        const Settings settings               = partition_auto);
+        const Settings settings               = Settings::partition_auto);
 
       /**
        * Destructor.
@@ -287,20 +284,6 @@ namespace parallel
           &construction_data) override;
 
       /**
-       * Copy @p other_tria to this triangulation.
-       *
-       * This function also partitions triangulation based on the MPI
-       * communicator provided to the constructor.
-       *
-       * @note This function can not be used with parallel::distributed::Triangulation,
-       * since it only stores those cells that it owns, one layer of ghost cells
-       * around the ones it locally owns, and a number of artificial cells.
-       */
-      virtual void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria) override;
-
-      /**
        * Read the data of this object from a stream for the purpose of
        * serialization. Throw away the previous content.
        *
@@ -340,6 +323,114 @@ namespace parallel
        */
       bool
       with_artificial_cells() const;
+    };
+
+
+
+    template <int dim, int spacedim>
+    class Policy
+      : public dealii::parallel::TriangulationPolicy::Base<dim, spacedim>
+    {
+    public:
+      using Settings = typename Triangulation<dim, spacedim>::Settings;
+
+      Policy(dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+             MPI_Comm       mpi_communicator,
+             const bool     allow_artificial_cells = false,
+             const Settings settings               = Settings::partition_auto);
+
+      /**
+       * Create a triangulation.
+       *
+       * This function also partitions triangulation based on the MPI
+       * communicator provided to the constructor.
+       */
+      virtual void
+      create_triangulation(const std::vector<Point<spacedim>> &vertices,
+                           const std::vector<CellData<dim>> &  cells,
+                           const SubCellData &subcelldata) override;
+
+      /*
+       * @copydoc Triangulation::create_triangulation()
+       *
+       * @note Not inmplemented yet.
+       */
+      virtual void
+      create_triangulation(
+        const TriangulationDescription::Description<dim, spacedim>
+          &construction_data) override;
+
+      /**
+       * Copy @p other_tria to this triangulation.
+       *
+       * This function also partitions triangulation based on the MPI
+       * communicator provided to the constructor.
+       *
+       * @note This function can not be used with parallel::distributed::Triangulation,
+       * since it only stores those cells that it owns, one layer of ghost cells
+       * around the ones it locally owns, and a number of artificial cells.
+       */
+      virtual void
+      copy_triangulation(
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
+
+      /**
+       * Coarsen and refine the mesh according to refinement and coarsening
+       * flags set.
+       *
+       * This step is equivalent to the dealii::Triangulation class with an
+       * addition of calling dealii::GridTools::partition_triangulation() at
+       * the end.
+       */
+      virtual void
+      execute_coarsening_and_refinement() override;
+
+      /**
+       * Return if multilevel hierarchy is supported and has been constructed.
+       */
+      virtual bool
+      is_multilevel_hierarchy_constructed() const override;
+
+      /**
+       * Return a vector of length Triangulation::n_active_cells() where each
+       * element stores the subdomain id of the owner of this cell. The
+       * elements of the vector are obviously the same as the subdomain ids
+       * for locally owned and ghost cells, but are also correct for
+       * artificial cells that do not store who the owner of the cell is in
+       * their subdomain_id field.
+       */
+      const std::vector<types::subdomain_id> &
+      get_true_subdomain_ids_of_cells() const;
+
+      /**
+       * Return a vector of length Triangulation::n_cells(level) where each
+       * element stores the level subdomain id of the owner of this cell. The
+       * elements of the vector are obviously the same as the level subdomain
+       * ids for locally owned and ghost cells, but are also correct for
+       * artificial cells that do not store who the owner of the cell is in
+       * their level_subdomain_id field.
+       */
+      const std::vector<types::subdomain_id> &
+      get_true_level_subdomain_ids_of_cells(const unsigned int level) const;
+
+      /**
+       * Return allow_artificial_cells , namely true if artificial cells are
+       * allowed.
+       */
+      bool
+      with_artificial_cells() const;
+
+      /**
+       * Read the data of this object from a stream for the purpose of
+       * serialization. Throw away the previous content.
+       *
+       * This function first does the same work as in
+       * dealii::Triangulation::load, then partitions the triangulation based on
+       * the MPI communicator provided to the constructor.
+       */
+      template <class Archive>
+      void
+      load(Archive &ar, const unsigned int version);
 
     private:
       /**
@@ -351,13 +442,6 @@ namespace parallel
        * A flag to decide whether or not artificial cells are allowed.
        */
       const bool allow_artificial_cells;
-
-      /**
-       * This function calls GridTools::partition_triangulation () and if
-       * requested in the constructor of the class marks artificial cells.
-       */
-      void
-      partition();
 
       /**
        * A vector containing subdomain IDs of cells obtained by partitioning
@@ -383,6 +467,13 @@ namespace parallel
        */
       std::vector<std::vector<types::subdomain_id>>
         true_level_subdomain_ids_of_cells;
+
+      /**
+       * This function calls GridTools::partition_triangulation () and if
+       * requested in the constructor of the class marks artificial cells.
+       */
+      void
+      partition();
     };
 
     template <int dim, int spacedim>
@@ -390,76 +481,20 @@ namespace parallel
     void
     Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int version)
     {
-      dealii::Triangulation<dim, spacedim>::load(ar, version);
-      partition();
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->load(ar, version);
+    }
+
+    template <int dim, int spacedim>
+    template <class Archive>
+    void
+    Policy<dim, spacedim>::load(Archive &ar, const unsigned int version)
+    {
+      this->tria.dealii::Triangulation<dim, spacedim>::load(ar, version);
+      this->partition();
       this->update_number_cache();
     }
   } // namespace shared
-#else
-
-  namespace shared
-  {
-    /**
-     * Dummy class the compiler chooses for parallel shared triangulations if
-     * we didn't actually configure deal.II with the MPI library. The
-     * existence of this class allows us to refer to
-     * parallel::shared::Triangulation objects throughout the library even if
-     * it is disabled.
-     *
-     * Since the constructor of this class is deleted, no such objects
-     * can actually be created as this would be pointless given that
-     * MPI is not available.
-     */
-    template <int dim, int spacedim = dim>
-    class Triangulation
-      : public dealii::parallel::TriangulationBase<dim, spacedim>
-    {
-    public:
-      /**
-       * Constructor. Deleted to make sure that objects of this type cannot be
-       * constructed (see also the class documentation).
-       */
-      Triangulation() = delete;
-
-      /**
-       * Return if multilevel hierarchy is supported and has been constructed.
-       */
-      virtual bool
-      is_multilevel_hierarchy_constructed() const override;
-
-      /**
-       * A dummy function to return empty vector.
-       */
-      const std::vector<types::subdomain_id> &
-      get_true_subdomain_ids_of_cells() const;
-
-      /**
-       * A dummy function to return empty vector.
-       */
-      const std::vector<types::subdomain_id> &
-      get_true_level_subdomain_ids_of_cells(const unsigned int level) const;
-
-      /**
-       * A dummy function which always returns true.
-       */
-      bool
-      with_artificial_cells() const;
-
-    private:
-      /**
-       * A dummy vector.
-       */
-      std::vector<types::subdomain_id> true_subdomain_ids_of_cells;
-
-      /**
-       * A dummy vector.
-       */
-      std::vector<types::subdomain_id> true_level_subdomain_ids_of_cells;
-    };
-  } // namespace shared
-
-
-#endif
 } // namespace parallel
 
 DEAL_II_NAMESPACE_CLOSE

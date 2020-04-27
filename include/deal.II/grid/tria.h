@@ -105,6 +105,13 @@ namespace hp
   template <int dim, int spacedim>
   class DoFHandler;
 }
+
+namespace TriangulationPolicy
+{
+  template <int dim, int spacedim>
+  class Base;
+}
+
 #endif
 
 
@@ -3441,7 +3448,7 @@ public:
    * @}
    */
 
-protected:
+public:
   /**
    * Do some smoothing in the process of refining the triangulation. See the
    * general doc of this class for more information about this.
@@ -3935,6 +3942,8 @@ private:
 
   template <typename>
   friend class dealii::internal::TriangulationImplementation::TriaObjects;
+
+  friend class dealii::TriangulationPolicy::Base<dim, spacedim>;
 
   // explicitly check for sensible template arguments, but not on windows
   // because MSVC creates bogus warnings during normal compilation

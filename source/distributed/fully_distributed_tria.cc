@@ -40,8 +40,12 @@ namespace parallel
   namespace fullydistributed
   {
     template <int dim, int spacedim>
-    Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
-      : parallel::DistributedTriangulationBase<dim, spacedim>(mpi_communicator)
+    Policy<dim, spacedim>::Policy(
+      dealii::parallel::TriangulationBase<dim, spacedim> &tria,
+      MPI_Comm                                            mpi_communicator)
+      : dealii::parallel::TriangulationPolicy::Base<dim, spacedim>(
+          tria,
+          mpi_communicator)
       , settings(TriangulationDescription::Settings::default_setting)
       , partitioner([](dealii::Triangulation<dim, spacedim> &tria,
                        const unsigned int                    n_partitions) {
@@ -56,7 +60,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::create_triangulation(
+    Policy<dim, spacedim>::create_triangulation(
       const TriangulationDescription::Description<dim, spacedim>
         &construction_data)
     {
@@ -71,13 +75,13 @@ namespace parallel
       // set the smoothing properties
       if (settings &
           TriangulationDescription::Settings::construct_multigrid_hierarchy)
-        this->set_mesh_smoothing(
+        this->tria.set_mesh_smoothing(
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             dealii::Triangulation<dim>::none |
             Triangulation<dim, spacedim>::limit_level_difference_at_vertices));
       else
-        this->set_mesh_smoothing(
+        this->tria.set_mesh_smoothing(
           static_cast<
             typename dealii::Triangulation<dim, spacedim>::MeshSmoothing>(
             dealii::Triangulation<dim>::none));
@@ -91,11 +95,11 @@ namespace parallel
         {
           // 1) create a dummy hypercube
           currently_processing_create_triangulation_for_internal_usage = true;
-          GridGenerator::hyper_cube(*this, 0, 1, false);
+          GridGenerator::hyper_cube(this->tria, 0, 1, false);
           currently_processing_create_triangulation_for_internal_usage = false;
 
           // 2) mark cell as artificial
-          auto cell = this->begin();
+          auto cell = this->tria.begin();
           cell->set_subdomain_id(dealii::numbers::artificial_subdomain_id);
           cell->set_level_subdomain_id(
             dealii::numbers::artificial_subdomain_id);
@@ -129,7 +133,7 @@ namespace parallel
           currently_processing_prepare_coarsening_and_refinement_for_internal_usage =
             true;
           currently_processing_create_triangulation_for_internal_usage = true;
-          dealii::Triangulation<dim, spacedim>::create_triangulation(
+          this->tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
             construction_data);
           currently_processing_prepare_coarsening_and_refinement_for_internal_usage =
             false;
@@ -140,7 +144,7 @@ namespace parallel
 
           // 4a) set all cells artificial (and set the actual
           //     (level_)subdomain_ids in the next step)
-          for (auto cell = this->begin(); cell != this->end(); ++cell)
+          for (auto cell = this->tria.begin(); cell != this->tria.end(); ++cell)
             {
               if (cell->is_active())
                 cell->set_subdomain_id(
@@ -153,7 +157,7 @@ namespace parallel
           // 4b) set actual (level_)subdomain_ids
           for (unsigned int level = 0; level < cell_infos.size(); ++level)
             {
-              auto cell      = this->begin(level);
+              auto cell      = this->tria.begin(level);
               auto cell_info = cell_infos[level].begin();
               for (; cell_info != cell_infos[level].end(); ++cell_info)
                 {
@@ -180,7 +184,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::create_triangulation(
+    Policy<dim, spacedim>::create_triangulation(
       const std::vector<Point<spacedim>> &      vertices,
       const std::vector<dealii::CellData<dim>> &cells,
       const SubCellData &                       subcelldata)
@@ -190,16 +194,15 @@ namespace parallel
         ExcMessage(
           "Use the other create_triangulation() function to create triangulations of type parallel::fullydistributed::Triangulation.!"));
 
-      dealii::Triangulation<dim, spacedim>::create_triangulation(vertices,
-                                                                 cells,
-                                                                 subcelldata);
+      this->tria.dealii::Triangulation<dim, spacedim>::create_triangulation(
+        vertices, cells, subcelldata);
     }
 
 
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::copy_triangulation(
+    Policy<dim, spacedim>::copy_triangulation(
       const dealii::Triangulation<dim, spacedim> &other_tria)
     {
       // pointer to the triangulation for which the construction data
@@ -254,7 +257,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::set_partitioner(
+    Policy<dim, spacedim>::set_partitioner(
       const std::function<void(dealii::Triangulation<dim, spacedim> &,
                                const unsigned int)> &partitioner,
       const TriangulationDescription::Settings &     settings)
@@ -267,7 +270,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     void
-    Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
+    Policy<dim, spacedim>::execute_coarsening_and_refinement()
     {
       Assert(false, ExcNotImplemented());
     }
@@ -276,47 +279,22 @@ namespace parallel
 
     template <int dim, int spacedim>
     bool
-    Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
+    Policy<dim, spacedim>::prepare_coarsening_and_refinement()
     {
       Assert(
         currently_processing_prepare_coarsening_and_refinement_for_internal_usage,
         ExcMessage("No coarsening and refinement is supported!"));
 
-      return dealii::Triangulation<dim, spacedim>::
-        prepare_coarsening_and_refinement();
+      return this->tria
+        .dealii::Triangulation<dim,
+                               spacedim>::prepare_coarsening_and_refinement();
     }
 
 
 
     template <int dim, int spacedim>
     bool
-    Triangulation<dim, spacedim>::has_hanging_nodes() const
-    {
-      Assert(false, ExcNotImplemented());
-      return false;
-    }
-
-
-
-    template <int dim, int spacedim>
-    std::size_t
-    Triangulation<dim, spacedim>::memory_consumption() const
-    {
-      const std::size_t mem =
-        this->dealii::parallel::TriangulationBase<dim, spacedim>::
-          memory_consumption() +
-        MemoryConsumption::memory_consumption(
-          coarse_cell_id_to_coarse_cell_index_vector) +
-        MemoryConsumption::memory_consumption(
-          coarse_cell_index_to_coarse_cell_id_vector);
-      return mem;
-    }
-
-
-
-    template <int dim, int spacedim>
-    bool
-    Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
+    Policy<dim, spacedim>::is_multilevel_hierarchy_constructed() const
     {
       return (
         settings &
@@ -327,7 +305,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     unsigned int
-    Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
+    Policy<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
       const types::coarse_cell_id coarse_cell_id) const
     {
       const auto coarse_cell_index = std::lower_bound(
@@ -346,7 +324,7 @@ namespace parallel
 
     template <int dim, int spacedim>
     types::coarse_cell_id
-    Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
+    Policy<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
       const unsigned int coarse_cell_index) const
     {
       AssertIndexRange(coarse_cell_index,
@@ -357,6 +335,120 @@ namespace parallel
       AssertThrow(coarse_cell_id != numbers::invalid_coarse_cell_id,
                   ExcMessage("You are trying to access a dummy cell!"));
       return coarse_cell_id;
+    }
+
+
+
+    template <int dim, int spacedim>
+    Triangulation<dim, spacedim>::Triangulation(MPI_Comm mpi_communicator)
+      : parallel::DistributedTriangulationBase<dim, spacedim>(
+          mpi_communicator,
+          std::shared_ptr<TriangulationPolicy::Base<dim, spacedim>>(
+            new Policy<dim, spacedim>(*this, mpi_communicator)))
+    {}
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::create_triangulation(
+      const TriangulationDescription::Description<dim, spacedim>
+        &construction_data)
+    {
+      this->policy->create_triangulation(construction_data);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::create_triangulation(
+      const std::vector<Point<spacedim>> &      vertices,
+      const std::vector<dealii::CellData<dim>> &cells,
+      const SubCellData &                       subcelldata)
+    {
+      this->policy->create_triangulation(vertices, cells, subcelldata);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::set_partitioner(
+      const std::function<void(dealii::Triangulation<dim, spacedim> &,
+                               const unsigned int)> &partitioner,
+      const TriangulationDescription::Settings &     settings)
+    {
+      static_cast<Policy<dim, spacedim> *>(this->policy.get())
+        ->set_partitioner(partitioner, settings);
+    }
+
+
+
+    template <int dim, int spacedim>
+    void
+    Triangulation<dim, spacedim>::execute_coarsening_and_refinement()
+    {
+      this->policy->execute_coarsening_and_refinement();
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Triangulation<dim, spacedim>::prepare_coarsening_and_refinement()
+    {
+      return this->policy->prepare_coarsening_and_refinement();
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Triangulation<dim, spacedim>::has_hanging_nodes() const
+    {
+      Assert(false, ExcNotImplemented()); // [TODO]
+      return false;
+    }
+
+
+
+    template <int dim, int spacedim>
+    std::size_t
+    Triangulation<dim, spacedim>::memory_consumption() const
+    {
+      Assert(false, ExcNotImplemented()); // [TODO]
+      return 0;
+    }
+
+
+
+    template <int dim, int spacedim>
+    bool
+    Triangulation<dim, spacedim>::is_multilevel_hierarchy_constructed() const
+    {
+      return this->policy->is_multilevel_hierarchy_constructed();
+    }
+
+
+
+    template <int dim, int spacedim>
+    unsigned int
+    Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
+      const types::coarse_cell_id coarse_cell_id) const
+    {
+      return this->policy->coarse_cell_id_to_coarse_cell_index(coarse_cell_id);
+    }
+
+
+
+    template <int dim, int spacedim>
+    types::coarse_cell_id
+    Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
+      const unsigned int coarse_cell_index) const
+    {
+      return this->policy->coarse_cell_index_to_coarse_cell_id(
+        coarse_cell_index);
     }
 
 
