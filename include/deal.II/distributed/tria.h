@@ -377,19 +377,6 @@ namespace parallel
       is_multilevel_hierarchy_constructed() const override;
 
       /**
-       * Implementation of the same function as in the base class.
-       *
-       * @note This function cannot copy a triangulation that has been refined.
-       *
-       * @note This function can be used to copy a serial Triangulation to a
-       * parallel::distributed::Triangulation but only if the serial
-       * Triangulation has never been refined.
-       */
-      virtual void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria) override;
-
-      /**
        * Create a triangulation as documented in the base class.
        *
        * This function also sets up the various data structures necessary to
@@ -1111,9 +1098,6 @@ namespace parallel
 
       const typename dealii::internal::p4est::types<dim>::forest *
       get_p4est() const;
-
-      virtual void
-      update_number_cache();
 
       typename dealii::internal::p4est::types<dim>::tree *
       init_tree(const int dealii_coarse_cell_index) const;

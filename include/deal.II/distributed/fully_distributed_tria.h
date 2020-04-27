@@ -153,13 +153,6 @@ namespace parallel
 
     private:
       /**
-       * Override the function to update the number cache so we can fill data
-       * like @p level_ghost_owners.
-       */
-      void
-      update_number_cache();
-
-      /**
        * store the Settings.
        */
       TriangulationDescription::Settings settings;
@@ -308,20 +301,6 @@ namespace parallel
       create_triangulation(const std::vector<Point<spacedim>> &      vertices,
                            const std::vector<dealii::CellData<dim>> &cells,
                            const SubCellData &subcelldata) override;
-
-      /**
-       * Implementation of the same function as in the base class.
-       *
-       * @param other_tria The triangulation to be copied. It can be a serial
-       *        Triangulation or a parallel::distributed::Triangulation. Both
-       *        can have been refined already.
-       *
-       * @note This function uses the partitioner registered with
-       *       set_partitioner().
-       */
-      void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria) override;
 
       /**
        * Register a partitioner, which is used within the method

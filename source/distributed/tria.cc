@@ -3041,16 +3041,6 @@ namespace parallel
 
 
     template <int dim, int spacedim>
-    void
-    Policy<dim, spacedim>::update_number_cache()
-    {
-      this->tria_parallel
-        .parallel::TriangulationBase<dim, spacedim>::update_number_cache();
-    }
-
-
-
-    template <int dim, int spacedim>
     typename dealii::internal::p4est::types<dim>::tree *
     Triangulation<dim, spacedim>::init_tree(
       const int dealii_coarse_cell_index) const
@@ -5063,27 +5053,8 @@ namespace parallel
     std::size_t
     Policy<dim, spacedim>::memory_consumption() const
     {
-      std::size_t mem =
-        this->tria_parallel
-          .dealii::parallel::TriangulationBase<dim,
-                                               spacedim>::memory_consumption() +
-        MemoryConsumption::memory_consumption(triangulation_has_content) +
-        MemoryConsumption::memory_consumption(connectivity) +
-        MemoryConsumption::memory_consumption(parallel_forest) +
-        MemoryConsumption::memory_consumption(
-          cell_attached_data.n_attached_data_sets) +
-        // MemoryConsumption::memory_consumption(cell_attached_data.pack_callbacks_fixed)
-        // +
-        // MemoryConsumption::memory_consumption(cell_attached_data.pack_callbacks_variable)
-        // +
-        // TODO[TH]: how?
-        MemoryConsumption::memory_consumption(
-          coarse_cell_to_p4est_tree_permutation) +
-        MemoryConsumption::memory_consumption(
-          p4est_tree_to_coarse_cell_permutation) +
-        memory_consumption_p4est();
-
-      return mem;
+      Assert(false, ExcNotImplemented());
+      return 0;
     }
 
 
@@ -5109,16 +5080,6 @@ namespace parallel
     }
 
 
-
-    template <int dim, int spacedim>
-    void
-    Triangulation<dim, spacedim>::copy_triangulation(
-      const dealii::Triangulation<dim, spacedim> &other_tria)
-    {
-      this->policy->copy_triangulation(other_tria);
-    }
-
-
     template <int dim, int spacedim>
     void
     Policy<dim, spacedim>::copy_triangulation(
@@ -5126,8 +5087,8 @@ namespace parallel
     {
       try
         {
-          this->tria_parallel.dealii::parallel::
-            TriangulationBase<dim, spacedim>::copy_triangulation(other_tria);
+          this->dealii::parallel::TriangulationPolicy::Base<dim, spacedim>::
+            copy_triangulation(other_tria);
         }
       catch (
         const typename dealii::Triangulation<dim, spacedim>::DistortedCellList

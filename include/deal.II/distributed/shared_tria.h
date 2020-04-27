@@ -284,20 +284,6 @@ namespace parallel
           &construction_data) override;
 
       /**
-       * Copy @p other_tria to this triangulation.
-       *
-       * This function also partitions triangulation based on the MPI
-       * communicator provided to the constructor.
-       *
-       * @note This function can not be used with parallel::distributed::Triangulation,
-       * since it only stores those cells that it owns, one layer of ghost cells
-       * around the ones it locally owns, and a number of artificial cells.
-       */
-      virtual void
-      copy_triangulation(
-        const dealii::Triangulation<dim, spacedim> &other_tria) override;
-
-      /**
        * Read the data of this object from a stream for the purpose of
        * serialization. Throw away the previous content.
        *
@@ -483,13 +469,6 @@ namespace parallel
         true_level_subdomain_ids_of_cells;
 
       /**
-       * Override the function to update the number cache so we can fill data
-       * like @p level_ghost_owners.
-       */
-      void
-      update_number_cache();
-
-      /**
        * This function calls GridTools::partition_triangulation () and if
        * requested in the constructor of the class marks artificial cells.
        */
@@ -512,8 +491,8 @@ namespace parallel
     Policy<dim, spacedim>::load(Archive &ar, const unsigned int version)
     {
       this->tria.dealii::Triangulation<dim, spacedim>::load(ar, version);
-      partition();
-      update_number_cache();
+      this->partition();
+      this->update_number_cache();
     }
   } // namespace shared
 } // namespace parallel

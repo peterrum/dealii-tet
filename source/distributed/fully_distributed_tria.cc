@@ -235,7 +235,7 @@ namespace parallel
                               this->mpi_communicator));
 
           // partition multigrid levels
-          if (this->tria_parallel.is_multilevel_hierarchy_constructed())
+          if (this->is_multilevel_hierarchy_constructed())
             GridTools::partition_multigrid_levels(*serial_tria);
 
           // use the new serial triangulation to create the construction data
@@ -247,7 +247,7 @@ namespace parallel
         create_description_from_triangulation(
           *other_tria_ptr,
           this->mpi_communicator,
-          this->tria_parallel.is_multilevel_hierarchy_constructed());
+          this->is_multilevel_hierarchy_constructed());
 
       // finally create triangulation
       this->create_triangulation(construction_data);
@@ -264,15 +264,6 @@ namespace parallel
     {
       this->partitioner = partitioner;
       this->settings    = settings;
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
-    Policy<dim, spacedim>::update_number_cache()
-    {
-      this->tria_parallel.update_number_cache();
     }
 
 
@@ -377,16 +368,6 @@ namespace parallel
       const SubCellData &                       subcelldata)
     {
       this->policy->create_triangulation(vertices, cells, subcelldata);
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
-    Triangulation<dim, spacedim>::copy_triangulation(
-      const dealii::Triangulation<dim, spacedim> &other_tria)
-    {
-      this->policy->copy_triangulation(other_tria);
     }
 
 

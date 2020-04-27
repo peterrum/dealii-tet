@@ -405,21 +405,10 @@ namespace parallel
         ExcMessage(
           "Cannot use this function on parallel::distributed::Triangulation."));
 
-      this->tria_parallel
-        .dealii::parallel::TriangulationBase<dim, spacedim>::copy_triangulation(
-          other_tria);
+      this->dealii::parallel::TriangulationPolicy::Base<dim, spacedim>::
+        copy_triangulation(other_tria);
       this->partition();
       this->update_number_cache();
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
-    Policy<dim, spacedim>::update_number_cache()
-    {
-      this->tria_parallel
-        .parallel::TriangulationBase<dim, spacedim>::update_number_cache();
     }
 
 
@@ -512,16 +501,6 @@ namespace parallel
         &construction_data)
     {
       this->policy->create_triangulation(construction_data);
-    }
-
-
-
-    template <int dim, int spacedim>
-    void
-    Triangulation<dim, spacedim>::copy_triangulation(
-      const dealii::Triangulation<dim, spacedim> &other_tria)
-    {
-      this->policy->copy_triangulation(other_tria);
     }
 
   } // namespace shared

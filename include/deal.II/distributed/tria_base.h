@@ -24,6 +24,8 @@
 #include <deal.II/base/subscriptor.h>
 #include <deal.II/base/template_constraints.h>
 
+#include <deal.II/distributed/policy.h>
+
 #include <deal.II/grid/tria.h>
 
 #include <functional>
@@ -35,15 +37,6 @@
 
 
 DEAL_II_NAMESPACE_OPEN
-
-namespace parallel
-{
-  namespace TriangulationPolicy
-  {
-    template <int dim, int spacedim>
-    class Base;
-  }
-} // namespace parallel
 
 namespace parallel
 {
@@ -268,51 +261,6 @@ namespace parallel
      * The total number of subdomains (or the size of the MPI communicator).
      */
     types::subdomain_id n_subdomains;
-
-    /**
-     * A structure that contains information about the distributed
-     * triangulation.
-     */
-    struct NumberCache
-    {
-      /**
-       * Number of locally owned active cells of this MPI rank.
-       */
-      unsigned int n_locally_owned_active_cells;
-      /**
-       * The total number of active cells (sum of @p
-       * n_locally_owned_active_cells).
-       */
-      types::global_cell_index n_global_active_cells;
-      /**
-       * The global number of levels computed as the maximum number of levels
-       * taken over all MPI ranks, so <tt>n_levels()<=n_global_levels =
-       * max(n_levels() on proc i)</tt>.
-       */
-      unsigned int n_global_levels;
-      /**
-       * A set containing the subdomain_id (MPI rank) of the owners of the
-       * ghost cells on this processor.
-       */
-      std::set<types::subdomain_id> ghost_owners;
-      /**
-       * A set containing the MPI ranks of the owners of the level ghost cells
-       * on this processor (for all levels).
-       */
-      std::set<types::subdomain_id> level_ghost_owners;
-
-      NumberCache();
-    };
-
-    NumberCache number_cache;
-
-  public:
-    /**
-     * Update the number_cache variable after mesh creation or refinement.
-     * [TODO] make protected again
-     */
-    virtual void
-    update_number_cache();
 
   public:
     friend class dealii::parallel::TriangulationPolicy::Base<dim, spacedim>;

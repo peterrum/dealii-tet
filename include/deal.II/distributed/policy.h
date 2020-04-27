@@ -19,8 +19,6 @@
 
 #include <deal.II/base/config.h>
 
-#include <deal.II/distributed/tria_base.h>
-
 #include <deal.II/grid/policy.h>
 
 
@@ -34,24 +32,62 @@ namespace parallel
     class Base : public dealii::TriangulationPolicy::Base<dim, spacedim>
     {
     public:
-      Base(dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel,
-           MPI_Comm                                            mpi_communicator)
-        : dealii::TriangulationPolicy::Base<dim, spacedim>(tria_parallel)
-        , tria_parallel(tria_parallel)
-        , mpi_communicator(mpi_communicator)
-        , my_subdomain(Utilities::MPI::this_mpi_process(mpi_communicator))
-        , n_subdomains(Utilities::MPI::n_mpi_processes(mpi_communicator))
-      {}
+      /**
+       * A structure that contains information about the distributed
+       * triangulation.
+       */
+      struct NumberCache
+      {
+        /**
+         * Number of locally owned active cells of this MPI rank.
+         */
+        unsigned int n_locally_owned_active_cells;
+        /**
+         * The total number of active cells (sum of @p
+         * n_locally_owned_active_cells).
+         */
+        types::global_cell_index n_global_active_cells;
+        /**
+         * The global number of levels computed as the maximum number of levels
+         * taken over all MPI ranks, so <tt>n_levels()<=n_global_levels =
+         * max(n_levels() on proc i)</tt>.
+         */
+        unsigned int n_global_levels;
+        /**
+         * A set containing the subdomain_id (MPI rank) of the owners of the
+         * ghost cells on this processor.
+         */
+        std::set<types::subdomain_id> ghost_owners;
+        /**
+         * A set containing the MPI ranks of the owners of the level ghost cells
+         * on this processor (for all levels).
+         */
+        std::set<types::subdomain_id> level_ghost_owners;
 
+        NumberCache();
+      };
+
+      Base(dealii::Triangulation<dim, spacedim> &tria,
+           MPI_Comm                              mpi_communicator);
+
+      const NumberCache &
+      get_number_cache() const;
+
+      virtual void
+      copy_triangulation(
+        const dealii::Triangulation<dim, spacedim> &other_tria) override;
 
       virtual bool
-      is_multilevel_hierarchy_constructed() const = 0;
+      is_multilevel_hierarchy_constructed() const;
 
     protected:
-      dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
-      const MPI_Comm                                      mpi_communicator;
-      const unsigned int                                  my_subdomain;
-      const unsigned int                                  n_subdomains;
+      const MPI_Comm     mpi_communicator;
+      const unsigned int my_subdomain;
+      const unsigned int n_subdomains;
+      NumberCache        number_cache;
+
+      void
+      update_number_cache();
     };
   } // namespace TriangulationPolicy
 } // namespace parallel
