@@ -39,6 +39,8 @@ namespace parallel
         : dealii::TriangulationPolicy::Base<dim, spacedim>(tria_parallel)
         , tria_parallel(tria_parallel)
         , mpi_communicator(mpi_communicator)
+        , my_subdomain(Utilities::MPI::this_mpi_process(mpi_communicator))
+        , n_subdomains(Utilities::MPI::n_mpi_processes(mpi_communicator))
       {}
 
 
@@ -47,7 +49,9 @@ namespace parallel
 
     protected:
       dealii::parallel::TriangulationBase<dim, spacedim> &tria_parallel;
-      MPI_Comm                                            mpi_communicator;
+      const MPI_Comm                                      mpi_communicator;
+      const unsigned int                                  my_subdomain;
+      const unsigned int                                  n_subdomains;
     };
   } // namespace TriangulationPolicy
 } // namespace parallel

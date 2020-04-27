@@ -2783,7 +2783,7 @@ namespace parallel
       // signal that serialization is going to happen
       this->tria.signals.pre_distributed_save();
 
-      if (this->tria_parallel.my_subdomain == 0)
+      if (this->my_subdomain == 0)
         {
           std::string   fname = std::string(filename) + ".info";
           std::ofstream f(fname.c_str());
@@ -3789,12 +3789,11 @@ namespace parallel
                   dealii::internal::p4est::init_coarse_quadrant<dim>(
                     p4est_coarse_cell);
 
-                  match_tree_recursively<dim, spacedim>(
-                    *tree,
-                    cell,
-                    p4est_coarse_cell,
-                    *parallel_forest,
-                    this->tria_parallel.my_subdomain);
+                  match_tree_recursively<dim, spacedim>(*tree,
+                                                        cell,
+                                                        p4est_coarse_cell,
+                                                        *parallel_forest,
+                                                        this->my_subdomain);
                 }
             }
 
@@ -3864,7 +3863,7 @@ namespace parallel
 
       for (const auto &cell : this->tria.active_cell_iterators())
         {
-          if (cell->subdomain_id() != this->tria_parallel.my_subdomain &&
+          if (cell->subdomain_id() != this->my_subdomain &&
               cell->subdomain_id() != numbers::artificial_subdomain_id)
             ++num_ghosts;
         }
@@ -3893,13 +3892,11 @@ namespace parallel
               for (cell = this->tria.begin(lvl); cell != endc; ++cell)
                 {
                   if ((cell->is_active() &&
-                       cell->subdomain_id() ==
-                         this->tria_parallel.locally_owned_subdomain()) ||
+                       cell->subdomain_id() == this->my_subdomain) ||
                       (cell->has_children() &&
                        cell->child(0)->level_subdomain_id() ==
-                         this->tria_parallel.locally_owned_subdomain()))
-                    cell->set_level_subdomain_id(
-                      this->tria_parallel.locally_owned_subdomain());
+                         this->my_subdomain))
+                    cell->set_level_subdomain_id(this->my_subdomain);
                   else
                     {
                       // not our cell
@@ -3936,7 +3933,7 @@ namespace parallel
                 cell,
                 p4est_coarse_cell,
                 *parallel_forest,
-                this->tria_parallel.my_subdomain,
+                this->my_subdomain,
                 marked_vertices);
             }
 
@@ -3954,7 +3951,7 @@ namespace parallel
                          ++c)
                       {
                         if (cell->child(c)->level_subdomain_id() ==
-                            this->tria_parallel.locally_owned_subdomain())
+                            this->my_subdomain)
                           {
                             // at least one of the children belongs to us, so
                             // make sure we set the level subdomain id
@@ -3999,7 +3996,7 @@ namespace parallel
         unsigned int n_owned = 0;
         for (const auto &cell : this->tria.active_cell_iterators())
           {
-            if (cell->subdomain_id() == this->tria_parallel.my_subdomain)
+            if (cell->subdomain_id() == this->my_subdomain)
               ++n_owned;
           }
 
@@ -4081,9 +4078,7 @@ namespace parallel
       // count how many cells will be refined and coarsened, and allocate that
       // much memory
       RefineAndCoarsenList<dim, spacedim> refine_and_coarsen_list(
-        this->tria,
-        p4est_tree_to_coarse_cell_permutation,
-        this->tria_parallel.my_subdomain);
+        this->tria, p4est_tree_to_coarse_cell_permutation, this->my_subdomain);
 
       // copy refine and coarsen flags into p4est and execute the refinement
       // and coarsening. this uses the refine_and_coarsen_list just built,
@@ -4787,8 +4782,7 @@ namespace parallel
       cell_iterator     cell = this->tria.begin(level),
                     endc     = this->tria.end(level);
       for (; cell != endc; ++cell)
-        if (cell->level_subdomain_id() ==
-            this->tria_parallel.locally_owned_subdomain())
+        if (cell->level_subdomain_id() == this->my_subdomain)
           for (const unsigned int v : GeometryInfo<dim>::vertex_indices())
             marked_vertices[cell->vertex_index(v)] = true;
 
