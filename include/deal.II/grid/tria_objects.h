@@ -231,30 +231,6 @@ namespace internal
                     const unsigned int                  level);
 
       /**
-       * Clear all the data contained in this object.
-       */
-      void
-      clear();
-
-      /**
-       * The orientation of the face number <code>face</code> of the cell with
-       * number <code>cell</code>. The return value is <code>true</code>, if
-       * the normal vector points the usual way
-       * (GeometryInfo::unit_normal_orientation) and <code>false</code> else.
-       *
-       * The result is always <code>true</code> in this class, but derived
-       * classes will reimplement this.
-       *
-       * @warning There is a bug in the class hierarchy right now. Avoid ever
-       * calling this function through a reference, since you might end up
-       * with the base class function instead of the derived class. Still, we
-       * do not want to make it virtual for efficiency reasons.
-       */
-      bool
-      face_orientation(const unsigned int cell, const unsigned int face) const;
-
-
-      /**
        * Access to user pointers.
        */
       void *&
@@ -415,99 +391,6 @@ namespace internal
       mutable UserDataType user_data_type;
     };
 
-    /**
-     * For hexahedra the data of TriaObjects needs to be extended, as we can
-     * obtain faces (quads) in non-standard-orientation, therefore we declare
-     * a class TriaObjectsHex, which additionally contains a bool-vector of
-     * the face-orientations.
-     */
-    class TriaObjectsHex : public TriaObjects<TriaObject<3>>
-    {
-    public:
-      /**
-       * The orientation of the face number <code>face</code> of the cell with
-       * number <code>cell</code>. The return value is <code>true</code>, if
-       * the normal vector points the usual way
-       * (GeometryInfo::unit_normal_orientation) and <code>false</code> if
-       * they point in opposite direction.
-       */
-      bool
-      face_orientation(const unsigned int cell, const unsigned int face) const;
-
-
-      /**
-       * For edges, we enforce a standard convention that opposite
-       * edges should be parallel. Now, that's enforceable in most
-       * cases, and we have code that makes sure that if a mesh allows
-       * this to happen, that we have this convention. We also know
-       * that it is always possible to have opposite faces have
-       * parallel normal vectors. (For both things, see the paper by
-       * Agelek, Anderson, Bangerth, Barth in the ACM Transactions on
-       * Mathematical Software mentioned in the documentation of the
-       * GridReordering class.)
-       *
-       * The problem is that we originally had another condition, namely that
-       * faces 0, 2 and 6 have normals that point into the cell, while the
-       * other faces have normals that point outward. It turns out that this
-       * is not always possible. In effect, we have to store whether the
-       * normal vector of each face of each cell follows this convention or
-       * not. If this is so, then this variable stores a @p true value,
-       * otherwise a @p false value.
-       *
-       * In effect, this field has <code>6*n_cells</code> elements, being the
-       * number of cells times the six faces each has.
-       */
-      std::vector<bool> face_orientations;
-
-      /**
-       * flip = rotation by 180 degrees
-       */
-      std::vector<bool> face_flips;
-
-      /**
-       * rotation by 90 degrees
-       */
-      std::vector<bool> face_rotations;
-
-      /**
-       * Assert that enough space is allocated to accommodate
-       * <code>new_objs</code> new objects. This function does not only call
-       * <code>vector::reserve()</code>, but does really append the needed
-       * elements.
-       */
-      void
-      reserve_space(const unsigned int new_objs);
-
-      /**
-       * Clear all the data contained in this object.
-       */
-      void
-      clear();
-
-      /**
-       * Check the memory consistency of the different containers. Should only
-       * be called with the preprocessor flag @p DEBUG set. The function
-       * should be called from the functions of the higher TriaLevel classes.
-       */
-      void
-      monitor_memory(const unsigned int true_dimension) const;
-
-      /**
-       * Determine an estimate for the memory consumption (in bytes) of this
-       * object.
-       */
-      std::size_t
-      memory_consumption() const;
-
-      /**
-       * Read or write the data of this object to or from a stream for the
-       * purpose of serialization
-       */
-      template <class Archive>
-      void
-      serialize(Archive &ar, const unsigned int version);
-    };
-
 
     /**
      * For quadrilaterals in 3D the data of TriaObjects needs to be extended,
@@ -518,17 +401,6 @@ namespace internal
     class TriaObjectsQuad3D : public TriaObjects<TriaObject<2>>
     {
     public:
-      /**
-       * The orientation of the face number <code>face</code> of the cell with
-       * number <code>cell</code>. The return value is <code>true</code>, if
-       * the normal vector points the usual way
-       * (GeometryInfo::unit_normal_orientation) and <code>false</code> if
-       * they point in opposite direction.
-       */
-      bool
-      face_orientation(const unsigned int cell, const unsigned int face) const;
-
-
       /**
        * In effect, this field has <code>4*n_quads</code> elements, being the
        * number of quads times the four lines each has.
@@ -545,12 +417,6 @@ namespace internal
       void
       reserve_space(const unsigned int new_quads_in_pairs,
                     const unsigned int new_quads_single = 0);
-
-      /**
-       * Clear all the data contained in this object.
-       */
-      void
-      clear();
 
       /**
        * Check the memory consistency of the different containers. Should only
@@ -615,15 +481,6 @@ namespace internal
         ar &material_id;
       else
         ar &boundary_id;
-    }
-
-
-    template <typename G>
-    inline bool
-    TriaObjects<G>::face_orientation(const unsigned int,
-                                     const unsigned int) const
-    {
-      return true;
     }
 
 
@@ -744,45 +601,11 @@ namespace internal
 
     template <class Archive>
     void
-    TriaObjectsHex::serialize(Archive &ar, const unsigned int version)
-    {
-      this->TriaObjects<TriaObject<3>>::serialize(ar, version);
-
-      ar &face_orientations &face_flips &face_rotations;
-    }
-
-
-    template <class Archive>
-    void
     TriaObjectsQuad3D::serialize(Archive &ar, const unsigned int version)
     {
       this->TriaObjects<TriaObject<2>>::serialize(ar, version);
 
       ar &line_orientations;
-    }
-
-
-    //----------------------------------------------------------------------//
-
-    inline bool
-    TriaObjectsHex::face_orientation(const unsigned int cell,
-                                     const unsigned int face) const
-    {
-      AssertIndexRange(cell,
-                       face_orientations.size() /
-                         GeometryInfo<3>::faces_per_cell);
-      AssertIndexRange(face, GeometryInfo<3>::faces_per_cell);
-
-      return face_orientations[cell * GeometryInfo<3>::faces_per_cell + face];
-    }
-
-    //----------------------------------------------------------------------//
-
-    inline bool
-    TriaObjectsQuad3D::face_orientation(const unsigned int cell,
-                                        const unsigned int face) const
-    {
-      return line_orientations[cell * GeometryInfo<2>::faces_per_cell + face];
     }
 
 

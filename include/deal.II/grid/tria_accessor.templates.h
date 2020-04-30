@@ -727,8 +727,8 @@ namespace internal
       face_orientation(const TriaAccessor<3, dim, spacedim> &accessor,
                        const unsigned int                    face)
       {
-        return (accessor.tria->levels[accessor.present_level]
-                  ->cells.face_orientation(accessor.present_index, face));
+        return accessor.tria->levels[accessor.present_level]->face_orientations
+          [accessor.present_index * GeometryInfo<3>::faces_per_cell + face];
       }
 
 
@@ -762,13 +762,13 @@ namespace internal
                 const unsigned int                    face)
       {
         AssertIndexRange(face, GeometryInfo<3>::faces_per_cell);
-        Assert(accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
-                 accessor.tria->levels[accessor.present_level]
-                   ->cells.face_flips.size(),
-               ExcInternalError());
+        Assert(
+          accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
+            accessor.tria->levels[accessor.present_level]->face_flips.size(),
+          ExcInternalError());
 
         return (
-          accessor.tria->levels[accessor.present_level]->cells.face_flips
+          accessor.tria->levels[accessor.present_level]->face_flips
             [accessor.present_index * GeometryInfo<3>::faces_per_cell + face]);
       }
 
@@ -800,11 +800,11 @@ namespace internal
         AssertIndexRange(face, GeometryInfo<3>::faces_per_cell);
         Assert(accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
                  accessor.tria->levels[accessor.present_level]
-                   ->cells.face_rotations.size(),
+                   ->face_rotations.size(),
                ExcInternalError());
 
         return (
-          accessor.tria->levels[accessor.present_level]->cells.face_rotations
+          accessor.tria->levels[accessor.present_level]->face_rotations
             [accessor.present_index * GeometryInfo<3>::faces_per_cell + face]);
       }
 
@@ -834,12 +834,8 @@ namespace internal
       line_orientation(const TriaAccessor<2, 3, spacedim> &accessor,
                        const unsigned int                  line)
       {
-        // quads as part of 3d hexes can have non-standard orientation
-
-        // TODO: why is this face_orientation, not line_orientation as in the
-        // setter function?
-        return accessor.tria->faces->quads.face_orientation(
-          accessor.present_index, line);
+        return accessor.tria->faces->quads.line_orientations
+          [accessor.present_index * GeometryInfo<3>::lines_per_face + line];
       }
 
 
@@ -955,9 +951,9 @@ namespace internal
         AssertIndexRange(face, GeometryInfo<3>::faces_per_cell);
         Assert(accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
                  accessor.tria->levels[accessor.present_level]
-                   ->cells.face_orientations.size(),
+                   ->face_orientations.size(),
                ExcInternalError());
-        accessor.tria->levels[accessor.present_level]->cells.face_orientations
+        accessor.tria->levels[accessor.present_level]->face_orientations
           [accessor.present_index * GeometryInfo<3>::faces_per_cell + face] =
           value;
       }
@@ -984,12 +980,12 @@ namespace internal
                     const bool                            value)
       {
         AssertIndexRange(face, GeometryInfo<3>::faces_per_cell);
-        Assert(accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
-                 accessor.tria->levels[accessor.present_level]
-                   ->cells.face_flips.size(),
-               ExcInternalError());
+        Assert(
+          accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
+            accessor.tria->levels[accessor.present_level]->face_flips.size(),
+          ExcInternalError());
 
-        accessor.tria->levels[accessor.present_level]->cells.face_flips
+        accessor.tria->levels[accessor.present_level]->face_flips
           [accessor.present_index * GeometryInfo<3>::faces_per_cell + face] =
           value;
       }
@@ -1018,10 +1014,10 @@ namespace internal
         AssertIndexRange(face, GeometryInfo<3>::faces_per_cell);
         Assert(accessor.present_index * GeometryInfo<3>::faces_per_cell + face <
                  accessor.tria->levels[accessor.present_level]
-                   ->cells.face_rotations.size(),
+                   ->face_rotations.size(),
                ExcInternalError());
 
-        accessor.tria->levels[accessor.present_level]->cells.face_rotations
+        accessor.tria->levels[accessor.present_level]->face_rotations
           [accessor.present_index * GeometryInfo<3>::faces_per_cell + face] =
           value;
       }
