@@ -80,7 +80,7 @@ namespace internal
   {
     template <int dim>
     class TriaLevel;
-    template <int dim>
+
     class TriaFaces;
 
     template <typename>
@@ -3834,7 +3834,7 @@ private:
    * in 2D it contains data concerning lines and in 3D quads and lines.  All
    * of these have no level and are therefore treated separately.
    */
-  std::unique_ptr<dealii::internal::TriangulationImplementation::TriaFaces<dim>>
+  std::unique_ptr<dealii::internal::TriangulationImplementation::TriaFaces>
     faces;
 
 

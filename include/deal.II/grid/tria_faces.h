@@ -40,88 +40,19 @@ namespace internal
      * store the information belonging to the faces of a triangulation
      * separately from the TriaLevel classes.
      *
-     * This general template is only provided to enable a specialization
-     * below.
-     *
      * @author Tobias Leicht, 2006
      */
-
-    template <int dim>
     class TriaFaces
     {
     public:
-      /**
-       * Constructor. This constructor is deleted to prevent the use of this
-       * template, as only the specializations should be used
-       */
-      TriaFaces() = delete;
-    };
+      // for Boost::serialization
+      TriaFaces() = default;
 
+      TriaFaces(unsigned int dim)
+        : dim(dim){};
 
+      unsigned int dim;
 
-    /**
-     * Faces only have a meaning in <tt>dim@>=1</tt>. In <tt>dim=1</tt> they
-     * are vertices, which are handled differently, so only for
-     * <tt>dim@>=2</tt> the use of TriaFaces is reasonable, for <tt>dim=1</tt>
-     * the class is empty.
-     */
-    template <>
-    class TriaFaces<1>
-    {
-    public:
-      /**
-       * Determine an estimate for the memory consumption (in bytes) of this
-       * object. Of course this returns 0.
-       */
-      std::size_t
-      memory_consumption() const;
-
-      /**
-       * Read or write the data of this object to or from a stream for the
-       * purpose of serialization
-       */
-      template <class Archive>
-      void
-      serialize(Archive &ar, const unsigned int version);
-    };
-
-    /**
-     * In <tt>dim=2</tt> the cells are quads, the faces accordingly are lines.
-     */
-    template <>
-    class TriaFaces<2>
-    {
-    public:
-      /**
-       * The TriaObject containing the data of lines.
-       */
-      TriaObjects<TriaObject<1>> lines;
-
-    public:
-      /**
-       * Determine an estimate for the memory consumption (in bytes) of this
-       * object.
-       */
-      std::size_t
-      memory_consumption() const;
-
-      /**
-       * Read or write the data of this object to or from a stream for the
-       * purpose of serialization
-       */
-      template <class Archive>
-      void
-      serialize(Archive &ar, const unsigned int version);
-    };
-
-    /**
-     * In <tt>dim=3</tt> the cells are hexes, the faces accordingly are quads.
-     * In addition to that we also have to enable the storage of lines.
-     */
-    template <>
-    class TriaFaces<3>
-    {
-    public:
       /**
        * The TriaObject containing the data of quads.
        */
@@ -139,7 +70,6 @@ namespace internal
        */
       TriaObjects<TriaObject<1>> lines;
 
-    public:
       /**
        * Assert that enough space is allocated to accommodate
        * <code>new_quads_in_pairs</code> new quads, stored in pairs, plus
@@ -151,7 +81,7 @@ namespace internal
       reserve_space(const unsigned int new_quads_in_pairs,
                     const unsigned int new_quads_single = 0)
       {
-        // TODO: only for 3D
+        AssertDimension(this->dim, 3);
 
         Assert(new_quads_in_pairs % 2 == 0, ExcInternalError());
 
@@ -232,25 +162,15 @@ namespace internal
 
     template <class Archive>
     void
-    TriaFaces<1>::serialize(Archive &, const unsigned int)
-    {}
-
-
-
-    template <class Archive>
-    void
-    TriaFaces<2>::serialize(Archive &ar, const unsigned int)
+    TriaFaces::serialize(Archive &ar, const unsigned int)
     {
-      ar &lines;
-    }
+      ar &dim;
 
+      if (dim == 2)
+        ar &lines;
 
-
-    template <class Archive>
-    void
-    TriaFaces<3>::serialize(Archive &ar, const unsigned int)
-    {
-      ar &quads &lines &line_orientations;
+      if (dim == 3)
+        ar &quads &lines &line_orientations;
     }
   } // namespace TriangulationImplementation
 } // namespace internal

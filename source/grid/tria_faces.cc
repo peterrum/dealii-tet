@@ -26,24 +26,15 @@ namespace internal
   namespace TriangulationImplementation
   {
     std::size_t
-    TriaFaces<1>::memory_consumption() const
+    TriaFaces::memory_consumption() const
     {
+      if (dim == 2)
+        return MemoryConsumption::memory_consumption(lines);
+      if (dim == 3)
+        return (MemoryConsumption::memory_consumption(quads) +
+                MemoryConsumption::memory_consumption(lines));
+
       return 0;
-    }
-
-
-    std::size_t
-    TriaFaces<2>::memory_consumption() const
-    {
-      return MemoryConsumption::memory_consumption(lines);
-    }
-
-
-    std::size_t
-    TriaFaces<3>::memory_consumption() const
-    {
-      return (MemoryConsumption::memory_consumption(quads) +
-              MemoryConsumption::memory_consumption(lines));
     }
   } // namespace TriangulationImplementation
 } // namespace internal

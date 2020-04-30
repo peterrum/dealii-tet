@@ -2086,7 +2086,7 @@ namespace internal
           std_cxx14::make_unique<
             internal::TriangulationImplementation::TriaLevel<dim>>());
         triangulation.faces = std_cxx14::make_unique<
-          internal::TriangulationImplementation::TriaFaces<dim>>();
+          internal::TriangulationImplementation::TriaFaces>(dim);
         triangulation.levels[0]->reserve_space(cells.size(), dim, spacedim);
         triangulation.faces->lines.reserve_space(0, needed_lines.size());
         triangulation.levels[0]->cells.reserve_space(0, cells.size());
@@ -2466,7 +2466,7 @@ namespace internal
           std_cxx14::make_unique<
             internal::TriangulationImplementation::TriaLevel<dim>>());
         triangulation.faces = std_cxx14::make_unique<
-          internal::TriangulationImplementation::TriaFaces<dim>>();
+          internal::TriangulationImplementation::TriaFaces>(dim);
         triangulation.levels[0]->reserve_space(cells.size(), dim, spacedim);
         triangulation.faces->lines.reserve_space(0, needed_lines.size());
 
@@ -10458,8 +10458,9 @@ Triangulation<dim, spacedim>::copy_triangulation(
   smooth_grid            = other_tria.smooth_grid;
 
   if (dim > 1)
-    faces = std_cxx14::make_unique<
-      internal::TriangulationImplementation::TriaFaces<dim>>(*other_tria.faces);
+    faces =
+      std_cxx14::make_unique<internal::TriangulationImplementation::TriaFaces>(
+        *other_tria.faces);
 
   auto bdry_iterator = other_tria.manifold.begin();
   for (; bdry_iterator != other_tria.manifold.end(); ++bdry_iterator)
@@ -11023,24 +11024,20 @@ namespace
 
 
   // clear user data of faces
-  void clear_user_data(internal::TriangulationImplementation::TriaFaces<1> *)
-  {
-    // nothing to do in 1d
-  }
-
-
   void
-    clear_user_data(internal::TriangulationImplementation::TriaFaces<2> *faces)
+  clear_user_data(internal::TriangulationImplementation::TriaFaces *faces)
   {
-    faces->lines.clear_user_data();
-  }
+    if (faces->dim == 2)
+      {
+        faces->lines.clear_user_data();
+      }
 
 
-  void
-    clear_user_data(internal::TriangulationImplementation::TriaFaces<3> *faces)
-  {
-    faces->lines.clear_user_data();
-    faces->quads.clear_user_data();
+    if (faces->dim == 3)
+      {
+        faces->lines.clear_user_data();
+        faces->quads.clear_user_data();
+      }
   }
 } // namespace
 
@@ -11062,7 +11059,7 @@ namespace
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<1>>>
       &levels,
-    internal::TriangulationImplementation::TriaFaces<1> *)
+    internal::TriangulationImplementation::TriaFaces *)
   {
     for (const auto &level : levels)
       level->cells.clear_user_flags();
@@ -11073,7 +11070,7 @@ namespace
   clear_user_flags_line(
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<dim>>> &,
-    internal::TriangulationImplementation::TriaFaces<dim> *faces)
+    internal::TriangulationImplementation::TriaFaces *faces)
   {
     faces->lines.clear_user_flags();
   }
@@ -11094,7 +11091,7 @@ namespace
   void clear_user_flags_quad(
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<1>>> &,
-    internal::TriangulationImplementation::TriaFaces<1> *)
+    internal::TriangulationImplementation::TriaFaces *)
   {
     // nothing to do in 1d
   }
@@ -11103,7 +11100,7 @@ namespace
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<2>>>
       &levels,
-    internal::TriangulationImplementation::TriaFaces<2> *)
+    internal::TriangulationImplementation::TriaFaces *)
   {
     for (const auto &level : levels)
       level->cells.clear_user_flags();
@@ -11114,7 +11111,7 @@ namespace
   clear_user_flags_quad(
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<dim>>> &,
-    internal::TriangulationImplementation::TriaFaces<dim> *faces)
+    internal::TriangulationImplementation::TriaFaces *faces)
   {
     faces->quads.clear_user_flags();
   }
@@ -11135,7 +11132,7 @@ namespace
   void clear_user_flags_hex(
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<1>>> &,
-    internal::TriangulationImplementation::TriaFaces<1> *)
+    internal::TriangulationImplementation::TriaFaces *)
   {
     // nothing to do in 1d
   }
@@ -11144,7 +11141,7 @@ namespace
   void clear_user_flags_hex(
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<2>>> &,
-    internal::TriangulationImplementation::TriaFaces<2> *)
+    internal::TriangulationImplementation::TriaFaces *)
   {
     // nothing to do in 2d
   }
@@ -11153,7 +11150,7 @@ namespace
     std::vector<
       std::unique_ptr<internal::TriangulationImplementation::TriaLevel<3>>>
       &levels,
-    internal::TriangulationImplementation::TriaFaces<3> *)
+    internal::TriangulationImplementation::TriaFaces *)
   {
     for (const auto &level : levels)
       level->cells.clear_user_flags();

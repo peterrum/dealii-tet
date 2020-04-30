@@ -276,9 +276,8 @@ namespace internal
     template <int dim>
     inline dealii::internal::TriangulationImplementation::TriaObjects<
       dealii::internal::TriangulationImplementation::TriaObject<1>> *
-    get_objects(
-      dealii::internal::TriangulationImplementation::TriaFaces<dim> *faces,
-      const std::integral_constant<int, 1>)
+    get_objects(dealii::internal::TriangulationImplementation::TriaFaces *faces,
+                const std::integral_constant<int, 1>)
     {
       return &faces->lines;
     }
@@ -287,26 +286,27 @@ namespace internal
     template <int dim>
     inline dealii::internal::TriangulationImplementation::TriaObjects<
       dealii::internal::TriangulationImplementation::TriaObject<2>> *
-    get_objects(
-      dealii::internal::TriangulationImplementation::TriaFaces<dim> *faces,
-      const std::integral_constant<int, 2>)
+    get_objects(dealii::internal::TriangulationImplementation::TriaFaces *faces,
+                const std::integral_constant<int, 2>)
     {
       return &faces->quads;
     }
 
+    template <>
     inline dealii::internal::TriangulationImplementation::TriaObjects<
       dealii::internal::TriangulationImplementation::TriaObject<1>> *
-      get_objects(dealii::internal::TriangulationImplementation::TriaFaces<1> *,
-                  const std::integral_constant<int, 1>)
+    get_objects<1>(dealii::internal::TriangulationImplementation::TriaFaces *,
+                   const std::integral_constant<int, 1>)
     {
       Assert(false, ExcInternalError());
       return nullptr;
     }
 
+    template <>
     inline dealii::internal::TriangulationImplementation::TriaObjects<
       dealii::internal::TriangulationImplementation::TriaObject<2>> *
-      get_objects(dealii::internal::TriangulationImplementation::TriaFaces<2> *,
-                  const std::integral_constant<int, 2>)
+    get_objects<2>(dealii::internal::TriangulationImplementation::TriaFaces *,
+                   const std::integral_constant<int, 2>)
     {
       Assert(false, ExcInternalError());
       return nullptr;
@@ -314,8 +314,8 @@ namespace internal
 
     inline dealii::internal::TriangulationImplementation::TriaObjects<
       dealii::internal::TriangulationImplementation::TriaObject<3>> *
-      get_objects(dealii::internal::TriangulationImplementation::TriaFaces<3> *,
-                  const std::integral_constant<int, 3>)
+    get_objects(dealii::internal::TriangulationImplementation::TriaFaces *,
+                const std::integral_constant<int, 3>)
     {
       Assert(false, ExcInternalError());
       return nullptr;
@@ -328,7 +328,7 @@ namespace internal
     template <int dim>
     inline dealii::internal::TriangulationImplementation::TriaObjects<
       dealii::internal::TriangulationImplementation::TriaObject<3>> *
-    get_objects(dealii::internal::TriangulationImplementation::TriaFaces<dim> *,
+    get_objects(dealii::internal::TriangulationImplementation::TriaFaces *,
                 const std::integral_constant<int, 3>)
     {
       Assert(false, ExcInternalError());
@@ -374,7 +374,7 @@ TriaAccessorBase<structdim, dim, spacedim>::objects() const
     // get sub-objects. note that the
     // current class is only used for
     // objects that are *not* cells
-    return *dealii::internal::TriaAccessorBaseImplementation::get_objects(
+    return *dealii::internal::TriaAccessorBaseImplementation::get_objects<dim>(
       this->tria->faces.get(), std::integral_constant<int, structdim>());
   else
     return *dealii::internal::TriaAccessorBaseImplementation::get_objects(
