@@ -392,56 +392,6 @@ namespace internal
     };
 
 
-    /**
-     * For quadrilaterals in 3D the data of TriaObjects needs to be extended,
-     * as we can obtain faces (quads) with lines in non-standard-orientation,
-     * therefore we declare a class TriaObjectsQuad3D, which additionally
-     * contains a bool-vector of the line-orientations.
-     */
-    class TriaObjectsQuad3D : public TriaObjects<TriaObject<2>>
-    {
-    public:
-      /**
-       * In effect, this field has <code>4*n_quads</code> elements, being the
-       * number of quads times the four lines each has.
-       */
-      std::vector<bool> line_orientations;
-
-      /**
-       * Assert that enough space is allocated to accommodate
-       * <code>new_quads_in_pairs</code> new quads, stored in pairs, plus
-       * <code>new_quads_single</code> stored individually. This function does
-       * not only call <code>vector::reserve()</code>, but does really append
-       * the needed elements.
-       */
-      void
-      reserve_space(const unsigned int new_quads_in_pairs,
-                    const unsigned int new_quads_single = 0);
-
-      /**
-       * Check the memory consistency of the different containers. Should only
-       * be called with the preprocessor flag @p DEBUG set. The function
-       * should be called from the functions of the higher TriaLevel classes.
-       */
-      void
-      monitor_memory(const unsigned int true_dimension) const;
-
-      /**
-       * Determine an estimate for the memory consumption (in bytes) of this
-       * object.
-       */
-      std::size_t
-      memory_consumption() const;
-
-      /**
-       * Read or write the data of this object to or from a stream for the
-       * purpose of serialization
-       */
-      template <class Archive>
-      void
-      serialize(Archive &ar, const unsigned int version);
-    };
-
     //----------------------------------------------------------------------//
 
 
@@ -596,16 +546,6 @@ namespace internal
       ar &       manifold_id;
       ar &next_free_single &next_free_pair &reverse_order_next_free_single;
       ar &user_data &user_data_type;
-    }
-
-
-    template <class Archive>
-    void
-    TriaObjectsQuad3D::serialize(Archive &ar, const unsigned int version)
-    {
-      this->TriaObjects<TriaObject<2>>::serialize(ar, version);
-
-      ar &line_orientations;
     }
 
 

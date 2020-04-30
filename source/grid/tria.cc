@@ -2695,6 +2695,7 @@ namespace internal
         // the arrays of the Triangulation
         //
         // first reserve enough space
+        triangulation.faces->reserve_space(0, needed_quads.size());
         triangulation.faces->quads.reserve_space(0, needed_quads.size());
 
         {
@@ -5515,6 +5516,8 @@ namespace internal
         triangulation.faces->lines.reserve_space(needed_lines_pair,
                                                  needed_lines_single);
         // reserve space for needed_quads new quads stored in pairs
+        triangulation.faces->reserve_space(needed_quads_pair,
+                                           needed_quads_single);
         triangulation.faces->quads.reserve_space(needed_quads_pair,
                                                  needed_quads_single);
 

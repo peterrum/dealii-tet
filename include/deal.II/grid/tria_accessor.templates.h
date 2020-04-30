@@ -834,7 +834,7 @@ namespace internal
       line_orientation(const TriaAccessor<2, 3, spacedim> &accessor,
                        const unsigned int                  line)
       {
-        return accessor.tria->faces->quads.line_orientations
+        return accessor.tria->faces->line_orientations
           [accessor.present_index * GeometryInfo<3>::lines_per_face + line];
       }
 
@@ -1056,12 +1056,12 @@ namespace internal
         Assert(accessor.used(), TriaAccessorExceptions::ExcCellNotUsed());
         AssertIndexRange(line, GeometryInfo<3>::lines_per_face);
         Assert(accessor.present_index * GeometryInfo<3>::lines_per_face + line <
-                 accessor.tria->faces->quads.line_orientations.size(),
+                 accessor.tria->faces->line_orientations.size(),
                ExcInternalError());
         // quads as part of 3d hexes
         // can have non-standard
         // orientation
-        accessor.tria->faces->quads.line_orientations
+        accessor.tria->faces->line_orientations
           [accessor.present_index * GeometryInfo<3>::lines_per_face + line] =
           value;
       }
