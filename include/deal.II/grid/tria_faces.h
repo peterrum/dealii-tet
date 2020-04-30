@@ -73,7 +73,7 @@ namespace internal
        *
        * @note Used only for dim=3.
        */
-      std::vector<bool> line_orientations;
+      std::vector<bool> quads_line_orientations;
 
       /**
        * The TriaObject containing the data of lines.
@@ -119,7 +119,7 @@ namespace internal
         ar &lines;
 
       if (dim == 3)
-        ar &quads &lines &line_orientations;
+        ar &quads &lines &quads_line_orientations;
     }
   } // namespace TriangulationImplementation
 } // namespace internal

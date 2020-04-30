@@ -96,11 +96,13 @@ namespace internal
       if (new_size > quads.cells.size())
         {
           // reserve the field of the derived class
-          line_orientations.reserve(new_size * GeometryInfo<2>::lines_per_cell);
-          line_orientations.insert(line_orientations.end(),
-                                   new_size * GeometryInfo<2>::lines_per_cell -
-                                     line_orientations.size(),
-                                   true);
+          quads_line_orientations.reserve(new_size *
+                                          GeometryInfo<2>::lines_per_cell);
+          quads_line_orientations.insert(quads_line_orientations.end(),
+                                         new_size *
+                                             GeometryInfo<2>::lines_per_cell -
+                                           quads_line_orientations.size(),
+                                         true);
         }
     }
   } // namespace TriangulationImplementation
