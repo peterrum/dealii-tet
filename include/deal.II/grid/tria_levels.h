@@ -159,7 +159,7 @@ namespace internal
       /**
        * The object containing the data on lines and related functions
        */
-      TriaObjects<TriaObject<dim>> cells;
+      TriaObjects<dim> cells;
 
       /**
        * For edges, we enforce a standard convention that opposite

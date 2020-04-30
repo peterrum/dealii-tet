@@ -83,7 +83,7 @@ namespace internal
 
     class TriaFaces;
 
-    template <typename>
+    template <int>
     class TriaObjects;
 
     /**
@@ -3933,7 +3933,7 @@ private:
 
   friend struct dealii::internal::TriangulationImplementation::Implementation;
 
-  template <typename>
+  template <int>
   friend class dealii::internal::TriangulationImplementation::TriaObjects;
 
   // explicitly check for sensible template arguments, but not on windows

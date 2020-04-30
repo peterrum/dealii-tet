@@ -54,7 +54,7 @@ namespace internal
   {
     template <int dim>
     class TriaObject;
-    template <typename G>
+    template <int dim>
     class TriaObjects;
     struct Implementation;
   } // namespace TriangulationImplementation
@@ -419,8 +419,7 @@ protected:
   /**
    * Access to the other objects of a Triangulation with same dimension.
    */
-  dealii::internal::TriangulationImplementation::TriaObjects<
-    dealii::internal::TriangulationImplementation::TriaObject<structdim>> &
+  dealii::internal::TriangulationImplementation::TriaObjects<structdim> &
   objects() const;
 
 public:

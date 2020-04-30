@@ -31,12 +31,13 @@ namespace internal
 {
   namespace TriangulationImplementation
   {
-    template <class G>
+    template <int structdim>
     void
-    TriaObjects<G>::reserve_space(const unsigned int new_objects_in_pairs,
-                                  const unsigned int new_objects_single)
+    TriaObjects<structdim>::reserve_space(
+      const unsigned int new_objects_in_pairs,
+      const unsigned int new_objects_single)
     {
-      if (G::dimension <= 2)
+      if (structdim <= 2)
         {
           Assert(new_objects_in_pairs % 2 == 0, ExcInternalError());
 
@@ -90,7 +91,9 @@ namespace internal
           if (new_size > cells.size())
             {
               cells.reserve(new_size);
-              cells.insert(cells.end(), new_size - cells.size(), G());
+              cells.insert(cells.end(),
+                           new_size - cells.size(),
+                           TriaObject<structdim>());
 
               used.reserve(new_size);
               used.insert(used.end(), new_size - used.size(), false);
@@ -101,19 +104,19 @@ namespace internal
                                 false);
 
               const unsigned int factor =
-                GeometryInfo<G::dimension>::max_children_per_cell / 2;
+                GeometryInfo<structdim>::max_children_per_cell / 2;
               children.reserve(factor * new_size);
               children.insert(children.end(),
                               factor * new_size - children.size(),
                               -1);
 
-              if (G::dimension > 1)
+              if (structdim > 1)
                 {
                   refinement_cases.reserve(new_size);
                   refinement_cases.insert(
                     refinement_cases.end(),
                     new_size - refinement_cases.size(),
-                    RefinementCase<G::dimension>::no_refinement);
+                    RefinementCase<structdim>::no_refinement);
                 }
 
               // first reserve, then resize. Otherwise the std library can
@@ -149,7 +152,7 @@ namespace internal
               cells.reserve(new_size);
               cells.insert(cells.end(),
                            new_size - cells.size(),
-                           TriaObject<G::dimension>());
+                           TriaObject<structdim>());
 
               used.reserve(new_size);
               used.insert(used.end(), new_size - used.size(), false);
@@ -180,10 +183,9 @@ namespace internal
               user_data.resize(new_size);
 
               refinement_cases.reserve(new_size);
-              refinement_cases.insert(
-                refinement_cases.end(),
-                new_size - refinement_cases.size(),
-                RefinementCase<G::dimension>::no_refinement);
+              refinement_cases.insert(refinement_cases.end(),
+                                      new_size - refinement_cases.size(),
+                                      RefinementCase<structdim>::no_refinement);
             }
           next_free_single = next_free_pair = 0;
         }
@@ -193,7 +195,7 @@ namespace internal
     template <>
     template <int dim, int spacedim>
     typename dealii::Triangulation<dim, spacedim>::raw_hex_iterator
-    TriaObjects<TriaObject<3>>::next_free_hex(
+    TriaObjects<3>::next_free_hex(
       const dealii::Triangulation<dim, spacedim> &tria,
       const unsigned int                          level)
     {
@@ -223,7 +225,7 @@ namespace internal
 
     template <>
     void
-    TriaObjects<TriaObject<1>>::monitor_memory(const unsigned int) const
+    TriaObjects<1>::monitor_memory(const unsigned int) const
     {
       Assert(cells.size() == used.size(),
              ExcMemoryInexact(cells.size(), used.size()));
@@ -242,7 +244,7 @@ namespace internal
 
     template <>
     void
-    TriaObjects<TriaObject<2>>::monitor_memory(const unsigned int) const
+    TriaObjects<2>::monitor_memory(const unsigned int) const
     {
       Assert(cells.size() == used.size(),
              ExcMemoryInexact(cells.size(), used.size()));
@@ -263,7 +265,7 @@ namespace internal
 
     template <>
     void
-    TriaObjects<TriaObject<3>>::monitor_memory(const unsigned int) const
+    TriaObjects<3>::monitor_memory(const unsigned int) const
     {
       Assert(cells.size() == used.size(),
              ExcMemoryInexact(cells.size(), used.size()));
@@ -280,9 +282,9 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     std::size_t
-    TriaObjects<G>::memory_consumption() const
+    TriaObjects<structdim>::memory_consumption() const
     {
       return (MemoryConsumption::memory_consumption(cells) +
               MemoryConsumption::memory_consumption(children) +
@@ -298,9 +300,9 @@ namespace internal
 
     // explicit instantiations
 #ifndef DOXYGEN
-    template class TriaObjects<TriaObject<1>>;
-    template class TriaObjects<TriaObject<2>>;
-    template class TriaObjects<TriaObject<3>>;
+    template class TriaObjects<1>;
+    template class TriaObjects<2>;
+    template class TriaObjects<3>;
 
 #  include "tria_objects.inst"
 #endif

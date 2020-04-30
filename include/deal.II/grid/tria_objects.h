@@ -27,18 +27,6 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-// TODO: This should all be cleaned up. Currently, only a single
-// function in the library makes use of the odd specializations, and
-// this function is Triangulation::execute_refinement() in 3D. I
-// assume, that the other refinement functions would profit from using
-// next_free_single_object() and next_free_pair_object, but they seem
-// to get around it.
-
-// TODO: The TriaObjects class contains a std::vector<G>. This is only an
-// efficient storage scheme if G is relatively well packed, i.e. it's not a
-// bool and then an integer and then a double, etc. Verify that this is
-// actually the case.
-
 // Forward declarations
 #ifndef DOXYGEN
 template <int dim, int spacedim>
@@ -63,9 +51,9 @@ namespace internal
      * classes.
      *
      * @author Tobias Leicht, Guido Kanschat, 2006, 2007, 2012
+     * @author Peter Munch, 2020
      */
-
-    template <typename G>
+    template <int structdim>
     class TriaObjects
     {
     public:
@@ -78,7 +66,7 @@ namespace internal
        * Vector of the objects belonging to this level. The index of the
        * object equals the index in this container.
        */
-      std::vector<G> cells;
+      std::vector<TriaObject<structdim>> cells;
 
       /**
        * Index of the even children of an object. Since when objects are
@@ -98,7 +86,7 @@ namespace internal
        * vector might be replaced by vector<vector<bool> > (dim, vector<bool>
        * (n_cells)) which is more memory efficient.
        */
-      std::vector<RefinementCase<G::dimension>> refinement_cases;
+      std::vector<RefinementCase<structdim>> refinement_cases;
 
       /**
        * Vector storing whether an object is used in the @p cells vector.
@@ -203,7 +191,7 @@ namespace internal
        * @todo This function is not instantiated for the codim-one case
        */
       template <int dim, int spacedim>
-      dealii::TriaRawIterator<dealii::TriaAccessor<G::dimension, dim, spacedim>>
+      dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
       next_free_single_object(const Triangulation<dim, spacedim> &tria);
 
       /**
@@ -218,7 +206,7 @@ namespace internal
        * @todo This function is not instantiated for the codim-one case
        */
       template <int dim, int spacedim>
-      dealii::TriaRawIterator<dealii::TriaAccessor<G::dimension, dim, spacedim>>
+      dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
       next_free_pair_object(const Triangulation<dim, spacedim> &tria);
 
       /**
@@ -395,27 +383,27 @@ namespace internal
     //----------------------------------------------------------------------//
 
 
-    template <typename G>
-    inline TriaObjects<G>::BoundaryOrMaterialId::BoundaryOrMaterialId()
+    template <int structdim>
+    inline TriaObjects<structdim>::BoundaryOrMaterialId::BoundaryOrMaterialId()
     {
       material_id = numbers::invalid_material_id;
     }
 
 
 
-    template <typename G>
+    template <int structdim>
     std::size_t
-    TriaObjects<G>::BoundaryOrMaterialId::memory_consumption()
+    TriaObjects<structdim>::BoundaryOrMaterialId::memory_consumption()
     {
       return sizeof(BoundaryOrMaterialId);
     }
 
 
 
-    template <typename G>
+    template <int structdim>
     template <class Archive>
     void
-    TriaObjects<G>::BoundaryOrMaterialId::serialize(
+    TriaObjects<structdim>::BoundaryOrMaterialId::serialize(
       Archive &ar,
       const unsigned int /*version*/)
     {
@@ -434,9 +422,9 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     inline void *&
-    TriaObjects<G>::user_pointer(const unsigned int i)
+    TriaObjects<structdim>::user_pointer(const unsigned int i)
     {
       Assert(user_data_type == data_unknown || user_data_type == data_pointer,
              ExcPointerIndexClash());
@@ -447,9 +435,9 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     inline const void *
-    TriaObjects<G>::user_pointer(const unsigned int i) const
+    TriaObjects<structdim>::user_pointer(const unsigned int i) const
     {
       Assert(user_data_type == data_unknown || user_data_type == data_pointer,
              ExcPointerIndexClash());
@@ -460,9 +448,9 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     inline unsigned int &
-    TriaObjects<G>::user_index(const unsigned int i)
+    TriaObjects<structdim>::user_index(const unsigned int i)
     {
       Assert(user_data_type == data_unknown || user_data_type == data_index,
              ExcPointerIndexClash());
@@ -473,17 +461,17 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     inline void
-    TriaObjects<G>::clear_user_data(const unsigned int i)
+    TriaObjects<structdim>::clear_user_data(const unsigned int i)
     {
       AssertIndexRange(i, user_data.size());
       user_data[i].i = 0;
     }
 
 
-    template <typename G>
-    inline TriaObjects<G>::TriaObjects()
+    template <int structdim>
+    inline TriaObjects<structdim>::TriaObjects()
       : next_free_single(numbers::invalid_unsigned_int)
       , next_free_pair(numbers::invalid_unsigned_int)
       , reverse_order_next_free_single(false)
@@ -491,9 +479,9 @@ namespace internal
     {}
 
 
-    template <typename G>
+    template <int structdim>
     inline unsigned int
-    TriaObjects<G>::user_index(const unsigned int i) const
+    TriaObjects<structdim>::user_index(const unsigned int i) const
     {
       Assert(user_data_type == data_unknown || user_data_type == data_index,
              ExcPointerIndexClash());
@@ -504,9 +492,9 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     inline void
-    TriaObjects<G>::clear_user_data()
+    TriaObjects<structdim>::clear_user_data()
     {
       user_data_type = data_unknown;
       for (unsigned int i = 0; i < user_data.size(); ++i)
@@ -514,18 +502,18 @@ namespace internal
     }
 
 
-    template <typename G>
+    template <int structdim>
     inline void
-    TriaObjects<G>::clear_user_flags()
+    TriaObjects<structdim>::clear_user_flags()
     {
       user_flags.assign(user_flags.size(), false);
     }
 
 
-    template <typename G>
+    template <int structdim>
     template <class Archive>
     void
-    TriaObjects<G>::UserData::serialize(Archive &ar, const unsigned int)
+    TriaObjects<structdim>::UserData::serialize(Archive &ar, const unsigned int)
     {
       // serialize this as an integer
       ar &i;
@@ -533,10 +521,10 @@ namespace internal
 
 
 
-    template <typename G>
+    template <int structdim>
     template <class Archive>
     void
-    TriaObjects<G>::serialize(Archive &ar, const unsigned int)
+    TriaObjects<structdim>::serialize(Archive &ar, const unsigned int)
     {
       ar &cells &children;
       ar &       refinement_cases;
@@ -551,10 +539,10 @@ namespace internal
 
     //----------------------------------------------------------------------//
 
-    template <class G>
+    template <int structdim>
     template <int dim, int spacedim>
-    dealii::TriaRawIterator<dealii::TriaAccessor<G::dimension, dim, spacedim>>
-    TriaObjects<G>::next_free_single_object(
+    dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
+    TriaObjects<structdim>::next_free_single_object(
       const Triangulation<dim, spacedim> &tria)
     {
       // TODO: Think of a way to ensure that we are using the correct
@@ -595,19 +583,19 @@ namespace internal
           else
             // no valid single object anymore
             return dealii::TriaRawIterator<
-              dealii::TriaAccessor<G::dimension, dim, spacedim>>(&tria, -1, -1);
+              dealii::TriaAccessor<structdim, dim, spacedim>>(&tria, -1, -1);
         }
 
       return dealii::TriaRawIterator<
-        dealii::TriaAccessor<G::dimension, dim, spacedim>>(&tria, 0, pos);
+        dealii::TriaAccessor<structdim, dim, spacedim>>(&tria, 0, pos);
     }
 
 
 
-    template <class G>
+    template <int structdim>
     template <int dim, int spacedim>
-    dealii::TriaRawIterator<dealii::TriaAccessor<G::dimension, dim, spacedim>>
-    TriaObjects<G>::next_free_pair_object(
+    dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
+    TriaObjects<structdim>::next_free_pair_object(
       const Triangulation<dim, spacedim> &tria)
     {
       // TODO: Think of a way to ensure that we are using the correct
@@ -625,12 +613,12 @@ namespace internal
       if (pos >= last)
         // no free slot
         return dealii::TriaRawIterator<
-          dealii::TriaAccessor<G::dimension, dim, spacedim>>(&tria, -1, -1);
+          dealii::TriaAccessor<structdim, dim, spacedim>>(&tria, -1, -1);
       else
         next_free_pair = pos + 2;
 
       return dealii::TriaRawIterator<
-        dealii::TriaAccessor<G::dimension, dim, spacedim>>(&tria, 0, pos);
+        dealii::TriaAccessor<structdim, dim, spacedim>>(&tria, 0, pos);
     }
 
 
@@ -639,7 +627,7 @@ namespace internal
 
     template <>
     void
-    TriaObjects<TriaObject<2>>::monitor_memory(const unsigned int) const;
+    TriaObjects<2>::monitor_memory(const unsigned int) const;
 
   } // namespace TriangulationImplementation
 } // namespace internal
