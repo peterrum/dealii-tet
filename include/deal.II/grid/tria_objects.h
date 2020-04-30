@@ -86,7 +86,7 @@ namespace internal
        * vector might be replaced by vector<vector<bool> > (dim, vector<bool>
        * (n_cells)) which is more memory efficient.
        */
-      std::vector<RefinementCase<structdim>> refinement_cases;
+      std::vector<std::uint8_t> refinement_cases;
 
       /**
        * Vector storing whether an object is used in the @p cells vector.
