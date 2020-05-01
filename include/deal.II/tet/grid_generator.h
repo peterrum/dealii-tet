@@ -33,6 +33,93 @@ namespace Tet
   {
     template <int dim, int spacedim>
     void
+    hex_to_tet_grid(const dealii::Triangulation<dim, spacedim> &tria_hex,
+                    Tet::Triangulation<dim, spacedim> &         tria)
+    {
+      AssertDimension(dim, spacedim);
+      AssertDimension(tria_hex.n_global_levels(), 1);
+      AssertThrow(1 < dim && dim <= 3, ExcNotImplemented());
+
+      std::vector<Tet::CellData<dim>> cells;
+
+      // loop over all QUADs (2D) / HEXs (3D)
+      for (auto cell : tria_hex.active_cell_iterators())
+        {
+          // get vertices
+          std::array<unsigned int, GeometryInfo<dim>::vertices_per_cell> quad;
+
+          for (unsigned int i = 0; i < GeometryInfo<dim>::vertices_per_cell;
+               i++)
+            quad[i] = cell->vertex_index(i);
+
+          if (dim == 2)
+            {
+              // convert QUAD to 2 TRIs
+              {
+                CellData<dim> tri1;
+                tri1.type     = Tet::CellTypeEnum::tet;
+                tri1.vertices = {quad[1], quad[2], quad[0]};
+
+                cells.push_back(tri1);
+              }
+
+              {
+                CellData<dim> tri1;
+                tri1.type     = Tet::CellTypeEnum::tet;
+                tri1.vertices = {quad[2], quad[1], quad[3]};
+
+                cells.push_back(tri1);
+              }
+            }
+          else if (dim == 3)
+            {
+              // convert HEX to 5 TETs
+              {
+                Tet::CellData<dim> cell;
+                cell.type     = Tet::CellTypeEnum::tet;
+                cell.vertices = {quad[0], quad[1], quad[2], quad[4]};
+                cells.push_back(cell);
+              }
+
+              {
+                Tet::CellData<dim> cell;
+                cell.type     = Tet::CellTypeEnum::tet;
+                cell.vertices = {quad[1], quad[2], quad[3], quad[7]};
+                cells.push_back(cell);
+              }
+
+              {
+                Tet::CellData<dim> cell;
+                cell.type     = Tet::CellTypeEnum::tet;
+                cell.vertices = {quad[1], quad[4], quad[5], quad[7]};
+                cells.push_back(cell);
+              }
+
+              {
+                Tet::CellData<dim> cell;
+                cell.type     = Tet::CellTypeEnum::tet;
+                cell.vertices = {quad[2], quad[4], quad[6], quad[7]};
+                cells.push_back(cell);
+              }
+
+              {
+                Tet::CellData<dim> cell;
+                cell.type     = Tet::CellTypeEnum::tet;
+                cell.vertices = {quad[1], quad[2], quad[4], quad[7]};
+                cells.push_back(cell);
+              }
+            }
+          else
+            {
+              AssertThrow(false, ExcNotImplemented());
+            }
+        }
+
+      tria.create_triangulation_tet(tria_hex.get_vertices(), cells);
+    }
+
+    template <int dim, int spacedim>
+    void
     subdivided_hyper_rectangle(Tet::Triangulation<dim, spacedim> &tria,
                                const std::vector<unsigned int> &  repetitions,
                                const Point<dim> &                 p1,
