@@ -3173,10 +3173,12 @@ GridOut::write_vtk(const Triangulation<dim, spacedim> &tria,
     }
 
   // if we have a triangle element we just don't do the following
-  if (dynamic_cast<const Tet::Triangulation<std::min(dim, 2), spacedim> *>(
-        &tria) != nullptr)
+  if (dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(&tria) != nullptr)
     {
-      unsigned int vertices_per_cell = 3;
+      AssertThrow(dim > 1, ExcMessage("1D TET is not supported!"));
+
+      const unsigned int vertices_per_cell =
+        dim == 2 ? 3 : 4; // TODO: better way
 
       // WORKAROUND
       // n_active_cells() not implemented yet in Tet::triangulation
@@ -3206,14 +3208,12 @@ GridOut::write_vtk(const Triangulation<dim, spacedim> &tria,
       /*
        * VTK cells:
        *
-       * 5 VTK_TRIANGLE
-       * ...
+       *  5 VTK_TRIANGLE
+       * 10 VTK_TETRA
+       *
+       * source: https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
        */
-      int cell_type = (dim == 1 ? 3 : dim == 2 ? 9 : 12);
-
-      // just reuse cell_type_is_tri to overwrite cell_type in case of quad
-      if (dim == 2)
-        cell_type = 5;
+      const unsigned int cell_type = dim == 2 ? 5 : 10;
 
       // write cells.
       if (vtk_flags.output_cells)

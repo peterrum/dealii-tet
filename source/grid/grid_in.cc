@@ -824,9 +824,9 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
     }
 
   // set up array of cells
-  std::vector<CellData<dim>>                   cells;
-  SubCellData                                  subcelldata;
-  std::vector<Tet::CellData<std::min(dim, 2)>> tet_cells; // TODO fix
+  std::vector<CellData<dim>>      cells;
+  SubCellData                     subcelldata;
+  std::vector<Tet::CellData<dim>> tet_cells; // TODO fix
 
   for (unsigned int cell = 0; cell < n_cells; ++cell)
     {
@@ -890,7 +890,8 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
                 cells.back().vertices[i] = numbers::invalid_unsigned_int;
               }
         }
-      else if (((cell_type == "tri") && (dim == 2))) // TETS
+      else if (((cell_type == "tri") && (dim == 2)) ||
+               ((cell_type == "tet") && (dim == 3)))
         {
           // allocate and read indices
           tet_cells.emplace_back();
@@ -898,7 +899,7 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
           // get type of cell
           tet_cells.back().type = Tet::CellTypeEnum::tet;
 
-          unsigned int vertices_per_cell = 3;
+          unsigned int vertices_per_cell = dim == 2 ? 3 : 6;
 
           for (unsigned int i = 0; i < vertices_per_cell; ++i)
             {
@@ -1039,8 +1040,7 @@ GridIn<dim, spacedim>::read_ucd(std::istream &in,
   AssertThrow(in, ExcIO());
 
   if (auto tria_tet =
-        dynamic_cast<Tet::Triangulation<std::min(dim, 2), spacedim> *>(
-          &*this->tria))
+        dynamic_cast<Tet::Triangulation<dim, spacedim> *>(&*this->tria))
     {
       tria_tet->create_triangulation_tet(vertices, tet_cells);
       return;

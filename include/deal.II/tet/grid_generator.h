@@ -40,53 +40,128 @@ namespace Tet
                                const bool colorize = false)
     {
       AssertDimension(dim, spacedim);
-      AssertDimension(dim, 2);
 
       (void)colorize;
 
       std::vector<Point<spacedim>>    vertices;
       std::vector<Tet::CellData<dim>> cells;
 
-      Point<dim> dx((p2[0] - p1[0]) / repetitions[0],
-                    (p2[1] - p1[1]) / repetitions[1]);
+      if (dim == 2)
+        {
+          Point<dim> dx((p2[0] - p1[0]) / repetitions[0],
+                        (p2[1] - p1[1]) / repetitions[1]);
 
-      for (unsigned int j = 0; j <= repetitions[1]; ++j)
-        for (unsigned int i = 0; i <= repetitions[0]; ++i)
-          vertices.push_back(
-            Point<spacedim>(p1[0] + dx[0] * i, p1[1] + dx[1] * j));
+          for (unsigned int j = 0; j <= repetitions[1]; ++j)
+            for (unsigned int i = 0; i <= repetitions[0]; ++i)
+              vertices.push_back(
+                Point<spacedim>(p1[0] + dx[0] * i, p1[1] + dx[1] * j));
 
-      for (unsigned int j = 0; j < repetitions[1]; ++j)
-        for (unsigned int i = 0; i < repetitions[0]; ++i)
-          {
-            std::array<unsigned int, 4> quad{
-              (j + 0) * (repetitions[0] + 1) + i + 0, //
-              (j + 0) * (repetitions[0] + 1) + i + 1, //
-              (j + 1) * (repetitions[0] + 1) + i + 0, //
-              (j + 1) * (repetitions[0] + 1) + i + 1  //
-            };                                        //
+          for (unsigned int j = 0; j < repetitions[1]; ++j)
+            for (unsigned int i = 0; i < repetitions[0]; ++i)
+              {
+                std::array<unsigned int, 4> quad{
+                  (j + 0) * (repetitions[0] + 1) + i + 0, //
+                  (j + 0) * (repetitions[0] + 1) + i + 1, //
+                  (j + 1) * (repetitions[0] + 1) + i + 0, //
+                  (j + 1) * (repetitions[0] + 1) + i + 1  //
+                };                                        //
 
-            {
-              CellData<dim> tri1;
-              tri1.type = Tet::CellTypeEnum::tet;
-              if (true || (i % 2 == 0) == (j % 2 == 0))
-                tri1.vertices = {quad[1], quad[2], quad[0]};
-              else
-                tri1.vertices = {quad[0], quad[3], quad[2]};
+                {
+                  CellData<dim> tri1;
+                  tri1.type = Tet::CellTypeEnum::tet;
+                  if (true || (i % 2 == 0) == (j % 2 == 0))
+                    tri1.vertices = {quad[1], quad[2], quad[0]};
+                  else
+                    tri1.vertices = {quad[0], quad[3], quad[2]};
 
-              cells.push_back(tri1);
-            }
+                  cells.push_back(tri1);
+                }
 
-            {
-              CellData<dim> tri1;
-              tri1.type = Tet::CellTypeEnum::tet;
-              if (true || (i % 2 == 0) == (j % 2 == 0))
-                tri1.vertices = {quad[2], quad[1], quad[3]};
-              else
-                tri1.vertices = {quad[3], quad[0], quad[1]};
+                {
+                  CellData<dim> tri1;
+                  tri1.type = Tet::CellTypeEnum::tet;
+                  if (true || (i % 2 == 0) == (j % 2 == 0))
+                    tri1.vertices = {quad[2], quad[1], quad[3]};
+                  else
+                    tri1.vertices = {quad[3], quad[0], quad[1]};
 
-              cells.push_back(tri1);
-            }
-          }
+                  cells.push_back(tri1);
+                }
+              }
+        }
+      else
+        {
+          Point<dim> dx((p2[0] - p1[0]) / repetitions[0],
+                        (p2[1] - p1[1]) / repetitions[1],
+                        (p2[2] - p1[2]) / repetitions[1]);
+
+          for (unsigned int k = 0; k <= repetitions[2]; ++k)
+            for (unsigned int j = 0; j <= repetitions[1]; ++j)
+              for (unsigned int i = 0; i <= repetitions[0]; ++i)
+                vertices.push_back(Point<spacedim>(p1[0] + dx[0] * i,
+                                                   p1[1] + dx[1] * j,
+                                                   p1[2] + dx[2] * k));
+
+          for (unsigned int k = 0; k < repetitions[2]; ++k)
+            for (unsigned int j = 0; j < repetitions[1]; ++j)
+              for (unsigned int i = 0; i < repetitions[0]; ++i)
+                {
+                  std::array<unsigned int, 8> quad{
+                    (k + 0) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 0) * (repetitions[0] + 1) + i + 0, //
+                    (k + 0) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 0) * (repetitions[0] + 1) + i + 1, //
+                    (k + 0) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 1) * (repetitions[0] + 1) + i + 0, //
+                    (k + 0) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 1) * (repetitions[0] + 1) + i + 1, //
+                    (k + 1) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 0) * (repetitions[0] + 1) + i + 0, //
+                    (k + 1) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 0) * (repetitions[0] + 1) + i + 1, //
+                    (k + 1) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 1) * (repetitions[0] + 1) + i + 0, //
+                    (k + 1) * (repetitions[0] + 1) * (repetitions[1] + 1) +
+                      (j + 1) * (repetitions[0] + 1) + i + 1 //
+                  };                                         //
+
+
+                  {
+                    Tet::CellData<3> cell;
+                    cell.type     = Tet::CellTypeEnum::tet;
+                    cell.vertices = {quad[0], quad[1], quad[2], quad[4]};
+                    cells.push_back(cell);
+                  }
+
+                  {
+                    Tet::CellData<3> cell;
+                    cell.type     = Tet::CellTypeEnum::tet;
+                    cell.vertices = {quad[1], quad[2], quad[3], quad[7]};
+                    cells.push_back(cell);
+                  }
+
+                  {
+                    Tet::CellData<3> cell;
+                    cell.type     = Tet::CellTypeEnum::tet;
+                    cell.vertices = {quad[1], quad[4], quad[5], quad[7]};
+                    cells.push_back(cell);
+                  }
+
+                  {
+                    Tet::CellData<3> cell;
+                    cell.type     = Tet::CellTypeEnum::tet;
+                    cell.vertices = {quad[2], quad[4], quad[6], quad[7]};
+                    cells.push_back(cell);
+                  }
+
+                  {
+                    Tet::CellData<3> cell;
+                    cell.type     = Tet::CellTypeEnum::tet;
+                    cell.vertices = {quad[1], quad[2], quad[4], quad[7]};
+                    cells.push_back(cell);
+                  }
+                }
+        }
 
       tria.create_triangulation_tet(vertices, cells);
     }

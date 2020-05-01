@@ -95,14 +95,18 @@ namespace Tet
   struct CellTypeTet : public CellTypeBase<dim>
   {
     CellTypeTet()
-      : CellTypeBase<dim>("tet",
-                          {
-                            {{0, 1, 2}},             // cell
-                            {{0, 1}, {1, 2}, {2, 0}} // edges
-                          })
-    {
-      AssertDimension(dim, 2);
-    }
+      : CellTypeBase<dim>(
+          "tet",
+          dim == 2 ? (std::vector<std::vector<std::vector<unsigned int>>>{
+                       {{0, 1, 2}},             // cell
+                       {{0, 1}, {1, 2}, {2, 0}} // edges
+                     }) :
+                     (std::vector<std::vector<std::vector<unsigned int>>>{
+                       {{0, 1, 2, 3}},                                  // cell
+                       {{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}},    // faces
+                       {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}} // edges
+                     }))
+    {}
   };
 
   template <int dim>

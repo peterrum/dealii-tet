@@ -262,6 +262,8 @@ namespace Tet
       // clang-format off
     if(key_length == 2)
       build_entity_templated<2>(d, cell_types, cell_types_index, crs, crs_d, crs_0);
+    else if(key_length == 3)
+      build_entity_templated<3>(d, cell_types, cell_types_index, crs, crs_d, crs_0);
     else
       AssertThrow(false, dealii::StandardExceptions::ExcNotImplemented ());
       // clang-format on
