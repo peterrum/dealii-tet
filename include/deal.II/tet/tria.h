@@ -35,6 +35,98 @@ namespace Tet
     std::vector<unsigned int> vertices;
   };
 
+  namespace internal
+  {
+    namespace TriangulationImplementation
+    {
+      class Implementation
+      {
+      public:
+        template <int spacedim, typename T>
+        static void
+        create_triangulation(const std::vector<Point<spacedim>> &vertices,
+                             const std::vector<CellData<2>> &    cells,
+                             T &                                 tria)
+        {
+          const int dim = 2;
+
+          tria.levels.clear();
+          tria.levels.push_back(
+            std::make_unique<
+              dealii::internal::TriangulationImplementation::TriaLevel<dim>>());
+
+
+          const unsigned int n_cell = cells.size();
+
+          tria.levels[0]->reserve_space(n_cell, dim, spacedim);
+
+          // step 1: used
+          tria.levels[0]->cells.used.clear();
+          tria.levels[0]->cells.used.resize(n_cell);
+
+          for (unsigned int i = 0; i < n_cell; i++)
+            tria.levels[0]->cells.used[i] = true;
+
+          tria.levels[0]->cells.reserve_space(
+            0,
+            0); // TODO: what is happening here?
+
+          // step 2: material id
+          tria.levels[0]->cells.boundary_or_material_id.clear();
+          tria.levels[0]->cells.boundary_or_material_id.resize(n_cell);
+          for (unsigned int i = 0; i < n_cell; i++)
+            tria.levels[0]->cells.boundary_or_material_id[i].material_id = 0;
+
+          // step 3: manifold id
+          tria.levels[0]->cells.manifold_id.clear();
+          tria.levels[0]->cells.manifold_id.resize(n_cell);
+          for (unsigned int i = 0; i < n_cell; i++)
+            tria.levels[0]->cells.manifold_id[i] = 0;
+
+          // step 4: subdomain id
+          tria.levels[0]->subdomain_ids.clear();
+          tria.levels[0]->subdomain_ids.resize(n_cell);
+          for (unsigned int i = 0; i < n_cell; i++)
+            tria.levels[0]->subdomain_ids[i] = 0;
+
+          // step 5: level_subdomain id
+          tria.levels[0]->level_subdomain_ids.clear();
+          tria.levels[0]->level_subdomain_ids.resize(n_cell);
+          for (unsigned int i = 0; i < n_cell; i++)
+            tria.levels[0]->level_subdomain_ids[i] = 0;
+
+          // step 6: no children...
+          tria.levels[0]->cells.children.clear();
+          tria.levels[0]->cells.children.resize(
+            GeometryInfo<dim>::max_children_per_cell / 2 * n_cell);
+          for (unsigned int i = 0;
+               i < GeometryInfo<dim>::max_children_per_cell / 2 * n_cell;
+               i++)
+            tria.levels[0]->cells.children[i] = -1;
+
+          for (unsigned int i = 0; i < n_cell; i++)
+            tria.levels[0]->active_cell_indices[i] = i;
+
+          // faces [TODO]
+          tria.faces = std::make_unique<
+            dealii::internal::TriangulationImplementation::TriaFaces<dim>>();
+        }
+
+        template <int spacedim, typename T>
+        static void
+        create_triangulation(const std::vector<Point<spacedim>> &vertices,
+                             const std::vector<CellData<3>> &    cells,
+                             T &                                 tria)
+        {
+          AssertThrow(false, ExcNotImplemented());
+          (void)vertices;
+          (void)cells;
+          (void)tria;
+        }
+      };
+    } // namespace TriangulationImplementation
+  }   // namespace internal
+
   template <int dim, int spacedim = dim>
   class Triangulation : public dealii::Triangulation<dim, spacedim>
   {
@@ -100,6 +192,8 @@ namespace Tet
       return is_distributed_;
     }
 
+    friend class internal::TriangulationImplementation::Implementation;
+
     void
     create_triangulation_tet(const std::vector<Point<spacedim>> &vertices,
                              const std::vector<CellData<dim>> &  cells)
@@ -118,65 +212,8 @@ namespace Tet
         connectivity.build(cell_types, cell_vertices);
       }
 
-      this->levels.clear();
-      this->levels.push_back(
-        std::make_unique<
-          internal::TriangulationImplementation::TriaLevel<dim>>());
-
-
-      const unsigned int n_cell = cells.size();
-
-      this->levels[0]->reserve_space(n_cell, dim, spacedim);
-
-      // step 1: used
-      this->levels[0]->cells.used.clear();
-      this->levels[0]->cells.used.resize(n_cell);
-
-      for (unsigned int i = 0; i < n_cell; i++)
-        this->levels[0]->cells.used[i] = true;
-
-      this->levels[0]->cells.reserve_space(0,
-                                           0); // TODO: what is happening here?
-
-      // step 2: material id
-      this->levels[0]->cells.boundary_or_material_id.clear();
-      this->levels[0]->cells.boundary_or_material_id.resize(n_cell);
-      for (unsigned int i = 0; i < n_cell; i++)
-        this->levels[0]->cells.boundary_or_material_id[i].material_id = 0;
-
-      // step 3: manifold id
-      this->levels[0]->cells.manifold_id.clear();
-      this->levels[0]->cells.manifold_id.resize(n_cell);
-      for (unsigned int i = 0; i < n_cell; i++)
-        this->levels[0]->cells.manifold_id[i] = 0;
-
-      // step 4: subdomain id
-      this->levels[0]->subdomain_ids.clear();
-      this->levels[0]->subdomain_ids.resize(n_cell);
-      for (unsigned int i = 0; i < n_cell; i++)
-        this->levels[0]->subdomain_ids[i] = 0;
-
-      // step 5: level_subdomain id
-      this->levels[0]->level_subdomain_ids.clear();
-      this->levels[0]->level_subdomain_ids.resize(n_cell);
-      for (unsigned int i = 0; i < n_cell; i++)
-        this->levels[0]->level_subdomain_ids[i] = 0;
-
-      // step 6: no children...
-      this->levels[0]->cells.children.clear();
-      this->levels[0]->cells.children.resize(
-        GeometryInfo<dim>::max_children_per_cell / 2 * n_cell);
-      for (unsigned int i = 0;
-           i < GeometryInfo<dim>::max_children_per_cell / 2 * n_cell;
-           i++)
-        this->levels[0]->cells.children[i] = -1;
-
-      for (unsigned int i = 0; i < n_cell; i++)
-        this->levels[0]->active_cell_indices[i] = i;
-
-      // faces [TODO]
-      this->faces = std::make_unique<
-        internal::TriangulationImplementation::TriaFaces<dim>>();
+      internal::TriangulationImplementation::Implementation::
+        create_triangulation(vertices, cells, *this);
 
       // vertices
       vertex_indices_ptr.push_back(vertex_indices.size());
