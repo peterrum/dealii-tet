@@ -210,41 +210,84 @@ namespace Tet
                       (j + 1) * (repetitions[0] + 1) + i + 0, //
                     (k + 1) * (repetitions[0] + 1) * (repetitions[1] + 1) +
                       (j + 1) * (repetitions[0] + 1) + i + 1 //
-                  };                                         //
-
+                    //                    (k + (k%2==1)) * (repetitions[0] + 1)
+                    //                    * (repetitions[1] + 1) + (j +
+                    //                    (j%2==1)) * (repetitions[0] + 1) + i +
+                    //                    (i%2==1), // (k + (k%2==1)) *
+                    //                    (repetitions[0] + 1) * (repetitions[1]
+                    //                    + 1) + (j + (j%2==1)) *
+                    //                    (repetitions[0] + 1) + i + (i%2==0),
+                    //                    // (k + (k%2==1)) * (repetitions[0] +
+                    //                    1) * (repetitions[1] + 1) + (j +
+                    //                    (j%2==0)) * (repetitions[0] + 1) + i +
+                    //                    (i%2==1), // (k + (k%2==1)) *
+                    //                    (repetitions[0] + 1) * (repetitions[1]
+                    //                    + 1) + (j + (j%2==0)) *
+                    //                    (repetitions[0] + 1) + i + (i%2==0),
+                    //                    // (k + (k%2==0)) * (repetitions[0] +
+                    //                    1) * (repetitions[1] + 1) + (j +
+                    //                    (j%2==1)) * (repetitions[0] + 1) + i +
+                    //                    (i%2==1), // (k + (k%2==0)) *
+                    //                    (repetitions[0] + 1) * (repetitions[1]
+                    //                    + 1) + (j + (j%2==1)) *
+                    //                    (repetitions[0] + 1) + i + (i%2==0),
+                    //                    // (k + (k%2==0)) * (repetitions[0] +
+                    //                    1) * (repetitions[1] + 1) + (j +
+                    //                    (j%2==0)) * (repetitions[0] + 1) + i +
+                    //                    (i%2==1), // (k + (k%2==0)) *
+                    //                    (repetitions[0] + 1) * (repetitions[1]
+                    //                    + 1) + (j + (j%2==0)) *
+                    //                    (repetitions[0] + 1) + i + (i%2==0) //
+                  }; //
 
                   {
-                    Tet::CellData<3> cell;
-                    cell.type     = Tet::CellTypeEnum::tet;
-                    cell.vertices = {quad[0], quad[1], quad[2], quad[4]};
+                    Tet::CellData<dim> cell;
+                    cell.type = Tet::CellTypeEnum::tet;
+                    if (((i % 2) + (j % 2) + (k % 2)) % 2 == 0)
+                      cell.vertices = {quad[0], quad[1], quad[2], quad[4]};
+                    else
+                      cell.vertices = {quad[0], quad[1], quad[3], quad[5]};
+
                     cells.push_back(cell);
                   }
 
                   {
-                    Tet::CellData<3> cell;
-                    cell.type     = Tet::CellTypeEnum::tet;
-                    cell.vertices = {quad[1], quad[2], quad[3], quad[7]};
+                    Tet::CellData<dim> cell;
+                    cell.type = Tet::CellTypeEnum::tet;
+                    if (((i % 2) + (j % 2) + (k % 2)) % 2 == 0)
+                      cell.vertices = {quad[1], quad[3], quad[2], quad[7]};
+                    else
+                      cell.vertices = {quad[0], quad[3], quad[2], quad[6]};
                     cells.push_back(cell);
                   }
 
                   {
-                    Tet::CellData<3> cell;
-                    cell.type     = Tet::CellTypeEnum::tet;
-                    cell.vertices = {quad[1], quad[4], quad[5], quad[7]};
+                    Tet::CellData<dim> cell;
+                    cell.type = Tet::CellTypeEnum::tet;
+                    if (((i % 2) + (j % 2) + (k % 2)) % 2 == 0)
+                      cell.vertices = {quad[1], quad[4], quad[5], quad[7]};
+                    else
+                      cell.vertices = {quad[0], quad[4], quad[5], quad[6]};
                     cells.push_back(cell);
                   }
 
                   {
-                    Tet::CellData<3> cell;
-                    cell.type     = Tet::CellTypeEnum::tet;
-                    cell.vertices = {quad[2], quad[4], quad[6], quad[7]};
+                    Tet::CellData<dim> cell;
+                    cell.type = Tet::CellTypeEnum::tet;
+                    if (((i % 2) + (j % 2) + (k % 2)) % 2 == 0)
+                      cell.vertices = {quad[2], quad[4], quad[7], quad[6]};
+                    else
+                      cell.vertices = {quad[3], quad[5], quad[7], quad[6]};
                     cells.push_back(cell);
                   }
 
                   {
-                    Tet::CellData<3> cell;
-                    cell.type     = Tet::CellTypeEnum::tet;
-                    cell.vertices = {quad[1], quad[2], quad[4], quad[7]};
+                    Tet::CellData<dim> cell;
+                    cell.type = Tet::CellTypeEnum::tet;
+                    if (((i % 2) + (j % 2) + (k % 2)) % 2 == 0)
+                      cell.vertices = {quad[1], quad[2], quad[4], quad[7]};
+                    else
+                      cell.vertices = {quad[0], quad[3], quad[6], quad[5]};
                     cells.push_back(cell);
                   }
                 }

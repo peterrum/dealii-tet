@@ -29,22 +29,28 @@ namespace Tet
     : FE_Poly<Tet::ScalarPolynomial<dim>, dim, spacedim>(
         Tet::ScalarPolynomial<dim>(degree),
         FiniteElementData<dim>(get_dpo_vector(degree),
-                               GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0),
+                               dim == 2 ?
+                                 GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0) :
+                                 GeometryInfoWrapper<dim>(4, 5, 4, 1, 3, 2, 1),
                                1,
                                degree,
                                FiniteElementData<dim>::L2),
-        std::vector<bool>(
-          FiniteElementData<dim>(get_dpo_vector(degree),
-                                 GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0),
-                                 1,
-                                 degree)
-            .dofs_per_cell,
-          true),
+        std::vector<bool>(FiniteElementData<dim>(
+                            get_dpo_vector(degree),
+                            dim == 2 ?
+                              GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0) :
+                              GeometryInfoWrapper<dim>(4, 5, 4, 1, 3, 2, 1),
+                            1,
+                            degree)
+                            .dofs_per_cell,
+                          true),
         std::vector<ComponentMask>(
-          FiniteElementData<dim>(get_dpo_vector(degree),
-                                 GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0),
-                                 1,
-                                 degree)
+          FiniteElementData<dim>(
+            get_dpo_vector(degree),
+            dim == 2 ? GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0) :
+                       GeometryInfoWrapper<dim>(4, 5, 4, 1, 3, 2, 1),
+            1,
+            degree)
             .dofs_per_cell,
           std::vector<bool>(1, true)))
   {
@@ -74,7 +80,17 @@ namespace Tet
       }
     else if (dim == 3)
       {
-        Assert(false, ExcNotImplemented());
+        if (degree == 1)
+          {
+            this->unit_support_points.emplace_back(0.0, 0.0, 0.0);
+            this->unit_support_points.emplace_back(1.0, 0.0, 0.0);
+            this->unit_support_points.emplace_back(0.0, 1.0, 0.0);
+            this->unit_support_points.emplace_back(0.0, 0.0, 1.0);
+          }
+        else
+          {
+            Assert(false, ExcNotImplemented());
+          }
       }
     else
       {

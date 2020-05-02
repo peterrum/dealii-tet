@@ -43,7 +43,6 @@ namespace Tet
     get_dpo_vector(const unsigned int deg)
     {
       AssertIndexRange(deg, 3);
-      AssertDimension(dim, 2);
 
       std::vector<unsigned int> dpo(dim + 1, 0U);
 

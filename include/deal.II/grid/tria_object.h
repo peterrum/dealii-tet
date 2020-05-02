@@ -104,7 +104,7 @@ namespace internal
       void
       serialize(Archive &ar, const unsigned int version);
 
-    protected:
+      // protected:
       /**
        * Global indices of the face iterators bounding this cell if dim@>1,
        * and the two vertex indices in 1d.

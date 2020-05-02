@@ -146,7 +146,14 @@ namespace Tet
 
           tria.levels[0]->reserve_space(n_cell, dim, spacedim);
 
-          tria.levels[0]->cells.cells.resize(n_cell);
+          tria.levels[0]->cells.reserve_space(n_cell);
+
+          const auto &crs = tria.get_entity_table()[3][2];
+
+          for (unsigned int cell = 0; cell < cells.size(); ++cell)
+            for (unsigned int i = crs.ptr[cell], j = 0; i < crs.ptr[cell + 1];
+                 ++i, ++j)
+              tria.levels[0]->cells.cells[cell].faces[j] = crs.col[i];
 
           // step 1: used
           tria.levels[0]->cells.used.clear();
@@ -1259,7 +1266,7 @@ namespace Tet
       std::vector<bool> vertex_of_own_cell(this->n_vertices(), false);
       for (const auto &cell : this->active_cell_iterators())
         if (cell->is_locally_owned())
-          for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+          for (unsigned int v = 0; v < (dim == 2 ? 3 : 4); v++)
             vertex_of_own_cell[cell->vertex_index(v)] = true;
 
       // 3) for each vertex belonging to a locally owned cell all ghost
@@ -1273,7 +1280,7 @@ namespace Tet
             const types::subdomain_id owner = cell->subdomain_id();
 
             // loop over all its vertices
-            for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+            for (unsigned int v = 0; v < (dim == 2 ? 3 : 4); v++)
               {
                 // set owner if vertex belongs to a local cell
                 if (vertex_of_own_cell[cell->vertex_index(v)])
@@ -1291,7 +1298,7 @@ namespace Tet
       std::vector<bool> vertex_of_own_cell(this->n_vertices(), false);
       for (const auto &cell : this->active_cell_iterators())
         if (cell->is_locally_owned())
-          for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+          for (unsigned int v = 0; v < (dim == 2 ? 3 : 4); v++)
             vertex_of_own_cell[cell->vertex_index(v)] = true;
 
       // 3) for each vertex belonging to a locally owned cell all ghost
@@ -1305,7 +1312,7 @@ namespace Tet
             const types::subdomain_id owner = cell->subdomain_id();
 
             // loop over all its vertices
-            for (unsigned int v = 0; v < 3 /*TODO*/; v++)
+            for (unsigned int v = 0; v < (dim == 2 ? 3 : 4); v++)
               {
                 // set owner if vertex belongs to a local cell
                 if (vertex_of_own_cell[cell->vertex_index(v)])
