@@ -31,7 +31,7 @@ namespace Tet
         FiniteElementData<dim>(get_dpo_vector(degree),
                                dim == 2 ?
                                  GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0) :
-                                 GeometryInfoWrapper<dim>(4, 5, 4, 1, 3, 2, 1),
+                                 GeometryInfoWrapper<dim>(4, 6, 4, 1, 3, 3, 1),
                                1,
                                degree,
                                FiniteElementData<dim>::L2),
@@ -39,7 +39,7 @@ namespace Tet
                             get_dpo_vector(degree),
                             dim == 2 ?
                               GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0) :
-                              GeometryInfoWrapper<dim>(4, 5, 4, 1, 3, 2, 1),
+                              GeometryInfoWrapper<dim>(4, 6, 4, 1, 3, 3, 1),
                             1,
                             degree)
                             .dofs_per_cell,
@@ -48,7 +48,7 @@ namespace Tet
           FiniteElementData<dim>(
             get_dpo_vector(degree),
             dim == 2 ? GeometryInfoWrapper<dim>(3, 3, 1, 0, 2, 1, 0) :
-                       GeometryInfoWrapper<dim>(4, 5, 4, 1, 3, 2, 1),
+                       GeometryInfoWrapper<dim>(4, 6, 4, 1, 3, 3, 1),
             1,
             degree)
             .dofs_per_cell,
@@ -86,6 +86,20 @@ namespace Tet
             this->unit_support_points.emplace_back(1.0, 0.0, 0.0);
             this->unit_support_points.emplace_back(0.0, 1.0, 0.0);
             this->unit_support_points.emplace_back(0.0, 0.0, 1.0);
+          }
+        else if (degree == 2)
+          {
+            this->unit_support_points.emplace_back(0.0, 0.0, 0.0);
+            this->unit_support_points.emplace_back(1.0, 0.0, 0.0);
+            this->unit_support_points.emplace_back(0.0, 1.0, 0.0);
+            this->unit_support_points.emplace_back(0.0, 0.0, 1.0);
+
+            this->unit_support_points.emplace_back(0.5, 0.0, 0.0);
+            this->unit_support_points.emplace_back(0.5, 0.5, 0.0);
+            this->unit_support_points.emplace_back(0.0, 0.5, 0.0);
+            this->unit_support_points.emplace_back(0.0, 0.0, 0.5);
+            this->unit_support_points.emplace_back(0.5, 0.0, 0.5);
+            this->unit_support_points.emplace_back(0.0, 0.5, 0.5);
           }
         else
           {

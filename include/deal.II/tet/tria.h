@@ -312,6 +312,12 @@ namespace Tet
       this->vertices = vertices;
     }
 
+    const Connectivity<dim> &
+    get_connectivity() const
+    {
+      return connectivity;
+    }
+
     const std::array<std::array<CRS<unsigned int>, dim + 1>, dim + 1> &
     get_entity_table() const
     {

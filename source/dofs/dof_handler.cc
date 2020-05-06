@@ -2542,7 +2542,7 @@ DoFHandler<dim, spacedim>::distribute_dofs(
               new_dofs_ptr[0][d].push_back(0);
 
               for (unsigned int i = 0;
-                   i < entity_table[d][std::max(1, d)].ptr.size() - 1;
+                   i < entity_table[d][d == 0 ? 1 : 0].ptr.size() - 1;
                    i++)
                 {
                   for (unsigned int j = 0; j < n_dofs_per_object[d]; j++)
@@ -2612,6 +2612,8 @@ DoFHandler<dim, spacedim>::get_entity_dofs(unsigned int              d,
                                            unsigned int              index,
                                            types::global_dof_index *&ptr) const
 {
+  AssertIndexRange(index + 1, new_dofs_ptr[0][d].size());
+
   const unsigned int n_dofs =
     new_dofs_ptr[0][d][index + 1] - new_dofs_ptr[0][d][index];
 

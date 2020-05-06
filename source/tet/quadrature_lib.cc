@@ -80,12 +80,12 @@ namespace Tet
       }
     else if (dim == 3)
       {
-        if (n_points == 1)
+        if (n_points == 1) // intrule_tet_1point
           {
             this->quadrature_points.emplace_back(Q14, Q14, Q14);
             this->weights.emplace_back(Q16);
           }
-        else if (n_points == 4)
+        else if (n_points == 4) // intrule_tet_4point
           {
             const double palpha = (5.0 + 3.0 * sqrt(5.0)) / 20.0;
             const double pbeta  = (5.0 - sqrt(5.0)) / 20.0;
@@ -97,6 +97,34 @@ namespace Tet
             this->weights.emplace_back(Q124);
             this->weights.emplace_back(Q124);
             this->weights.emplace_back(Q124);
+          }
+        else if (n_points == 10) // intrule_tet_10point
+          {
+            const double Q16 = 1.0 / 6.0;
+
+            // clang-format off
+            this->quadrature_points.emplace_back(0.5684305841968444, 0.1438564719343852, 0.1438564719343852);
+            this->quadrature_points.emplace_back(0.1438564719343852, 0.1438564719343852, 0.1438564719343852);
+            this->quadrature_points.emplace_back(0.1438564719343852, 0.1438564719343852, 0.5684305841968444);
+            this->quadrature_points.emplace_back(0.1438564719343852, 0.5684305841968444, 0.1438564719343852);
+            this->quadrature_points.emplace_back(0.0000000000000000, 0.5000000000000000, 0.5000000000000000);
+            this->quadrature_points.emplace_back(0.5000000000000000, 0.0000000000000000, 0.5000000000000000);
+            this->quadrature_points.emplace_back(0.5000000000000000, 0.5000000000000000, 0.0000000000000000);
+            this->quadrature_points.emplace_back(0.5000000000000000, 0.0000000000000000, 0.0000000000000000);
+            this->quadrature_points.emplace_back(0.0000000000000000, 0.5000000000000000, 0.0000000000000000);
+            this->quadrature_points.emplace_back(0.0000000000000000, 0.0000000000000000, 0.5000000000000000);
+            // clang-format on
+
+            this->weights.emplace_back(0.2177650698804054 * Q16);
+            this->weights.emplace_back(0.2177650698804054 * Q16);
+            this->weights.emplace_back(0.2177650698804054 * Q16);
+            this->weights.emplace_back(0.2177650698804054 * Q16);
+            this->weights.emplace_back(0.0214899534130631 * Q16);
+            this->weights.emplace_back(0.0214899534130631 * Q16);
+            this->weights.emplace_back(0.0214899534130631 * Q16);
+            this->weights.emplace_back(0.0214899534130631 * Q16);
+            this->weights.emplace_back(0.0214899534130631 * Q16);
+            this->weights.emplace_back(0.0214899534130631 * Q16);
           }
       }
 

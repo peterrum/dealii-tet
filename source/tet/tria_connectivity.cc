@@ -295,9 +295,55 @@ namespace Tet
           transpose(table[dim][d], table[d][dim]);
         }
 
+      const auto fu = [](const auto &T_i0,
+                         const auto &T_j0,
+                         const auto &T_id,
+                         const auto &T_dj,
+                         auto &      T_ij) {
+        T_ij.ptr = {0};
+        T_ij.col = {};
+
+        // loop over all i entities
+        for (unsigned int i = 0; i < T_i0.ptr.size() - 1; ++i)
+          {
+            // collect the vertices of entity i
+            std::set<unsigned int> set_i(T_i0.col.begin() + T_i0.ptr[i],
+                                         T_i0.col.begin() + T_i0.ptr[i + 1]);
+
+            // extract a cell
+            const unsigned int d = T_id.col[T_id.ptr[i]];
+
+            for (unsigned int j_ = T_dj.ptr[d]; j_ < T_dj.ptr[d + 1]; ++j_)
+              {
+                const unsigned int     j = T_dj.col[j_];
+                std::set<unsigned int> set_j(T_j0.col.begin() + T_j0.ptr[j],
+                                             T_j0.col.begin() +
+                                               T_j0.ptr[j + 1]);
+
+                std::set<int> intersect;
+
+                std::set_intersection(set_i.begin(),
+                                      set_i.end(),
+                                      set_j.begin(),
+                                      set_j.end(),
+                                      std::inserter(intersect,
+                                                    intersect.begin()));
+
+                if (intersect.size() == set_j.size())
+                  T_ij.col.push_back(j);
+              }
+
+            T_ij.ptr.push_back(T_ij.col.size());
+          }
+      };
+
       for (unsigned int i = 1; i < dim; i++)
-        for (unsigned int j = 1; j < dim; j++)
-          transitive_closure(table[i][0], table[0][j], table[i][j]);
+        for (unsigned int j = 1; j < i; j++)
+          fu(table[i][0],
+             table[j][0],
+             table[i][dim],
+             table[dim][j],
+             table[i][j]);
     }
   } // namespace internal
 
