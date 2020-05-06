@@ -22,7 +22,15 @@
 #include <deal.II/dofs/dof_handler_policy.h>
 
 #include <deal.II/grid/grid_tools.h>
+#include <deal.II/grid/tria.h>
+#include <deal.II/grid/tria_accessor.h>
+#include <deal.II/grid/tria_iterator.h>
+#include <deal.II/grid/tria_levels.h>
 
+#include <deal.II/tet/fe_q.h>
+
+#include <algorithm>
+#include <set>
 #include <unordered_set>
 
 DEAL_II_NAMESPACE_OPEN
@@ -2498,6 +2506,57 @@ DoFHandler<dim, spacedim>::distribute_dofs(
       // first, assign the finite_element
       this->set_fe(ff);
 
+      if (auto tria = dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(
+            this->tria.operator->()))
+        {
+          // 1) clear old state
+          this->clear_space();
+          new_dofs.resize(1);
+          new_dofs_ptr.resize(1);
+
+          // 2) get number of dofs per entity of a single FE
+          //    (TODO: should be part of Finite Element)
+          const auto n_dofs_per_object =
+            [](const FiniteElement<dim, spacedim> &fe) {
+              std::array<unsigned int, dim + 1> n_dofs_per_object;
+
+              if (dim >= 0)
+                n_dofs_per_object[0] = fe.template n_dofs_per_object<0>();
+              if (dim >= 1)
+                n_dofs_per_object[1] = fe.template n_dofs_per_object<1>();
+              if (dim >= 2)
+                n_dofs_per_object[2] = fe.template n_dofs_per_object<2>();
+              if (dim >= 3)
+                n_dofs_per_object[3] = fe.template n_dofs_per_object<3>();
+
+              return n_dofs_per_object;
+            }(ff[0]);
+
+          // 3) reserve space for each entity of triangulation
+          const auto &entity_table = tria->get_entity_table();
+
+          for (int d = 0; d <= dim; d++)
+            {
+              new_dofs[0][d].clear();
+              new_dofs_ptr[0][d].clear();
+              new_dofs_ptr[0][d].push_back(0);
+
+              for (unsigned int i = 0;
+                   i < entity_table[d][d == 0 ? 1 : 0].ptr.size() - 1;
+                   i++)
+                {
+                  for (unsigned int j = 0; j < n_dofs_per_object[d]; j++)
+                    new_dofs[0][d].push_back(numbers::invalid_dof_index);
+                  new_dofs_ptr[0][d].push_back(new_dofs[0][d].size());
+                }
+            }
+
+          // 4) distribute dofs
+          number_cache = policy->distribute_dofs();
+
+          return;
+        }
+
       // delete all levels and set them up newly. note that we still have to
       // allocate space for all degrees of freedom on this mesh (including ghost
       // and cells that are entirely stored on different processors), though we
@@ -2522,6 +2581,47 @@ DoFHandler<dim, spacedim>::distribute_dofs(
             &*this->tria) == nullptr)
         this->block_info_object.initialize(*this, false, true);
     }
+}
+
+
+
+template <int dim, int spacedim>
+void
+DoFHandler<dim, spacedim>::set_entity_dofs(unsigned int d,
+                                           unsigned int index,
+                                           const types::global_dof_index *&ptr)
+{
+  AssertIndexRange(d, new_dofs_ptr[0].size());
+  AssertIndexRange(index + 1, new_dofs_ptr[0][d].size());
+
+  const unsigned int n_dofs =
+    new_dofs_ptr[0][d][index + 1] - new_dofs_ptr[0][d][index];
+
+  std::memcpy(new_dofs[0][d].data() + new_dofs_ptr[0][d][index],
+              ptr,
+              n_dofs * sizeof(types::global_dof_index));
+
+  ptr += n_dofs;
+}
+
+
+
+template <int dim, int spacedim>
+void
+DoFHandler<dim, spacedim>::get_entity_dofs(unsigned int              d,
+                                           unsigned int              index,
+                                           types::global_dof_index *&ptr) const
+{
+  AssertIndexRange(index + 1, new_dofs_ptr[0][d].size());
+
+  const unsigned int n_dofs =
+    new_dofs_ptr[0][d][index + 1] - new_dofs_ptr[0][d][index];
+
+  std::memcpy(ptr,
+              new_dofs[0][d].data() + new_dofs_ptr[0][d][index],
+              n_dofs * sizeof(types::global_dof_index));
+
+  ptr += n_dofs;
 }
 
 
@@ -2577,22 +2677,29 @@ DoFHandler<dim, spacedim>::setup_policy()
 {
   // decide whether we need a sequential or a parallel distributed policy
   if (dynamic_cast<const dealii::parallel::shared::Triangulation<dim, spacedim>
-                     *>(&this->get_triangulation()) != nullptr)
+                     *>(&this->get_triangulation()) != nullptr ||
+      (dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+         &this->get_triangulation()) != nullptr &&
+       dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+         &this->get_triangulation())
+           ->is_distributed() == false))
     this->policy =
       std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
                                ParallelShared<DoFHandler<dim, spacedim>>>(
         *this);
   else if (dynamic_cast<
              const dealii::parallel::DistributedTriangulationBase<dim, spacedim>
-               *>(&this->get_triangulation()) == nullptr)
-    this->policy =
-      std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
-                               Sequential<DoFHandler<dim, spacedim>>>(*this);
-  else
+               *>(&this->get_triangulation()) != nullptr ||
+           dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+             &this->get_triangulation()) != nullptr)
     this->policy =
       std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
                                ParallelDistributed<DoFHandler<dim, spacedim>>>(
         *this);
+  else
+    this->policy =
+      std_cxx14::make_unique<internal::DoFHandlerImplementation::Policy::
+                               Sequential<DoFHandler<dim, spacedim>>>(*this);
 }
 
 

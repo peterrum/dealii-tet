@@ -34,6 +34,8 @@
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_iterator.h>
 
+#include <deal.II/tet/tria.h>
+
 #include <algorithm>
 #include <memory>
 #include <numeric>
@@ -1699,8 +1701,13 @@ namespace internal
                   std::vector<types::global_dof_index> dof_indices(
                     cell->get_fe().dofs_per_cell);
 
-                  internal::DoFAccessorImplementation::get_dof_indices(
-                    *cell, dof_indices, cell->active_fe_index());
+                  if (dynamic_cast<
+                        const Tet::Triangulation<DoFHandlerType::dimension> *>(
+                        &cell->get_triangulation()))
+                    cell->get_dof_indices(dof_indices);
+                  else
+                    internal::DoFAccessorImplementation::get_dof_indices(
+                      *cell, dof_indices, cell->active_fe_index());
 
                   for (auto &dof_index : dof_indices)
                     if (dof_index == numbers::invalid_dof_index)
@@ -3229,19 +3236,11 @@ namespace internal
 
 
 
-      template <class DoFHandlerType>
+      template <class DoFHandlerType, typename TriangulationType>
       NumberCache
-      ParallelShared<DoFHandlerType>::distribute_dofs() const
+      distribute_dofs_shared(const DoFHandlerType &   dof_handler,
+                             const TriangulationType *tr)
       {
-        const unsigned int dim      = DoFHandlerType::dimension;
-        const unsigned int spacedim = DoFHandlerType::space_dimension;
-
-        const dealii::parallel::shared::Triangulation<dim, spacedim> *tr =
-          (dynamic_cast<
-            const dealii::parallel::shared::Triangulation<dim, spacedim> *>(
-            &this->dof_handler->get_triangulation()));
-        Assert(tr != nullptr, ExcInternalError());
-
         const unsigned int n_procs =
           Utilities::MPI::n_mpi_processes(tr->get_communicator());
 
@@ -3269,10 +3268,10 @@ namespace internal
         // enumerate DoFs on all cells, regardless of owner
         const types::global_dof_index n_initial_dofs =
           Implementation::distribute_dofs(numbers::invalid_subdomain_id,
-                                          *this->dof_handler);
+                                          dof_handler);
 
         const types::global_dof_index n_dofs =
-          Implementation::unify_dof_indices(*this->dof_handler,
+          Implementation::unify_dof_indices(dof_handler,
                                             n_initial_dofs,
                                             /*check_validity=*/true);
 
@@ -3291,7 +3290,7 @@ namespace internal
           // first get the association of each dof with a subdomain and
           // determine the total number of subdomain ids used
           const std::vector<types::subdomain_id> subdomain_association =
-            get_dof_subdomain_association(*this->dof_handler, n_dofs, n_procs);
+            get_dof_subdomain_association(dof_handler, n_dofs, n_procs);
 
           // then renumber the subdomains by first looking at those belonging
           // to subdomain 0, then those of subdomain 1, etc. note that the
@@ -3323,7 +3322,7 @@ namespace internal
         // correctly set
         Implementation::renumber_dofs(new_dof_indices,
                                       IndexSet(0),
-                                      *this->dof_handler,
+                                      dof_handler,
                                       /*check_validity=*/true);
 
         // update the number cache. for this, we first have to find the
@@ -3336,7 +3335,7 @@ namespace internal
         // the IndexSets cheap. an assertion at the top verifies that this
         // assumption is true
         const std::vector<types::subdomain_id> subdomain_association =
-          get_dof_subdomain_association(*this->dof_handler, n_dofs, n_procs);
+          get_dof_subdomain_association(dof_handler, n_dofs, n_procs);
 
         for (unsigned int i = 1; i < n_dofs; ++i)
           Assert(subdomain_association[i] >= subdomain_association[i - 1],
@@ -3387,7 +3386,29 @@ namespace internal
         // owned DoFs
         return NumberCache(
           locally_owned_dofs_per_processor,
-          this->dof_handler->get_triangulation().locally_owned_subdomain());
+          dof_handler.get_triangulation().locally_owned_subdomain());
+      }
+
+
+
+      template <class DoFHandlerType>
+      NumberCache
+      ParallelShared<DoFHandlerType>::distribute_dofs() const
+      {
+        const unsigned int dim      = DoFHandlerType::dimension;
+        const unsigned int spacedim = DoFHandlerType::space_dimension;
+
+        if (auto tr = dynamic_cast<
+              const dealii::parallel::shared::Triangulation<dim, spacedim> *>(
+              &this->dof_handler->get_triangulation()))
+          return distribute_dofs_shared(*this->dof_handler, tr);
+
+        if (auto tr =
+              dynamic_cast<const dealii::Tet::Triangulation<dim, spacedim> *>(
+                &this->dof_handler->get_triangulation()))
+          return distribute_dofs_shared(*this->dof_handler, tr);
+
+        Assert(false, ExcInternalError());
       }
 
 
@@ -4320,6 +4341,13 @@ namespace internal
               const int ierr = MPI_Barrier(triangulation->get_communicator());
               AssertThrowMPI(ierr);
             }
+          else if (const auto *triangulation = dynamic_cast<
+                     const dealii::Tet::Triangulation<dim, spacedim> *>(
+                     &dof_handler.get_triangulation()))
+            {
+              const int ierr = MPI_Barrier(triangulation->get_communicator());
+              AssertThrowMPI(ierr);
+            }
           else
             {
               Assert(false,
@@ -4346,24 +4374,16 @@ namespace internal
 
 
 
-      template <class DoFHandlerType>
+      template <class DoFHandlerType, class TriangulationType>
       NumberCache
-      ParallelDistributed<DoFHandlerType>::distribute_dofs() const
+      internal_distribute_dofs(dealii::SmartPointer<DoFHandlerType> dof_handler,
+                               TriangulationType *triangulation)
       {
 #ifndef DEAL_II_WITH_MPI
         Assert(false, ExcNotImplemented());
         return NumberCache();
 #else
-        const unsigned int dim      = DoFHandlerType::dimension;
-        const unsigned int spacedim = DoFHandlerType::space_dimension;
-
-        dealii::parallel::DistributedTriangulationBase<dim, spacedim>
-          *triangulation =
-            (dynamic_cast<
-              dealii::parallel::DistributedTriangulationBase<dim, spacedim> *>(
-              const_cast<dealii::Triangulation<dim, spacedim> *>(
-                &dof_handler->get_triangulation())));
-        Assert(triangulation != nullptr, ExcInternalError());
+        const unsigned int dim = DoFHandlerType::dimension;
 
         const types::subdomain_id subdomain_id =
           triangulation->locally_owned_subdomain();
@@ -4494,7 +4514,10 @@ namespace internal
           for (const auto &cell : dof_handler->active_cell_iterators())
             if (cell->is_locally_owned())
               {
-                for (const unsigned int v : GeometryInfo<dim>::vertex_indices())
+                for (unsigned int v = 0; v < dof_handler->get_fe()
+                                               .get_geometry_info()
+                                               .vertices_per_cell;
+                     v++)
                   if (vertices_with_ghost_neighbors.find(cell->vertex_index(
                         v)) != vertices_with_ghost_neighbors.end())
                     {
@@ -4579,6 +4602,34 @@ namespace internal
 #  endif // DEBUG
         return number_cache;
 #endif   // DEAL_II_WITH_MPI
+      }
+
+
+
+      template <class DoFHandlerType>
+      NumberCache
+      ParallelDistributed<DoFHandlerType>::distribute_dofs() const
+      {
+        const unsigned int dim      = DoFHandlerType::dimension;
+        const unsigned int spacedim = DoFHandlerType::space_dimension;
+
+        if (auto triangulation =
+              (dynamic_cast<
+                dealii::parallel::DistributedTriangulationBase<dim, spacedim>
+                  *>(const_cast<dealii::Triangulation<dim, spacedim> *>(
+                &dof_handler->get_triangulation()))))
+          {
+            return internal_distribute_dofs(dof_handler, triangulation);
+          }
+        else if (auto triangulation =
+                   (dynamic_cast<dealii::Tet::Triangulation<dim, spacedim> *>(
+                     const_cast<dealii::Triangulation<dim, spacedim> *>(
+                       &dof_handler->get_triangulation()))))
+          {
+            return internal_distribute_dofs(dof_handler, triangulation);
+          }
+
+        Assert(false, ExcInternalError());
       }
 
 

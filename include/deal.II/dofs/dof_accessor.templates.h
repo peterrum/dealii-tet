@@ -31,6 +31,8 @@
 #include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/read_write_vector.h>
 
+#include <deal.II/tet/fe_q.h>
+
 #include <limits>
 #include <type_traits>
 #include <vector>
@@ -1301,6 +1303,28 @@ DoFAccessor<structdim, DoFHandlerType, level_dof_access>::get_dof_indices(
 {
   Assert(this->dof_handler != nullptr, ExcInvalidObject());
 
+  if (auto tria =
+        dynamic_cast<const Tet::Triangulation<DoFHandlerType::dimension> *>(
+          this->tria))
+    {
+      const unsigned int dim = structdim;
+
+      auto ptr = dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          {
+            this->dof_handler->get_entity_dofs(d, index, ptr);
+          }
+
+      // ... and finally cell
+      this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
+
   const unsigned int fe_index =
     (this->dof_handler->is_hp_dof_handler == false &&
      fe_index_ == DoFHandlerType::default_fe_index) ?
@@ -2471,11 +2495,32 @@ inline void
 DoFCellAccessor<DoFHandlerType, level_dof_access>::get_dof_indices(
   std::vector<types::global_dof_index> &dof_indices) const
 {
+  AssertDimension(dof_indices.size(), this->get_fe().dofs_per_cell);
+
+  if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
+    {
+      const unsigned int dim = DoFHandlerType::dimension;
+
+      auto ptr = dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          {
+            this->dof_handler->get_entity_dofs(d, index, ptr);
+          }
+
+      // ... and finally cell
+      this->dof_handler->get_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
+
   Assert(this->is_active(),
          ExcMessage("get_dof_indices() only works on active cells."));
   Assert(this->is_artificial() == false,
          ExcMessage("Can't ask for DoF indices on artificial cells."));
-  AssertDimension(dof_indices.size(), this->get_fe().dofs_per_cell);
 
   const auto dofs_per_cell = this->get_fe().dofs_per_cell;
   if (dofs_per_cell > 0)

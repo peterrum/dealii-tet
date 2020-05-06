@@ -16,7 +16,6 @@
 #ifndef dealii_quadrature_lib_h
 #define dealii_quadrature_lib_h
 
-
 #include <deal.II/base/config.h>
 
 #include <deal.II/base/quadrature.h>

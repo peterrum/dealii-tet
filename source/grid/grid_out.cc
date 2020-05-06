@@ -3172,6 +3172,96 @@ GridOut::write_vtk(const Triangulation<dim, spacedim> &tria,
       out << '\n';
     }
 
+  // if we have a triangle element we just don't do the following
+  if (dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(&tria) != nullptr)
+    {
+      AssertThrow(dim > 1, ExcMessage("1D TET is not supported!"));
+
+      const unsigned int vertices_per_cell =
+        dim == 2 ? 3 : 4; // TODO: better way
+
+      // WORKAROUND
+      // n_active_cells() not implemented yet in Tet::triangulation
+      // only cell_iterators available, therefore, we just loop over
+      // all cells an increase a counter by 1
+      unsigned int num_cells = 0;
+      for (const auto &cell : tria.cell_iterators())
+        {
+          (void)cell;
+          num_cells++;
+        }
+
+      AssertThrow(
+        vtk_flags.output_cells || (dim >= 2 && vtk_flags.output_faces) ||
+          (dim >= 3 && vtk_flags.output_edges),
+        ExcMessage(
+          "At least one of the flags (output_cells, output_faces, output_edges) has to be enabled!"));
+
+      // Write cells preamble
+      const int n_cells = (vtk_flags.output_cells ? num_cells : 0);
+      const int cells_size =
+        (vtk_flags.output_cells ? num_cells * (vertices_per_cell + 1) : 0);
+
+      AssertThrow(cells_size > 0, ExcMessage("No cells given to be output!"));
+
+      out << "\nCELLS " << n_cells << ' ' << cells_size << '\n';
+      /*
+       * VTK cells:
+       *
+       *  5 VTK_TRIANGLE
+       * 10 VTK_TETRA
+       *
+       * source: https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
+       */
+      const unsigned int cell_type = dim == 2 ? 5 : 10;
+
+      // write cells.
+      if (vtk_flags.output_cells)
+        for (const auto &cell : tria.cell_iterators())
+          {
+            out << vertices_per_cell;
+            for (unsigned int i = 0; i < vertices_per_cell; ++i)
+              {
+                out << ' ' << cell->vertex_index(i);
+              }
+            out << '\n';
+          }
+
+      // write cell types
+      out << "\nCELL_TYPES " << n_cells << '\n';
+      if (vtk_flags.output_cells)
+        {
+          for (unsigned int i = 0; i < num_cells; ++i)
+            {
+              out << cell_type << ' ';
+            }
+          out << '\n';
+        }
+
+      out << "\n\nCELL_DATA " << n_cells << '\n'
+          << "SCALARS SubdomainID int 1\n"
+          << "LOOKUP_TABLE default\n";
+
+      // Now material id and boundary id
+      if (vtk_flags.output_cells)
+        {
+          for (const auto &cell : tria.cell_iterators())
+            {
+              out << static_cast<std::make_signed<types::subdomain_id>::type>(
+                       cell->subdomain_id())
+                  << ' ';
+            }
+          out << '\n';
+        }
+
+      out.flush();
+
+      AssertThrow(out, ExcIO());
+
+
+      return;
+    }
+
   const auto faces = vtk_flags.output_only_relevant ?
                        get_relevant_face_iterators(tria) :
                        get_boundary_face_iterators(tria);

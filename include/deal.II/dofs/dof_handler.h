@@ -575,6 +575,22 @@ public:
   distribute_dofs(const hp::FECollection<dim, spacedim> &fe);
 
   /**
+   * TODO
+   */
+  void
+  set_entity_dofs(unsigned int                    d,
+                  unsigned int                    index,
+                  const types::global_dof_index *&ptr);
+
+  /**
+   * TODO
+   */
+  void
+  get_entity_dofs(unsigned int              d,
+                  unsigned int              index,
+                  types::global_dof_index *&ptr) const;
+
+  /**
    * Distribute level degrees of freedom on each level for geometric
    * multigrid. The active DoFs need to be distributed using distribute_dofs()
    * before calling this function.

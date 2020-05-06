@@ -1,0 +1,45 @@
+
+DEAL:2d-1::level              = 0 
+DEAL:2d-1::index              = 0 
+DEAL:2d-1::id                 = 0_0: 
+DEAL:2d-1::active             = 1 
+DEAL:2d-1::is_locally_owned   = 1 
+DEAL:2d-1::is_ghost           = 0 
+DEAL:2d-1::material_id        = 0 
+DEAL:2d-1::manifold_id        = 0 
+DEAL:2d-1::subdomain_id       = 0 
+DEAL:2d-1::level_subdomain_id = 0 
+DEAL:2d-1::vertices:
+DEAL:2d-1::  0 0 1.00000 0.00000
+DEAL:2d-1::  1 1 0.00000 1.00000
+DEAL:2d-1::  2 2 0.00000 0.00000
+DEAL:2d-1::
+DEAL:2d-1::0.666667 0.166667
+DEAL:2d-1::0.166667 0.666667
+DEAL:2d-1::0.166667 0.166667
+DEAL:2d-1::
+0.500                 -0.500     
+           0.500      -0.500     
+-0.500     -0.500     1.000      
+DEAL:2d-1::level              = 0 
+DEAL:2d-1::index              = 1 
+DEAL:2d-1::id                 = 1_0: 
+DEAL:2d-1::active             = 1 
+DEAL:2d-1::is_locally_owned   = 1 
+DEAL:2d-1::is_ghost           = 0 
+DEAL:2d-1::material_id        = 0 
+DEAL:2d-1::manifold_id        = 0 
+DEAL:2d-1::subdomain_id       = 0 
+DEAL:2d-1::level_subdomain_id = 0 
+DEAL:2d-1::vertices:
+DEAL:2d-1::  0 1 0.00000 1.00000
+DEAL:2d-1::  1 2 0.00000 0.00000
+DEAL:2d-1::  2 3 1.00000 1.00000
+DEAL:2d-1::
+DEAL:2d-1::0.166667 0.833333
+DEAL:2d-1::0.166667 0.333333
+DEAL:2d-1::0.666667 0.833333
+DEAL:2d-1::
+1.000      -0.500     -0.500     
+-0.500     0.500                 
+-0.500                0.500      

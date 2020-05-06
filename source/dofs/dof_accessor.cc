@@ -99,6 +99,13 @@ DoFCellAccessor<DoFHandlerType, lda>::update_cell_dof_indices_cache() const
   //         this->dof_handler->levels.size(),
   //       ExcMessage("DoFHandler not initialized"));
 
+  if (auto tria_tet =
+        dynamic_cast<const Tet::Triangulation<dim, spacedim> *>(this->tria))
+    {
+      (void)tria_tet; // [TODO] create a new cache
+      return;
+    }
+
   Assert(this->dof_handler != nullptr, typename BaseClass::ExcInvalidObject());
 
   internal::DoFCellAccessorImplementation::Implementation::
@@ -115,6 +122,22 @@ DoFCellAccessor<DoFHandlerType, lda>::set_dof_indices(
   // Assert(static_cast<unsigned int>(this->present_level) <
   //         this->dof_handler->levels.size(),
   //       ExcMessage("DoFHandler not initialized"));
+
+  if (auto tria = dynamic_cast<const Tet::Triangulation<dim> *>(this->tria))
+    {
+      auto ptr = local_dof_indices.data();
+
+      // enumerate in sequence: vertex, line, face, ...
+      for (unsigned int d = 0; d < dim; d++)
+        for (unsigned int index :
+             tria->get_entity_indices(dim, d, this->index()))
+          this->dof_handler->set_entity_dofs(d, index, ptr);
+
+      // ... and finally cell
+      this->dof_handler->set_entity_dofs(dim, this->index(), ptr);
+
+      return;
+    }
 
   Assert(this->dof_handler != nullptr, typename BaseClass::ExcInvalidObject());
 
