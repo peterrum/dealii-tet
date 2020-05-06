@@ -16,7 +16,11 @@
 #ifndef TET_DATA_OUT
 #define TET_DATA_OUT
 
+#include <deal.II/dofs/dof_handler.h>
+
 #include <deal.II/tet/mapping_q.h>
+
+#include <vector>
 
 using namespace dealii;
 
