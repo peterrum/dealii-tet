@@ -90,10 +90,11 @@ namespace internal
           // only allocate space if necessary
           if (new_size > n_cells())
             {
-              cells.reserve(new_size);
+              cells.reserve(new_size * GeometryInfo<structdim>::faces_per_cell);
               cells.insert(cells.end(),
-                           new_size - n_cells(),
-                           TriaObject<structdim>());
+                           (new_size - n_cells()) *
+                             GeometryInfo<structdim>::faces_per_cell,
+                           -1);
 
               used.reserve(new_size);
               used.insert(used.end(), new_size - used.size(), false);
@@ -149,10 +150,11 @@ namespace internal
           // see above...
           if (new_size > n_cells())
             {
-              cells.reserve(new_size);
+              cells.reserve(new_size * GeometryInfo<structdim>::faces_per_cell);
               cells.insert(cells.end(),
-                           new_size - n_cells(),
-                           TriaObject<structdim>());
+                           (new_size - n_cells()) *
+                             GeometryInfo<structdim>::faces_per_cell,
+                           -1);
 
               used.reserve(new_size);
               used.insert(used.end(), new_size - used.size(), false);

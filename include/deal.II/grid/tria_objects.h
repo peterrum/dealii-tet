@@ -68,20 +68,21 @@ namespace internal
        * Vector of the objects belonging to this level. The index of the
        * object equals the index in this container.
        */
-      std::vector<TriaObject<structdim>> cells;
+      std::vector<int> cells;
 
     public:
       unsigned int
       n_cells() const
       {
-        return cells.size();
+        return cells.size() / GeometryInfo<structdim>::faces_per_cell;
       }
 
       TriaObjectView
       get_cell(const unsigned int index)
       {
         return TriaObjectView(
-          ArrayView<int>(cells[index].faces,
+          ArrayView<int>(cells.data() +
+                           index * GeometryInfo<structdim>::faces_per_cell,
                          GeometryInfo<structdim>::faces_per_cell));
       }
 
