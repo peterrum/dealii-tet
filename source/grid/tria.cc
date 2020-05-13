@@ -3954,8 +3954,8 @@ namespace internal
                                    l < triangulation.levels.size();
                                    ++l)
                                 for (unsigned int h = 0;
-                                     h < triangulation.levels[l]
-                                           ->cells.cells.size();
+                                     h <
+                                     triangulation.levels[l]->cells.n_cells();
                                      ++h)
                                   for (const unsigned int q :
                                        GeometryInfo<dim>::face_indices())
@@ -6060,8 +6060,7 @@ namespace internal
                                  l < triangulation.levels.size();
                                  ++l)
                               for (unsigned int h = 0;
-                                   h <
-                                   triangulation.levels[l]->cells.cells.size();
+                                   h < triangulation.levels[l]->cells.n_cells();
                                    ++h)
                                 for (const unsigned int q :
                                      GeometryInfo<dim>::face_indices())
@@ -12031,14 +12030,14 @@ typename Triangulation<dim, spacedim>::cell_iterator
 Triangulation<dim, spacedim>::last() const
 {
   const unsigned int level = levels.size() - 1;
-  if (levels[level]->cells.cells.size() == 0)
+  if (levels[level]->cells.n_cells() == 0)
     return end(level);
 
   // find the last raw iterator on
   // this level
   raw_cell_iterator ri(const_cast<Triangulation<dim, spacedim> *>(this),
                        level,
-                       levels[level]->cells.cells.size() - 1);
+                       levels[level]->cells.n_cells() - 1);
 
   // then move to the last used one
   if (ri->used() == true)
@@ -12357,7 +12356,7 @@ Triangulation<dim, spacedim>::begin_raw_line(const unsigned int level) const
         // triangulation.
         Assert(level < levels.size(), ExcInvalidLevel(level, levels.size()));
 
-        if (level >= levels.size() || levels[level]->cells.cells.size() == 0)
+        if (level >= levels.size() || levels[level]->cells.n_cells() == 0)
           return end_line();
 
         return raw_line_iterator(
@@ -12447,7 +12446,7 @@ Triangulation<dim, spacedim>::begin_raw_quad(const unsigned int level) const
           // triangulation.
           Assert(level < levels.size(), ExcInvalidLevel(level, levels.size()));
 
-          if (level >= levels.size() || levels[level]->cells.cells.size() == 0)
+          if (level >= levels.size() || levels[level]->cells.n_cells() == 0)
             return end_quad();
 
           return raw_quad_iterator(
@@ -12547,7 +12546,7 @@ Triangulation<dim, spacedim>::begin_raw_hex(const unsigned int level) const
           // triangulation.
           Assert(level < levels.size(), ExcInvalidLevel(level, levels.size()));
 
-          if (level >= levels.size() || levels[level]->cells.cells.size() == 0)
+          if (level >= levels.size() || levels[level]->cells.n_cells() == 0)
             return end_hex();
 
           return raw_hex_iterator(
@@ -12826,7 +12825,7 @@ unsigned int
 Triangulation<1, 1>::n_raw_lines(const unsigned int level) const
 {
   AssertIndexRange(level, n_levels());
-  return levels[level]->cells.cells.size();
+  return levels[level]->cells.n_cells();
 }
 
 
@@ -12845,7 +12844,7 @@ unsigned int
 Triangulation<1, 2>::n_raw_lines(const unsigned int level) const
 {
   AssertIndexRange(level, n_levels());
-  return levels[level]->cells.cells.size();
+  return levels[level]->cells.n_cells();
 }
 
 
@@ -12863,7 +12862,7 @@ unsigned int
 Triangulation<1, 3>::n_raw_lines(const unsigned int level) const
 {
   AssertIndexRange(level, n_levels());
-  return levels[level]->cells.cells.size();
+  return levels[level]->cells.n_cells();
 }
 
 template <>
@@ -13092,7 +13091,7 @@ unsigned int
 Triangulation<2, 2>::n_raw_quads(const unsigned int level) const
 {
   AssertIndexRange(level, n_levels());
-  return levels[level]->cells.cells.size();
+  return levels[level]->cells.n_cells();
 }
 
 
@@ -13102,7 +13101,7 @@ unsigned int
 Triangulation<2, 3>::n_raw_quads(const unsigned int level) const
 {
   AssertIndexRange(level, n_levels());
-  return levels[level]->cells.cells.size();
+  return levels[level]->cells.n_cells();
 }
 
 
@@ -13222,7 +13221,7 @@ unsigned int
 Triangulation<3, 3>::n_raw_hexs(const unsigned int level) const
 {
   AssertIndexRange(level, n_levels());
-  return levels[level]->cells.cells.size();
+  return levels[level]->cells.n_cells();
 }
 
 

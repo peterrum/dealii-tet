@@ -213,7 +213,7 @@ TriaAccessorBase<structdim, dim, spacedim>::operator++()
     {
       while (this->present_index >=
              static_cast<int>(
-               this->tria->levels[this->present_level]->cells.cells.size()))
+               this->tria->levels[this->present_level]->cells.n_cells()))
         {
           // no -> go one level up until we find
           // one with more than zero cells
@@ -259,7 +259,7 @@ TriaAccessorBase<structdim, dim, spacedim>::operator--()
             }
           // else
           this->present_index =
-            this->tria->levels[this->present_level]->cells.cells.size() - 1;
+            this->tria->levels[this->present_level]->cells.n_cells() - 1;
         }
     }
 }

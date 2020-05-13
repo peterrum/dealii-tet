@@ -68,6 +68,12 @@ namespace internal
        */
       std::vector<TriaObject<structdim>> cells;
 
+      unsigned int
+      n_cells() const
+      {
+        return cells.size();
+      }
+
       /**
        * Index of the even children of an object. Since when objects are
        * refined, all children are created at the same time, they are appended
