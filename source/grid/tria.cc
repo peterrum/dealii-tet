@@ -5961,19 +5961,20 @@ namespace internal
                             // loop over all quads and replace the old
                             // lines
                             for (unsigned int q = 0;
-                                 q < triangulation.faces->quads.cells.size();
+                                 q < triangulation.faces->quads.n_cells();
                                  ++q)
                               for (unsigned int l = 0;
                                    l < GeometryInfo<dim>::lines_per_face;
                                    ++l)
                                 {
                                   const int this_index =
-                                    triangulation.faces->quads.cells[q].face(l);
+                                    triangulation.faces->quads.get_cell(q).face(
+                                      l);
                                   if (this_index == old_index_0)
-                                    triangulation.faces->quads.cells[q]
+                                    triangulation.faces->quads.get_cell(q)
                                       .set_face(l, new_index_0);
                                   else if (this_index == old_index_1)
-                                    triangulation.faces->quads.cells[q]
+                                    triangulation.faces->quads.get_cell(q)
                                       .set_face(l, new_index_1);
                                 }
                             // now we have to copy all information of
@@ -12888,7 +12889,7 @@ template <int dim, int spacedim>
 unsigned int
 Triangulation<dim, spacedim>::n_raw_lines() const
 {
-  return faces->lines.cells.size();
+  return faces->lines.n_cells();
 }
 
 
@@ -13129,7 +13130,7 @@ template <>
 unsigned int
 Triangulation<3, 3>::n_raw_quads() const
 {
-  return faces->quads.cells.size();
+  return faces->quads.n_cells();
 }
 
 

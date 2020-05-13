@@ -93,7 +93,7 @@ namespace internal
         new_size += additional_single_quads;
 
       // see above...
-      if (new_size > quads.cells.size())
+      if (new_size > quads.n_cells())
         {
           // reserve the field of the derived class
           quads_line_orientations.reserve(new_size *

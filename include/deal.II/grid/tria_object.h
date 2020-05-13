@@ -120,6 +120,16 @@ namespace internal
         : faces(faces)
       {}
 
+      template <int structdim>
+      DynamicTriaObject &
+      operator=(const TriaObject<structdim> &other)
+      {
+        for (unsigned int i = 0; i < faces.size(); ++i)
+          faces[i] = other.faces[i];
+
+        return *this;
+      }
+
       int
       face(const unsigned int i) const
       {

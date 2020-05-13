@@ -206,7 +206,7 @@ TriaAccessorBase<structdim, dim, spacedim>::operator++()
       // have to set the level, since
       // dim!=1 and the object therefore
       // has no level)
-      if (this->present_index >= static_cast<int>(objects().cells.size()))
+      if (this->present_index >= static_cast<int>(objects().n_cells()))
         this->present_index = -1;
     }
   else
@@ -613,7 +613,7 @@ namespace internal
       line_index(const TriaAccessor<2, dim, spacedim> &accessor,
                  const unsigned int                    i)
       {
-        return accessor.objects().cells[accessor.present_index].face(i);
+        return accessor.objects().get_cell(accessor.present_index).face(i);
       }
 
 
@@ -1077,7 +1077,7 @@ namespace internal
       vertex_index(const TriaAccessor<1, dim, spacedim> &accessor,
                    const unsigned int                    corner)
       {
-        return accessor.objects().cells[accessor.present_index].face(corner);
+        return accessor.objects().get_cell(accessor.present_index).face(corner);
       }
 
 

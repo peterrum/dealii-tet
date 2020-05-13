@@ -63,12 +63,14 @@ namespace internal
        */
       TriaObjects();
 
+    private:
       /**
        * Vector of the objects belonging to this level. The index of the
        * object equals the index in this container.
        */
       std::vector<TriaObject<structdim>> cells;
 
+    public:
       unsigned int
       n_cells() const
       {
