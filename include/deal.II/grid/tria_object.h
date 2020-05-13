@@ -113,15 +113,15 @@ namespace internal
       int faces[GeometryInfo<structdim>::faces_per_cell];
     };
 
-    class DynamicTriaObject
+    class TriaObjectView
     {
     public:
-      DynamicTriaObject(const ArrayView<int> faces)
+      TriaObjectView(const ArrayView<int> faces)
         : faces(faces)
       {}
 
       template <int structdim>
-      DynamicTriaObject &
+      TriaObjectView &
       operator=(const TriaObject<structdim> &other)
       {
         for (unsigned int i = 0; i < faces.size(); ++i)

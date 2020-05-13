@@ -88,11 +88,11 @@ namespace internal
             new_size += additional_single_objects;
 
           // only allocate space if necessary
-          if (new_size > cells.size())
+          if (new_size > n_cells())
             {
               cells.reserve(new_size);
               cells.insert(cells.end(),
-                           new_size - cells.size(),
+                           new_size - n_cells(),
                            TriaObject<structdim>());
 
               used.reserve(new_size);
@@ -147,11 +147,11 @@ namespace internal
             new_hexes + std::count(used.begin(), used.end(), true);
 
           // see above...
-          if (new_size > cells.size())
+          if (new_size > n_cells())
             {
               cells.reserve(new_size);
               cells.insert(cells.end(),
-                           new_size - cells.size(),
+                           new_size - n_cells(),
                            TriaObject<structdim>());
 
               used.reserve(new_size);
@@ -227,18 +227,18 @@ namespace internal
     void
     TriaObjects<1>::monitor_memory(const unsigned int) const
     {
-      Assert(cells.size() == used.size(),
-             ExcMemoryInexact(cells.size(), used.size()));
-      Assert(cells.size() == user_flags.size(),
-             ExcMemoryInexact(cells.size(), user_flags.size()));
-      Assert(cells.size() == children.size(),
-             ExcMemoryInexact(cells.size(), children.size()));
-      Assert(cells.size() == boundary_or_material_id.size(),
-             ExcMemoryInexact(cells.size(), boundary_or_material_id.size()));
-      Assert(cells.size() == manifold_id.size(),
-             ExcMemoryInexact(cells.size(), manifold_id.size()));
-      Assert(cells.size() == user_data.size(),
-             ExcMemoryInexact(cells.size(), user_data.size()));
+      Assert(n_cells() == used.size(),
+             ExcMemoryInexact(n_cells(), used.size()));
+      Assert(n_cells() == user_flags.size(),
+             ExcMemoryInexact(n_cells(), user_flags.size()));
+      Assert(n_cells() == children.size(),
+             ExcMemoryInexact(n_cells(), children.size()));
+      Assert(n_cells() == boundary_or_material_id.size(),
+             ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
+      Assert(n_cells() == manifold_id.size(),
+             ExcMemoryInexact(n_cells(), manifold_id.size()));
+      Assert(n_cells() == user_data.size(),
+             ExcMemoryInexact(n_cells(), user_data.size()));
     }
 
 
@@ -246,20 +246,20 @@ namespace internal
     void
     TriaObjects<2>::monitor_memory(const unsigned int) const
     {
-      Assert(cells.size() == used.size(),
-             ExcMemoryInexact(cells.size(), used.size()));
-      Assert(cells.size() == user_flags.size(),
-             ExcMemoryInexact(cells.size(), user_flags.size()));
-      Assert(2 * cells.size() == children.size(),
-             ExcMemoryInexact(cells.size(), children.size()));
-      Assert(cells.size() == refinement_cases.size(),
-             ExcMemoryInexact(cells.size(), refinement_cases.size()));
-      Assert(cells.size() == boundary_or_material_id.size(),
-             ExcMemoryInexact(cells.size(), boundary_or_material_id.size()));
-      Assert(cells.size() == manifold_id.size(),
-             ExcMemoryInexact(cells.size(), manifold_id.size()));
-      Assert(cells.size() == user_data.size(),
-             ExcMemoryInexact(cells.size(), user_data.size()));
+      Assert(n_cells() == used.size(),
+             ExcMemoryInexact(n_cells(), used.size()));
+      Assert(n_cells() == user_flags.size(),
+             ExcMemoryInexact(n_cells(), user_flags.size()));
+      Assert(2 * n_cells() == children.size(),
+             ExcMemoryInexact(n_cells(), children.size()));
+      Assert(n_cells() == refinement_cases.size(),
+             ExcMemoryInexact(n_cells(), refinement_cases.size()));
+      Assert(n_cells() == boundary_or_material_id.size(),
+             ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
+      Assert(n_cells() == manifold_id.size(),
+             ExcMemoryInexact(n_cells(), manifold_id.size()));
+      Assert(n_cells() == user_data.size(),
+             ExcMemoryInexact(n_cells(), user_data.size()));
     }
 
 
@@ -267,18 +267,18 @@ namespace internal
     void
     TriaObjects<3>::monitor_memory(const unsigned int) const
     {
-      Assert(cells.size() == used.size(),
-             ExcMemoryInexact(cells.size(), used.size()));
-      Assert(cells.size() == user_flags.size(),
-             ExcMemoryInexact(cells.size(), user_flags.size()));
-      Assert(4 * cells.size() == children.size(),
-             ExcMemoryInexact(cells.size(), children.size()));
-      Assert(cells.size() == boundary_or_material_id.size(),
-             ExcMemoryInexact(cells.size(), boundary_or_material_id.size()));
-      Assert(cells.size() == manifold_id.size(),
-             ExcMemoryInexact(cells.size(), manifold_id.size()));
-      Assert(cells.size() == user_data.size(),
-             ExcMemoryInexact(cells.size(), user_data.size()));
+      Assert(n_cells() == used.size(),
+             ExcMemoryInexact(n_cells(), used.size()));
+      Assert(n_cells() == user_flags.size(),
+             ExcMemoryInexact(n_cells(), user_flags.size()));
+      Assert(4 * n_cells() == children.size(),
+             ExcMemoryInexact(n_cells(), children.size()));
+      Assert(n_cells() == boundary_or_material_id.size(),
+             ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
+      Assert(n_cells() == manifold_id.size(),
+             ExcMemoryInexact(n_cells(), manifold_id.size()));
+      Assert(n_cells() == user_data.size(),
+             ExcMemoryInexact(n_cells(), user_data.size()));
     }
 
 

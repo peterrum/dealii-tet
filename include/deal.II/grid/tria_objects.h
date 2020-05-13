@@ -77,10 +77,10 @@ namespace internal
         return cells.size();
       }
 
-      DynamicTriaObject
+      TriaObjectView
       get_cell(const unsigned int index)
       {
-        return DynamicTriaObject(
+        return TriaObjectView(
           ArrayView<int>(cells[index].faces,
                          GeometryInfo<structdim>::faces_per_cell));
       }
