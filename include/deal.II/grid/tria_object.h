@@ -19,6 +19,7 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/base/array_view.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/geometry_info.h>
 
@@ -104,12 +105,35 @@ namespace internal
       void
       serialize(Archive &ar, const unsigned int version);
 
-    protected:
+    public:
       /**
        * Global indices of the face iterators bounding this cell if dim@>1,
        * and the two vertex indices in 1d.
        */
       int faces[GeometryInfo<structdim>::faces_per_cell];
+    };
+
+    class DynamicTriaObject
+    {
+    public:
+      DynamicTriaObject(const ArrayView<int> faces)
+        : faces(faces)
+      {}
+
+      int
+      face(const unsigned int i) const
+      {
+        return faces[i];
+      }
+
+      void
+      set_face(const unsigned int i, const int index)
+      {
+        faces[i] = index;
+      }
+
+    private:
+      const ArrayView<int> faces;
     };
 
     //----------------------------------------------------------------------//

@@ -688,7 +688,7 @@ namespace internal
       {
         AssertIndexRange(i, GeometryInfo<3>::quads_per_cell);
         return accessor.tria->levels[accessor.present_level]
-          ->cells.cells[accessor.present_index]
+          ->cells.get_cell(accessor.present_index)
           .face(i);
       }
 

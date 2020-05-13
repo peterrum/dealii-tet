@@ -3961,15 +3961,15 @@ namespace internal
                                        GeometryInfo<dim>::face_indices())
                                     {
                                       const int index = triangulation.levels[l]
-                                                          ->cells.cells[h]
+                                                          ->cells.get_cell(h)
                                                           .face(q);
                                       if (index == switch_1_index)
                                         triangulation.levels[l]
-                                          ->cells.cells[h]
+                                          ->cells.get_cell(h)
                                           .set_face(q, switch_2_index);
                                       else if (index == switch_2_index)
                                         triangulation.levels[l]
-                                          ->cells.cells[h]
+                                          ->cells.get_cell(h)
                                           .set_face(q, switch_1_index);
                                     }
                               // now we have to copy
@@ -6067,15 +6067,15 @@ namespace internal
                                   {
                                     const int face_index =
                                       triangulation.levels[l]
-                                        ->cells.cells[h]
+                                        ->cells.get_cell(h)
                                         .face(q);
                                     if (face_index == switch_1_index)
                                       triangulation.levels[l]
-                                        ->cells.cells[h]
+                                        ->cells.get_cell(h)
                                         .set_face(q, switch_2_index);
                                     else if (face_index == switch_2_index)
                                       triangulation.levels[l]
-                                        ->cells.cells[h]
+                                        ->cells.get_cell(h)
                                         .set_face(q, switch_1_index);
                                   }
                             // now we have to copy all information of

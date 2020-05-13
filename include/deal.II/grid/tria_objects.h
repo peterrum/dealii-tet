@@ -18,6 +18,7 @@
 
 #include <deal.II/base/config.h>
 
+#include <deal.II/base/array_view.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/geometry_info.h>
 
@@ -72,6 +73,14 @@ namespace internal
       n_cells() const
       {
         return cells.size();
+      }
+
+      DynamicTriaObject
+      get_cell(const unsigned int index)
+      {
+        return DynamicTriaObject(
+          ArrayView<int>(cells[index].faces,
+                         GeometryInfo<structdim>::faces_per_cell));
       }
 
       /**
