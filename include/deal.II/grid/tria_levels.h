@@ -58,6 +58,10 @@ namespace internal
     class TriaLevel
     {
     public:
+      TriaLevel()
+        : cells(dim)
+      {}
+
       /**
        * @p RefinementCase<dim>::Type flags for the cells to be refined with
        * or not (RefinementCase<dim>::no_refinement). The meaning what a cell
@@ -159,7 +163,7 @@ namespace internal
       /**
        * The object containing the data on lines and related functions
        */
-      TriaObjects<dim> cells;
+      TriaObjects cells;
 
       /**
        * For edges, we enforce a standard convention that opposite

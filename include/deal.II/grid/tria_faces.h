@@ -66,7 +66,7 @@ namespace internal
        *
        * @note Used only for dim=3.
        */
-      TriaObjects<2> quads;
+      TriaObjects quads;
 
       /**
        * Orientation of each line of each quad.
@@ -80,7 +80,7 @@ namespace internal
        *
        * @note Used only for dim>1.
        */
-      TriaObjects<1> lines;
+      TriaObjects lines;
 
       /**
        * Reserve space for line_orientations.

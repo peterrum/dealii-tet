@@ -54,7 +54,6 @@ namespace internal
      * @author Tobias Leicht, Guido Kanschat, 2006, 2007, 2012
      * @author Peter Munch, 2020
      */
-    template <int structdim_>
     class TriaObjects
     {
     public:
@@ -63,7 +62,14 @@ namespace internal
        */
       TriaObjects();
 
+      /**
+       * Constructor resetting some data.
+       */
+      TriaObjects(unsigned int structdim);
+
     private:
+      unsigned int structdim;
+
       /**
        * Vector of the objects belonging to this level. The index of the
        * object equals the index in this container.
@@ -74,16 +80,37 @@ namespace internal
       unsigned int
       n_cells() const
       {
-        return cells.size() / GeometryInfo<structdim_>::faces_per_cell;
+        unsigned int faces_per_cell = 1;
+
+        if (this->structdim == 1)
+          faces_per_cell = GeometryInfo<1>::faces_per_cell;
+        else if (this->structdim == 2)
+          faces_per_cell = GeometryInfo<2>::faces_per_cell;
+        else if (this->structdim == 3)
+          faces_per_cell = GeometryInfo<3>::faces_per_cell;
+        else
+          AssertThrow(false, ExcNotImplemented());
+
+        return cells.size() / faces_per_cell;
       }
 
       TriaObjectView
       get_cell(const unsigned int index)
       {
+        unsigned int faces_per_cell = 1;
+
+        if (this->structdim == 1)
+          faces_per_cell = GeometryInfo<1>::faces_per_cell;
+        else if (this->structdim == 2)
+          faces_per_cell = GeometryInfo<2>::faces_per_cell;
+        else if (this->structdim == 3)
+          faces_per_cell = GeometryInfo<3>::faces_per_cell;
+        else
+          AssertThrow(false, ExcNotImplemented());
+
         return TriaObjectView(
-          ArrayView<int>(cells.data() +
-                           index * GeometryInfo<structdim_>::faces_per_cell,
-                         GeometryInfo<structdim_>::faces_per_cell));
+          ArrayView<int>(cells.data() + index * faces_per_cell,
+                         faces_per_cell));
       }
 
       /**
@@ -401,29 +428,25 @@ namespace internal
     //----------------------------------------------------------------------//
 
 
-    template <int structdim>
-    inline TriaObjects<structdim>::BoundaryOrMaterialId::BoundaryOrMaterialId()
+    inline TriaObjects::BoundaryOrMaterialId::BoundaryOrMaterialId()
     {
       material_id = numbers::invalid_material_id;
     }
 
 
 
-    template <int structdim>
-    std::size_t
-    TriaObjects<structdim>::BoundaryOrMaterialId::memory_consumption()
+    inline std::size_t
+    TriaObjects::BoundaryOrMaterialId::memory_consumption()
     {
       return sizeof(BoundaryOrMaterialId);
     }
 
 
 
-    template <int structdim>
     template <class Archive>
     void
-    TriaObjects<structdim>::BoundaryOrMaterialId::serialize(
-      Archive &ar,
-      const unsigned int /*version*/)
+    TriaObjects::BoundaryOrMaterialId::serialize(Archive &ar,
+                                                 const unsigned int /*version*/)
     {
       // serialize this
       // structure by
@@ -440,9 +463,8 @@ namespace internal
     }
 
 
-    template <int structdim>
     inline void *&
-    TriaObjects<structdim>::user_pointer(const unsigned int i)
+    TriaObjects::user_pointer(const unsigned int i)
     {
       Assert(user_data_type == data_unknown || user_data_type == data_pointer,
              ExcPointerIndexClash());
@@ -453,9 +475,8 @@ namespace internal
     }
 
 
-    template <int structdim>
     inline const void *
-    TriaObjects<structdim>::user_pointer(const unsigned int i) const
+    TriaObjects::user_pointer(const unsigned int i) const
     {
       Assert(user_data_type == data_unknown || user_data_type == data_pointer,
              ExcPointerIndexClash());
@@ -466,9 +487,8 @@ namespace internal
     }
 
 
-    template <int structdim>
     inline unsigned int &
-    TriaObjects<structdim>::user_index(const unsigned int i)
+    TriaObjects::user_index(const unsigned int i)
     {
       Assert(user_data_type == data_unknown || user_data_type == data_index,
              ExcPointerIndexClash());
@@ -479,27 +499,34 @@ namespace internal
     }
 
 
-    template <int structdim>
     inline void
-    TriaObjects<structdim>::clear_user_data(const unsigned int i)
+    TriaObjects::clear_user_data(const unsigned int i)
     {
       AssertIndexRange(i, user_data.size());
       user_data[i].i = 0;
     }
 
 
-    template <int structdim>
-    inline TriaObjects<structdim>::TriaObjects()
-      : next_free_single(numbers::invalid_unsigned_int)
+    inline TriaObjects::TriaObjects()
+      : structdim(-1)
+      , next_free_single(numbers::invalid_unsigned_int)
       , next_free_pair(numbers::invalid_unsigned_int)
       , reverse_order_next_free_single(false)
       , user_data_type(data_unknown)
     {}
 
 
-    template <int structdim>
+    inline TriaObjects::TriaObjects(const unsigned int structdim)
+      : structdim(structdim)
+      , next_free_single(numbers::invalid_unsigned_int)
+      , next_free_pair(numbers::invalid_unsigned_int)
+      , reverse_order_next_free_single(false)
+      , user_data_type(data_unknown)
+    {}
+
+
     inline unsigned int
-    TriaObjects<structdim>::user_index(const unsigned int i) const
+    TriaObjects::user_index(const unsigned int i) const
     {
       Assert(user_data_type == data_unknown || user_data_type == data_index,
              ExcPointerIndexClash());
@@ -510,9 +537,8 @@ namespace internal
     }
 
 
-    template <int structdim>
     inline void
-    TriaObjects<structdim>::clear_user_data()
+    TriaObjects::clear_user_data()
     {
       user_data_type = data_unknown;
       for (unsigned int i = 0; i < user_data.size(); ++i)
@@ -520,18 +546,16 @@ namespace internal
     }
 
 
-    template <int structdim>
     inline void
-    TriaObjects<structdim>::clear_user_flags()
+    TriaObjects::clear_user_flags()
     {
       user_flags.assign(user_flags.size(), false);
     }
 
 
-    template <int structdim>
     template <class Archive>
     void
-    TriaObjects<structdim>::UserData::serialize(Archive &ar, const unsigned int)
+    TriaObjects::UserData::serialize(Archive &ar, const unsigned int)
     {
       // serialize this as an integer
       ar &i;
@@ -539,11 +563,11 @@ namespace internal
 
 
 
-    template <int structdim>
     template <class Archive>
     void
-    TriaObjects<structdim>::serialize(Archive &ar, const unsigned int)
+    TriaObjects::serialize(Archive &ar, const unsigned int)
     {
+      ar &structdim;
       ar &cells &children;
       ar &       refinement_cases;
       ar &       used;
@@ -557,16 +581,15 @@ namespace internal
 
     //----------------------------------------------------------------------//
 
-    template <int structdim_>
     template <int structdim, int dim, int spacedim>
     dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
-    TriaObjects<structdim_>::next_free_single_object(
+    TriaObjects::next_free_single_object(
       const Triangulation<dim, spacedim> &tria)
     {
       // TODO: Think of a way to ensure that we are using the correct
       // triangulation, i.e. the one containing *this.
 
-      AssertDimension(structdim, structdim_);
+      AssertDimension(structdim, this->structdim);
 
       int pos = next_free_single, last = used.size() - 1;
       if (!reverse_order_next_free_single)
@@ -612,16 +635,14 @@ namespace internal
 
 
 
-    template <int structdim_>
     template <int structdim, int dim, int spacedim>
     dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
-    TriaObjects<structdim_>::next_free_pair_object(
-      const Triangulation<dim, spacedim> &tria)
+    TriaObjects::next_free_pair_object(const Triangulation<dim, spacedim> &tria)
     {
       // TODO: Think of a way to ensure that we are using the correct
       // triangulation, i.e. the one containing *this.
 
-      AssertDimension(structdim, structdim_);
+      AssertDimension(structdim, this->structdim);
 
       int pos = next_free_pair, last = used.size() - 1;
       for (; pos < last; ++pos)
@@ -642,15 +663,6 @@ namespace internal
       return dealii::TriaRawIterator<
         dealii::TriaAccessor<structdim, dim, spacedim>>(&tria, 0, pos);
     }
-
-
-
-    // declaration of explicit specializations
-
-    template <>
-    void
-    TriaObjects<2>::monitor_memory(const unsigned int) const;
-
   } // namespace TriangulationImplementation
 } // namespace internal
 

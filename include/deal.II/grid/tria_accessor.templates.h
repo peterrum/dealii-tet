@@ -274,7 +274,7 @@ namespace internal
      * the last argument.
      */
     template <int dim>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<1> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects(dealii::internal::TriangulationImplementation::TriaFaces *faces,
                 const std::integral_constant<int, 1>)
     {
@@ -283,7 +283,7 @@ namespace internal
 
 
     template <int dim>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<2> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects(dealii::internal::TriangulationImplementation::TriaFaces *faces,
                 const std::integral_constant<int, 2>)
     {
@@ -291,7 +291,7 @@ namespace internal
     }
 
     template <>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<1> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects<1>(dealii::internal::TriangulationImplementation::TriaFaces *,
                    const std::integral_constant<int, 1>)
     {
@@ -300,7 +300,7 @@ namespace internal
     }
 
     template <>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<2> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects<2>(dealii::internal::TriangulationImplementation::TriaFaces *,
                    const std::integral_constant<int, 2>)
     {
@@ -308,7 +308,7 @@ namespace internal
       return nullptr;
     }
 
-    inline dealii::internal::TriangulationImplementation::TriaObjects<3> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects(dealii::internal::TriangulationImplementation::TriaFaces *,
                 const std::integral_constant<int, 3>)
     {
@@ -321,7 +321,7 @@ namespace internal
      * instantiation of TriaAccessorBase<dim,dim,spacedim>::objects() const
      */
     template <int dim>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<3> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects(dealii::internal::TriangulationImplementation::TriaFaces *,
                 const std::integral_constant<int, 3>)
     {
@@ -333,20 +333,18 @@ namespace internal
      * Copy the above functions for cell objects.
      */
     template <int structdim, int dim>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<structdim>
-      *
-      get_objects(
-        dealii::internal::TriangulationImplementation::TriaObjects<dim> *,
-        const std::integral_constant<int, structdim>)
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
+    get_objects(dealii::internal::TriangulationImplementation::TriaObjects *,
+                const std::integral_constant<int, structdim>)
     {
       Assert(false, ExcInternalError());
       return nullptr;
     }
 
     template <int dim>
-    inline dealii::internal::TriangulationImplementation::TriaObjects<dim> *
+    inline dealii::internal::TriangulationImplementation::TriaObjects *
     get_objects(
-      dealii::internal::TriangulationImplementation::TriaObjects<dim> *cells,
+      dealii::internal::TriangulationImplementation::TriaObjects *cells,
       const std::integral_constant<int, dim>)
     {
       return cells;
@@ -357,7 +355,7 @@ namespace internal
 
 
 template <int structdim, int dim, int spacedim>
-inline dealii::internal::TriangulationImplementation::TriaObjects<structdim> &
+inline dealii::internal::TriangulationImplementation::TriaObjects &
 TriaAccessorBase<structdim, dim, spacedim>::objects() const
 {
   if (structdim != dim)

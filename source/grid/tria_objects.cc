@@ -31,11 +31,9 @@ namespace internal
 {
   namespace TriangulationImplementation
   {
-    template <int structdim>
     void
-    TriaObjects<structdim>::reserve_space(
-      const unsigned int new_objects_in_pairs,
-      const unsigned int new_objects_single)
+    TriaObjects::reserve_space(const unsigned int new_objects_in_pairs,
+                               const unsigned int new_objects_single)
     {
       if (structdim <= 2)
         {
@@ -90,10 +88,30 @@ namespace internal
           // only allocate space if necessary
           if (new_size > n_cells())
             {
-              cells.reserve(new_size * GeometryInfo<structdim>::faces_per_cell);
+              unsigned int faces_per_cell        = 1;
+              unsigned int max_children_per_cell = 1;
+
+              if (this->structdim == 1)
+                faces_per_cell = GeometryInfo<1>::faces_per_cell;
+              else if (this->structdim == 2)
+                faces_per_cell = GeometryInfo<2>::faces_per_cell;
+              else if (this->structdim == 3)
+                faces_per_cell = GeometryInfo<3>::faces_per_cell;
+              else
+                AssertThrow(false, ExcNotImplemented());
+
+              if (this->structdim == 1)
+                max_children_per_cell = GeometryInfo<1>::max_children_per_cell;
+              else if (this->structdim == 2)
+                max_children_per_cell = GeometryInfo<2>::max_children_per_cell;
+              else if (this->structdim == 3)
+                max_children_per_cell = GeometryInfo<3>::max_children_per_cell;
+              else
+                AssertThrow(false, ExcNotImplemented());
+
+              cells.reserve(new_size * faces_per_cell);
               cells.insert(cells.end(),
-                           (new_size - n_cells()) *
-                             GeometryInfo<structdim>::faces_per_cell,
+                           (new_size - n_cells()) * faces_per_cell,
                            -1);
 
               used.reserve(new_size);
@@ -104,8 +122,7 @@ namespace internal
                                 new_size - user_flags.size(),
                                 false);
 
-              const unsigned int factor =
-                GeometryInfo<structdim>::max_children_per_cell / 2;
+              const unsigned int factor = max_children_per_cell / 2;
               children.reserve(factor * new_size);
               children.insert(children.end(),
                               factor * new_size - children.size(),
@@ -114,10 +131,9 @@ namespace internal
               if (structdim > 1)
                 {
                   refinement_cases.reserve(new_size);
-                  refinement_cases.insert(
-                    refinement_cases.end(),
-                    new_size - refinement_cases.size(),
-                    RefinementCase<structdim>::no_refinement);
+                  refinement_cases.insert(refinement_cases.end(),
+                                          new_size - refinement_cases.size(),
+                                          /*RefinementCase::no_refinement=*/0);
                 }
 
               // first reserve, then resize. Otherwise the std library can
@@ -150,10 +166,20 @@ namespace internal
           // see above...
           if (new_size > n_cells())
             {
-              cells.reserve(new_size * GeometryInfo<structdim>::faces_per_cell);
+              unsigned int faces_per_cell = 1;
+
+              if (this->structdim == 1)
+                faces_per_cell = GeometryInfo<1>::faces_per_cell;
+              else if (this->structdim == 2)
+                faces_per_cell = GeometryInfo<2>::faces_per_cell;
+              else if (this->structdim == 3)
+                faces_per_cell = GeometryInfo<3>::faces_per_cell;
+              else
+                AssertThrow(false, ExcNotImplemented());
+
+              cells.reserve(new_size * faces_per_cell);
               cells.insert(cells.end(),
-                           (new_size - n_cells()) *
-                             GeometryInfo<structdim>::faces_per_cell,
+                           (new_size - n_cells()) * faces_per_cell,
                            -1);
 
               used.reserve(new_size);
@@ -187,20 +213,20 @@ namespace internal
               refinement_cases.reserve(new_size);
               refinement_cases.insert(refinement_cases.end(),
                                       new_size - refinement_cases.size(),
-                                      RefinementCase<structdim>::no_refinement);
+                                      /*RefinementCase::no_refinement=*/0);
             }
           next_free_single = next_free_pair = 0;
         }
     }
 
 
-    template <>
     template <int dim, int spacedim>
     typename dealii::Triangulation<dim, spacedim>::raw_hex_iterator
-    TriaObjects<3>::next_free_hex(
-      const dealii::Triangulation<dim, spacedim> &tria,
-      const unsigned int                          level)
+    TriaObjects::next_free_hex(const dealii::Triangulation<dim, spacedim> &tria,
+                               const unsigned int level)
     {
+      AssertDimension(this->structdim, 3);
+
       // TODO: Think of a way to ensure that we are using the correct
       // triangulation, i.e. the one containing *this.
 
@@ -225,68 +251,61 @@ namespace internal
     }
 
 
-    template <>
     void
-    TriaObjects<1>::monitor_memory(const unsigned int) const
+    TriaObjects::monitor_memory(const unsigned int) const
     {
-      Assert(n_cells() == used.size(),
-             ExcMemoryInexact(n_cells(), used.size()));
-      Assert(n_cells() == user_flags.size(),
-             ExcMemoryInexact(n_cells(), user_flags.size()));
-      Assert(n_cells() == children.size(),
-             ExcMemoryInexact(n_cells(), children.size()));
-      Assert(n_cells() == boundary_or_material_id.size(),
-             ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
-      Assert(n_cells() == manifold_id.size(),
-             ExcMemoryInexact(n_cells(), manifold_id.size()));
-      Assert(n_cells() == user_data.size(),
-             ExcMemoryInexact(n_cells(), user_data.size()));
+      if (this->structdim == 1)
+        {
+          Assert(n_cells() == used.size(),
+                 ExcMemoryInexact(n_cells(), used.size()));
+          Assert(n_cells() == user_flags.size(),
+                 ExcMemoryInexact(n_cells(), user_flags.size()));
+          Assert(n_cells() == children.size(),
+                 ExcMemoryInexact(n_cells(), children.size()));
+          Assert(n_cells() == boundary_or_material_id.size(),
+                 ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
+          Assert(n_cells() == manifold_id.size(),
+                 ExcMemoryInexact(n_cells(), manifold_id.size()));
+          Assert(n_cells() == user_data.size(),
+                 ExcMemoryInexact(n_cells(), user_data.size()));
+        }
+      else if (this->structdim == 2)
+        {
+          Assert(n_cells() == used.size(),
+                 ExcMemoryInexact(n_cells(), used.size()));
+          Assert(n_cells() == user_flags.size(),
+                 ExcMemoryInexact(n_cells(), user_flags.size()));
+          Assert(2 * n_cells() == children.size(),
+                 ExcMemoryInexact(n_cells(), children.size()));
+          Assert(n_cells() == refinement_cases.size(),
+                 ExcMemoryInexact(n_cells(), refinement_cases.size()));
+          Assert(n_cells() == boundary_or_material_id.size(),
+                 ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
+          Assert(n_cells() == manifold_id.size(),
+                 ExcMemoryInexact(n_cells(), manifold_id.size()));
+          Assert(n_cells() == user_data.size(),
+                 ExcMemoryInexact(n_cells(), user_data.size()));
+        }
+      else if (this->structdim == 3)
+        {
+          Assert(n_cells() == used.size(),
+                 ExcMemoryInexact(n_cells(), used.size()));
+          Assert(n_cells() == user_flags.size(),
+                 ExcMemoryInexact(n_cells(), user_flags.size()));
+          Assert(4 * n_cells() == children.size(),
+                 ExcMemoryInexact(n_cells(), children.size()));
+          Assert(n_cells() == boundary_or_material_id.size(),
+                 ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
+          Assert(n_cells() == manifold_id.size(),
+                 ExcMemoryInexact(n_cells(), manifold_id.size()));
+          Assert(n_cells() == user_data.size(),
+                 ExcMemoryInexact(n_cells(), user_data.size()));
+        }
     }
 
 
-    template <>
-    void
-    TriaObjects<2>::monitor_memory(const unsigned int) const
-    {
-      Assert(n_cells() == used.size(),
-             ExcMemoryInexact(n_cells(), used.size()));
-      Assert(n_cells() == user_flags.size(),
-             ExcMemoryInexact(n_cells(), user_flags.size()));
-      Assert(2 * n_cells() == children.size(),
-             ExcMemoryInexact(n_cells(), children.size()));
-      Assert(n_cells() == refinement_cases.size(),
-             ExcMemoryInexact(n_cells(), refinement_cases.size()));
-      Assert(n_cells() == boundary_or_material_id.size(),
-             ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
-      Assert(n_cells() == manifold_id.size(),
-             ExcMemoryInexact(n_cells(), manifold_id.size()));
-      Assert(n_cells() == user_data.size(),
-             ExcMemoryInexact(n_cells(), user_data.size()));
-    }
-
-
-    template <>
-    void
-    TriaObjects<3>::monitor_memory(const unsigned int) const
-    {
-      Assert(n_cells() == used.size(),
-             ExcMemoryInexact(n_cells(), used.size()));
-      Assert(n_cells() == user_flags.size(),
-             ExcMemoryInexact(n_cells(), user_flags.size()));
-      Assert(4 * n_cells() == children.size(),
-             ExcMemoryInexact(n_cells(), children.size()));
-      Assert(n_cells() == boundary_or_material_id.size(),
-             ExcMemoryInexact(n_cells(), boundary_or_material_id.size()));
-      Assert(n_cells() == manifold_id.size(),
-             ExcMemoryInexact(n_cells(), manifold_id.size()));
-      Assert(n_cells() == user_data.size(),
-             ExcMemoryInexact(n_cells(), user_data.size()));
-    }
-
-
-    template <int structdim>
     std::size_t
-    TriaObjects<structdim>::memory_consumption() const
+    TriaObjects::memory_consumption() const
     {
       return (MemoryConsumption::memory_consumption(cells) +
               MemoryConsumption::memory_consumption(children) +
@@ -302,10 +321,6 @@ namespace internal
 
     // explicit instantiations
 #ifndef DOXYGEN
-    template class TriaObjects<1>;
-    template class TriaObjects<2>;
-    template class TriaObjects<3>;
-
 #  include "tria_objects.inst"
 #endif
   } // namespace TriangulationImplementation

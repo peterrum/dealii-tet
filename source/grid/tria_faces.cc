@@ -27,6 +27,8 @@ namespace internal
   {
     TriaFaces::TriaFaces(unsigned int dim)
       : dim(dim)
+      , quads(2)
+      , lines(1)
     {}
 
     std::size_t
