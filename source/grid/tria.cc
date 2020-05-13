@@ -5598,7 +5598,7 @@ namespace internal
                 // two child lines (++ takes care of the end of the
                 // vector)
                 next_unused_line =
-                  triangulation.faces->lines.next_free_pair_object(
+                  triangulation.faces->lines.template next_free_pair_object<1>(
                     triangulation);
                 Assert(next_unused_line.state() == IteratorState::valid,
                        ExcInternalError());
@@ -5726,8 +5726,8 @@ namespace internal
                       new_line;
 
                     new_line =
-                      triangulation.faces->lines.next_free_single_object(
-                        triangulation);
+                      triangulation.faces->lines
+                        .template next_free_single_object<1>(triangulation);
                     Assert(
                       new_line->used() == false,
                       ExcMessage(
@@ -5788,8 +5788,8 @@ namespace internal
                       new_quads[2];
 
                     next_unused_quad =
-                      triangulation.faces->quads.next_free_pair_object(
-                        triangulation);
+                      triangulation.faces->quads
+                        .template next_free_pair_object<2>(triangulation);
                     new_quads[0] = next_unused_quad;
                     Assert(
                       new_quads[0]->used() == false,
@@ -5946,8 +5946,9 @@ namespace internal
                               new_child[2];
 
                             new_child[0] = new_child[1] =
-                              triangulation.faces->lines.next_free_pair_object(
-                                triangulation);
+                              triangulation.faces->lines
+                                .template next_free_pair_object<1>(
+                                  triangulation);
                             ++new_child[1];
 
                             new_child[0]->set_used_flag();
@@ -6271,8 +6272,9 @@ namespace internal
                             // now search a slot for the two
                             // child lines
                             next_unused_line =
-                              triangulation.faces->lines.next_free_pair_object(
-                                triangulation);
+                              triangulation.faces->lines
+                                .template next_free_pair_object<1>(
+                                  triangulation);
 
                             // set the child pointer of the present
                             // line
@@ -6377,8 +6379,8 @@ namespace internal
                           // anisotropically and the two lines end up
                           // as children of new line
                           next_unused_line =
-                            triangulation.faces->lines.next_free_pair_object(
-                              triangulation);
+                            triangulation.faces->lines
+                              .template next_free_pair_object<1>(triangulation);
 
                         new_lines[i] = next_unused_line;
                         ++next_unused_line;
@@ -6493,8 +6495,8 @@ namespace internal
                       new_quads[4];
 
                     next_unused_quad =
-                      triangulation.faces->quads.next_free_pair_object(
-                        triangulation);
+                      triangulation.faces->quads
+                        .template next_free_pair_object<2>(triangulation);
 
                     new_quads[0] = next_unused_quad;
                     Assert(
@@ -6510,8 +6512,8 @@ namespace internal
                         "Internal error: We want to use a cell during refinement that should be unused, but turns out not to be."));
 
                     next_unused_quad =
-                      triangulation.faces->quads.next_free_pair_object(
-                        triangulation);
+                      triangulation.faces->quads
+                        .template next_free_pair_object<2>(triangulation);
                     new_quads[2] = next_unused_quad;
                     Assert(
                       new_quads[2]->used() == false,
@@ -6683,8 +6685,8 @@ namespace internal
                   for (unsigned int i = 0; i < n_new_lines; ++i)
                     {
                       new_lines[i] =
-                        triangulation.faces->lines.next_free_single_object(
-                          triangulation);
+                        triangulation.faces->lines
+                          .template next_free_single_object<1>(triangulation);
 
                       Assert(
                         new_lines[i]->used() == false,
@@ -6710,8 +6712,8 @@ namespace internal
                   for (unsigned int i = 0; i < n_new_quads; ++i)
                     {
                       new_quads[i] =
-                        triangulation.faces->quads.next_free_single_object(
-                          triangulation);
+                        triangulation.faces->quads
+                          .template next_free_single_object<2>(triangulation);
 
                       Assert(
                         new_quads[i]->used() == false,

@@ -54,7 +54,7 @@ namespace internal
      * @author Tobias Leicht, Guido Kanschat, 2006, 2007, 2012
      * @author Peter Munch, 2020
      */
-    template <int structdim>
+    template <int structdim_>
     class TriaObjects
     {
     public:
@@ -74,7 +74,7 @@ namespace internal
       unsigned int
       n_cells() const
       {
-        return cells.size() / GeometryInfo<structdim>::faces_per_cell;
+        return cells.size() / GeometryInfo<structdim_>::faces_per_cell;
       }
 
       TriaObjectView
@@ -82,8 +82,8 @@ namespace internal
       {
         return TriaObjectView(
           ArrayView<int>(cells.data() +
-                           index * GeometryInfo<structdim>::faces_per_cell,
-                         GeometryInfo<structdim>::faces_per_cell));
+                           index * GeometryInfo<structdim_>::faces_per_cell,
+                         GeometryInfo<structdim_>::faces_per_cell));
       }
 
       /**
@@ -208,7 +208,7 @@ namespace internal
        *
        * @todo This function is not instantiated for the codim-one case
        */
-      template <int dim, int spacedim>
+      template <int structdim, int dim, int spacedim>
       dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
       next_free_single_object(const Triangulation<dim, spacedim> &tria);
 
@@ -223,7 +223,7 @@ namespace internal
        *
        * @todo This function is not instantiated for the codim-one case
        */
-      template <int dim, int spacedim>
+      template <int structdim, int dim, int spacedim>
       dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
       next_free_pair_object(const Triangulation<dim, spacedim> &tria);
 
@@ -557,14 +557,16 @@ namespace internal
 
     //----------------------------------------------------------------------//
 
-    template <int structdim>
-    template <int dim, int spacedim>
+    template <int structdim_>
+    template <int structdim, int dim, int spacedim>
     dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
-    TriaObjects<structdim>::next_free_single_object(
+    TriaObjects<structdim_>::next_free_single_object(
       const Triangulation<dim, spacedim> &tria)
     {
       // TODO: Think of a way to ensure that we are using the correct
       // triangulation, i.e. the one containing *this.
+
+      AssertDimension(structdim, structdim_);
 
       int pos = next_free_single, last = used.size() - 1;
       if (!reverse_order_next_free_single)
@@ -610,14 +612,16 @@ namespace internal
 
 
 
-    template <int structdim>
-    template <int dim, int spacedim>
+    template <int structdim_>
+    template <int structdim, int dim, int spacedim>
     dealii::TriaRawIterator<dealii::TriaAccessor<structdim, dim, spacedim>>
-    TriaObjects<structdim>::next_free_pair_object(
+    TriaObjects<structdim_>::next_free_pair_object(
       const Triangulation<dim, spacedim> &tria)
     {
       // TODO: Think of a way to ensure that we are using the correct
       // triangulation, i.e. the one containing *this.
+
+      AssertDimension(structdim, structdim_);
 
       int pos = next_free_pair, last = used.size() - 1;
       for (; pos < last; ++pos)
